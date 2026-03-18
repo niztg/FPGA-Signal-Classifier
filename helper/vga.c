@@ -5,7 +5,7 @@ void vga_text(int x, int y, char * text_ptr) {
     int offset;
     /* assume that the text string fits on one line */
     offset = (y << 7) + x;
-    while (*(text_ptr) != nullptr) {
+    while (*(text_ptr) != NULL) {
         *(character_buffer_start + offset) = *(text_ptr); // write to the character buffer
         ++text_ptr;
         ++offset;
@@ -91,33 +91,5 @@ void fillBox(point p, int size, short int color) {
         for (int y = p.y; y < p.y + size; y++) {
             plotPixel((point){x, y}, color);
         }
-    }
-}
-
-void drawChar(point top_left, char c, short int color, int scale) {
-    unsigned char ch = (unsigned char)c;
-
-    for (int row = 0; row < 8; row++) {
-        unsigned char row_bits = font[ch][row];
-
-        for (int col = 0; col < 8; col++) {
-            if (row_bits & (1 << (7 - col))) {
-                point pixel_pos = {
-                    top_left.x + col * scale,
-                    top_left.y + row * scale
-                };
-                fillBox(pixel_pos, scale, color);
-            }
-        }
-    }
-}
-
-void drawText(point top_left, const char *text, short int color, int scale) {
-    int cursor_x = top_left.x;
-
-    while (*text) {
-        drawChar((point){cursor_x, top_left.y}, *text, color, scale);
-        cursor_x += 8 * scale;
-        text++;
     }
 }

@@ -19,6 +19,7 @@ March 2026
 #define KEY_BASE            0xFF200050
 #define LED_BASE            0xFF200000
 #define VGA_BASE            0xFF203020
+#define CHARACTER_BASE      0xFF203030
 
 #define RECORDING_LENGTH   40000      // total samples
 #define FRAME_LENGTH       256        // samples per frame
@@ -61,6 +62,9 @@ short int Buffer1[240][512]; // Buffer 1 memory allocation
 short int Buffer2[240][512]; // Buffer 2 memory allocation
 volatile int * pixel_ctrl_ptr = (int *)VGA_BASE; // VGA controller address
 
+volatile char* character_buffer_start;
+volatile int * character_ctrl_ptr = (int *)CHARACTER_BASE;
+
 // The 2D array which stores the frame-discretized recording
 // Each frame is represented by 200 consecutive samples, and any two adjacent
 // frames share 100 mutual samples; the last 100 of the first frame and the
@@ -81,7 +85,14 @@ double frequency_bins[NO_FREQ_BINS];
 int main(void){
     *led_ptr = 0;
     *(key_ptr+3) = CLEAR_KEY;
-    
+
+    character_buffer_start = *character_ctrl_ptr;
+
+    //cons: constant size, color, font.
+    //pros: twice higher res
+    char greeting[] = "Hello World!";
+    vga_text(0,0, greeting);
+
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // Point back buffer to Buffer1
     waitForVsync(); // Apply buffer settings
     pixel_buffer_start = *pixel_ctrl_ptr; // Sync pointer to front buffer

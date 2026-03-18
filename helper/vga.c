@@ -100,8 +100,8 @@ void drawGraphBoundingBox(point top_left, int graph_height, int graph_width){
 	point top_right = {top_left.x + graph_width, top_left.y};
 	point bottom_right = {top_left.x + graph_width, top_left.y + graph_height};
 
-	drawLine(top_left, top_right, 0);
-	drawLine(top_left, bottom_left, 0);
-	drawLine(bottom_right, top_right, 0);
-	drawLine(bottom_right, bottom_left, 0);
+	drawLine(top_left, top_right, 0xFFFF);
+	drawLine(top_left, bottom_left, 0xFFFF);
+	drawLine(bottom_right, top_right, 0xFFFF);
+	drawLine(bottom_right, bottom_left, 0xFFFF);
 }

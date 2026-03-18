@@ -60,7 +60,7 @@ double spectral_flatness(double frame_fft[NO_FREQ_BINS]);
 // Spectral Bandwidth
 // Spread of frequencies around the centroid, measures how wide the spectrum is.
 // Tones have narrow bandwidth, noise and speech have higher bandwidth
-double spectral_bandwidth(double frame_fft[NO_FREQ_BINS], double s_centroid);
+double spectral_bandwidth(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]);
 
 /*
 LEVEL 1 EXCLUSIVE FEATURES

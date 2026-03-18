@@ -47,7 +47,7 @@ LDFLAGS		:= $(USERLDFLAGS) $(ARCHLDFLAGS)
 LIBS		:= -lm
 
 # Files
-OBJS		:= $(patsubst %, %.o, $(SRCS))
+OBJS := $(SRCS:.c=.o)
 
 ############################################
 # GDB Macros

@@ -18,18 +18,18 @@ amenable to the neural network for further analysis.
 #include "../kiss_fftr.h"
 
 typedef struct {
-    double log_energy;
-    double zero_crossing_rate;
-    double spectral_centroid;
-    double spectral_flatness;
-    double spectral_bandwidth;
-    double peak_amplitude;
-    double crest_factor;
-    double dominant_frequency;
-    double spectral_rolloff;
-    double spectral_entropy;
-    double low_band_power_ratio;
-    double high_band_power_ratio;
+    double logEnergy;
+    double zeroCrossingRate;
+    double spectralCentroid;
+    double spectralFlatness;
+    double spectralBandwidth;
+    double peakAmplitude;
+    double crestFactor;
+    double dominantFrequency;
+    double spectralRolloff;
+    double spectralEntropy;
+    double lowBandPowerRatio;
+    double highBandPowerRatio;
 } FeatureVector0;
 
 void unzip_recording_into_frames(int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH], int recording[RECORDING_LENGTH]);

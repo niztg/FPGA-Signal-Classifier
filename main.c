@@ -90,6 +90,8 @@ int main(void){
 
     //cons: constant size, color, font.
     //pros: twice higher res
+    //note: keep text coordinates alligned with multiples of 8 since each char is 8 x 8.
+    //      you can write a maximum of 80x60 characters at one time
     char greeting[] = "Hello World!";
     vga_text(0,0, greeting);
 

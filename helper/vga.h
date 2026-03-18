@@ -19,5 +19,7 @@ void swapXY(point* p);
 void swap2Points(point* p0, point* p1);
 void drawLine(point p0, point p1, short int color);
 void fillBox(point p, int size, short int color);
+void drawChar(point top_left, char c, short int color, int scale);
+void drawText(point top_left, const char *text, short int color, int scale);
 
 #endif

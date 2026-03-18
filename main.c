@@ -8,7 +8,6 @@ March 2026
 #include "helper/signal_analysis.h"
 #include "helper/vga.h"
 #include "kiss_fftr.h"
-#include "kiss_fft.h"
 
 //Libraries
 #include <stdlib.h>
@@ -25,7 +24,7 @@ March 2026
 #define FRAME_LENGTH       256        // samples per frame
 #define HOP_SIZE           128        // overlap step
 #define SAMPLING_RATE      8000       // Hz
-#define FEATURES_0         12         // 12 features in the Level 0 vector
+#define FEATURES_0         12         // 12 features in the level 0 feature vector
 
 // Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)

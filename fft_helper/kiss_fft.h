@@ -9,6 +9,10 @@
 #ifndef KISS_FFT_H
 #define KISS_FFT_H
 
+#ifndef KISS_FFT_API
+#define KISS_FFT_API
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

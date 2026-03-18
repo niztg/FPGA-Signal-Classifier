@@ -47,7 +47,7 @@ void compute_frequency_bins(double frequency_bins[NO_FREQ_BINS]) {
 
 void compute_fft_magnitude(const int frame[FRAME_LENGTH],
                            double fft_frame[NO_FREQ_BINS],
-                           kiss_fft_cfg cfg) {
+                           kiss_fftr_cfg cfg) {
 
     kiss_fft_scalar fft_input[FRAME_LENGTH];
     kiss_fft_cpx fft_output[NO_FREQ_BINS];

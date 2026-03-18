@@ -58,8 +58,8 @@ objdump: $(TARGET)
 	$(OD) -d -S $(TARGET)
 
 clean:
-	@if exist "$(TARGET)" del /Q "$(TARGET)"
-	@for %%f in ($(OBJS)) do @if exist "%%f" del /Q "%%f"
+	@if exist "$(subst /,\,$(TARGET))" del /Q "$(subst /,\,$(TARGET))"
+	@for %%f in ($(OBJS)) do @if exist "$(subst /,\,$$f)" del /Q "$(subst /,\,$$f)"
 
 DETECT_DEVICES:
 	$(QP_PROGRAMMER) $(SYS_FLAG_CABLE_SoC) --auto

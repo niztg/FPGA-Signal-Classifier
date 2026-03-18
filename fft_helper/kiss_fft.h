@@ -6,12 +6,12 @@
  *  See COPYING file for more information.
  */
 
-#ifndef KISS_FFT_H
-#define KISS_FFT_H
-
 #ifndef KISS_FFT_API
 #define KISS_FFT_API
 #endif
+
+#ifndef KISS_FFT_H
+#define KISS_FFT_H
 
 #include <stdlib.h>
 #include <stdio.h>

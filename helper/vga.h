@@ -1,25 +1,23 @@
 #ifndef VGA_H
 #define VGA_H
 
-#define BACKGROUND_COLOR 0x528A //dark grey
+#include <stdbool.h>
+#include <math.h>
 
-typedef struct{
+typedef struct {
     int x;
     int y;
 } point;
 
+extern volatile int pixel_buffer_start;
+extern volatile int * pixel_ctrl_ptr;
+
 void plotPixel(point p, short int line_color);
-
-void clearScreen();
-
-void waitForVsync();
-
-void swapXY (point* p);
-
-void swap2Points (point* p0, point* p1);
-
+void clearScreen(void);
+void waitForVsync(void);
+void swapXY(point* p);
+void swap2Points(point* p0, point* p1);
 void drawLine(point p0, point p1, short int color);
-
 void fillBox(point p, int size, short int color);
 
 #endif

@@ -9,7 +9,7 @@
 #ifndef KISS_FTR_H
 #define KISS_FTR_H
 
-#include "fft_helper/kiss_fftr.h"
+#include "kiss_fftr.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

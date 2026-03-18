@@ -37,9 +37,8 @@ void unzip_recording_into_frames(int frame_array[FRAMES_PER_RECORDING][FRAME_LEN
 }
 
 void compute_fft_magnitude(const int frame[FRAME_LENGTH],
-                           double fft_frame[NO_FREQ_BINS]) {
-
-    kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
+                           double fft_frame[NO_FREQ_BINS],
+                           kiss_fft_cfg cfg) {
 
     kiss_fft_scalar fft_input[FRAME_LENGTH];
     kiss_fft_cpx fft_output[NO_FREQ_BINS];
@@ -58,6 +57,4 @@ void compute_fft_magnitude(const int frame[FRAME_LENGTH],
         float imag = fft_output[k].i;
         fft_frame[k] = (double) sqrt(real * real + imag * imag);
     }
-
-    free(cfg);
 }

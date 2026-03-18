@@ -3,6 +3,11 @@ FPGA SIGNAL CLASSIFIER
 March 2026
 */
 
+//Helper Files
+#include "helper/data_processing.h"
+#include "helper/signal_analysis.h"
+#include "helper/vga.h"
+
 //Libraries
 #include <stdlib.h>
 #include <stdbool.h>
@@ -86,6 +91,15 @@ int main(void){
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
             captureRecording();
+
+            kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
+            unzip_recording_into_frames(frame_array, recording);
+
+            for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
+                compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+            }
+
+            free(cfg); // free the dynamic memory used by KissFFT
         }
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
             *led_ptr = 2;

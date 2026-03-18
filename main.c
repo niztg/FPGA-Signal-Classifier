@@ -63,6 +63,11 @@ volatile int * pixel_ctrl_ptr = (int *)VGA_BASE; // VGA controller address
 // Each frame is sent to the neural network for processing.
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
+// A nested array of FFT's for each frame, where each FFT is 129 samples long
+// The reason we only take 129 samples is because the second half of the FFT is redundant
+// as the FFT is even for real-valued signals.
+int fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
+
 int main(void){
     *led_ptr = 0;
     *(key_ptr+3) = CLEAR_KEY;

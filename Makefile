@@ -47,7 +47,7 @@ LDFLAGS		:= $(USERLDFLAGS) $(ARCHLDFLAGS)
 LIBS		:= -lm
 
 # Files
-OBJS		:= $(patsubst %, %.o, $(SRCS))
+OBJS		:= $(SRCS:.c=.o)
 
 ############################################
 # GDB Macros
@@ -81,7 +81,7 @@ DEF_TEXT		:= @$(BASH) 'printf "\033[0m"'
 ############################################
 # Compilation Targets
 
-COMPILE: $(basename $(MAIN)).elf
+compile: $(basename $(MAIN)).elf
 
 $(basename $(MAIN)).elf: $(OBJS)
 	@$(BASH) 'cd "$(CURDIR)"; $(RM) $@'
@@ -93,7 +93,7 @@ $(basename $(MAIN)).elf: $(OBJS)
 	@$(BASH) 'printf "\n"'
 	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)'
 
-%.c.o: %.c $(HDRS)
+%.o: %.c $(HDRS)
 	@$(BASH) 'cd "$(CURDIR)"; $(RM) $@'
 	$(GREEN_TEXT)
 	@echo Compiling
@@ -110,7 +110,7 @@ OBJDUMP: $(basename $(MAIN)).elf
 	@echo $(OD) -d -S $<
 	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(OD) -d -S $<'
 
-CLEAN: 
+clean: 
 	$(RED_TEXT)
 	@$(BASH) 'printf "$(RM) "'
 	$(DEF_TEXT)

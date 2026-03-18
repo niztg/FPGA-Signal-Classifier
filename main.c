@@ -88,6 +88,8 @@ int main(void){
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2; // Point back buffer to Buffer2
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Sync pointer to back buffer
     clearScreen(); // Clear second buffer
+
+    compute_frequency_bins(frequency_bins);
     
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
     while (1){
@@ -101,6 +103,7 @@ int main(void){
 
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+                FeatureVector0* fv = create_feature_vector0(frame_array, fft_array, frequency_bins);
             }
 
             free(cfg); // free the dynamic memory used by KissFFT

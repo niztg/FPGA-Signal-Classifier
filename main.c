@@ -95,9 +95,6 @@ int main(void){
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
     while (1){
         int edge_reg = *(key_ptr+3);
-        point title = {30, 30};
-        char* example = "AB";
-        drawText(title, example, 65536, 4);
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
             captureRecording();

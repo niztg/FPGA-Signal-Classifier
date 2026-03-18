@@ -28,7 +28,7 @@ March 2026
 #define FEATURES_0         12         // 12 features in the level 0 feature vector
 
 #define STANDARD_GRAPH_HEIGHT   110
-#define STANDARD_GRAPH_WIDTH    145
+#define STANDARD_GRAPH_WIDTH    130
 
 // Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
@@ -95,11 +95,6 @@ int main(void){
     //pros: twice higher res
     //note: keep text coordinates alligned with multiples of 8 since each char is 8 x 8.
     //      you can write a maximum of 80x60 characters at one time
-    char greeting[] = "Hello World!";
-    vga_text(0,0, greeting);
-
-    point bode_plot_top_left = {195, 80};
-    drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
 
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // Point back buffer to Buffer1
     waitForVsync(); // Apply buffer settings
@@ -108,6 +103,13 @@ int main(void){
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2; // Point back buffer to Buffer2
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Sync pointer to back buffer
     clearScreen(); // Clear second buffer
+
+    clearScreen();
+    point bode_plot_top_left = {160, 120};
+    drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
+
+    point time_domain_plot_top_left = {15, 120};
+    drawGraphBoundingBox(time_domain_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
 
     compute_frequency_bins(frequency_bins);
 

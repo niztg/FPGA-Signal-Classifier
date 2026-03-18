@@ -51,7 +51,7 @@ double zero_crossing_rate(int frame[FRAME_LENGTH]);
 
 // Spectral Centroid
 // Center of mass of the spectrum, measures the spectrum's brightness
-double spectral_centroid(double frame_fft[NO_FREQ_BINS]);
+double spectral_centroid(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]);
 
 // Spectral Flatness
 // How flat the spectrum is. Tone has low flatness, noise has high flatness
@@ -77,12 +77,12 @@ double crest_factor(int frame[FRAME_LENGTH]);
 
 // Dominant Frequency
 // Frequency with the maximum energy
-double dominant_frequency(double frame_fft[NO_FREQ_BINS]);
+double dominant_frequency(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]);
 
 // Spectral Rolloff
 // Frequency below which 85% of the energy lies
 // Measures energy distribution cutoff, tones have low rolloff, noise has high rolloff
-double spectral_rolloff(double frame_fft[NO_FREQ_BINS]);
+double spectral_rolloff(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]);
 
 // Spectral Entropy
 // Normalized entropy of the spectrum, measures disorder
@@ -91,10 +91,10 @@ double spectral_entropy(double frame_fft[NO_FREQ_BINS]);
 
 // Low-Band Power Ratio
 // Energy in low frequencies vs in total
-double low_band_power_ratio(double frame_fft[NO_FREQ_BINS]);
+double low_band_power_ratio(double frame_fft[NO_FREQ_BINS, double frequency_bins[NO_FREQ_BINS]]);
 
 // High-Band Power Ratio
 // Measures high frequency content
-double high_band_power_ratio(double frame_fft[NO_FREQ_BINS]);
+double high_band_power_ratio(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]);
 
 #endif

@@ -29,6 +29,7 @@ The following seven features are unique to our level 1 implementation (where we 
 #define EPSILON            1e-12
 
 #include "signal_analysis.h"
+#include <math.h>
 
 
 // Sign function for integers

@@ -6,6 +6,7 @@ SRCS := main.c kiss_fft.c kiss_fftr.c helper/data_processing.c helper/signal_ana
 OBJS := $(SRCS:.c=.o)
 
 SHELL := cmd.exe
+.SUFFIXES:
 
 # DE1-SoC
 JTAG_INDEX_SoC := 2
@@ -37,7 +38,7 @@ LIBS := -lm
 
 TARGET := $(basename $(MAIN)).elf
 
-.PHONY: compile clean SYMBOLS OBJDUMP DETECT_DEVICES DE1-SoC DE10-Lite TERMINAL GDB_SERVER GDB_CLIENT
+.PHONY: compile clean symbols objdump DETECT_DEVICES DE1-SoC DE10-Lite TERMINAL GDB_SERVER GDB_CLIENT
 
 compile: $(TARGET)
 
@@ -48,12 +49,12 @@ $(TARGET): $(OBJS)
 
 %.o: %.c $(HDRS)
 	@echo Compiling $<
-	$(CC) $(CCFLAGS) $< -o $@
+	$(CC) $(CCFLAGS) -o $@ $<
 
-SYMBOLS: $(TARGET)
+symbols: $(TARGET)
 	$(NM) -p $(TARGET)
 
-OBJDUMP: $(TARGET)
+objdump: $(TARGET)
 	$(OD) -d -S $(TARGET)
 
 clean:

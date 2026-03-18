@@ -91,7 +91,7 @@ double spectral_entropy(double frame_fft[NO_FREQ_BINS]);
 
 // Low-Band Power Ratio
 // Energy in low frequencies vs in total
-double low_band_power_ratio(double frame_fft[NO_FREQ_BINS, double frequency_bins[NO_FREQ_BINS]]);
+double low_band_power_ratio(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]]);
 
 // High-Band Power Ratio
 // Measures high frequency content

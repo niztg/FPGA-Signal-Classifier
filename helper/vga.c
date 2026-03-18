@@ -93,3 +93,15 @@ void fillBox(point p, int size, short int color) {
         }
     }
 }
+
+// Draws a bounding box for the graphs
+void drawGraphBoundingBox(point top_left, int graph_height, int graph_width){
+	point bottom_left = {top_left.x, top_left.y + graph_height};
+	point top_right = {top_left.x + graph_width, top_left.y};
+	point bottom_right = {top_left.x + graph_width, top_left.y + graph_height};
+
+	drawLine(top_left, top_right, 0);
+	drawLine(top_left, bottom_left, 0);
+	drawLine(bottom_right, top_right, 0);
+	drawLine(bottom_right, bottom_left, 0);
+}

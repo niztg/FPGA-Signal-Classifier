@@ -22,5 +22,6 @@ void swapXY(point* p);
 void swap2Points(point* p0, point* p1);
 void drawLine(point p0, point p1, short int color);
 void fillBox(point p, int size, short int color);
+void drawGraphBoundingBox(point top_left, int graph_height, int graph_width);
 
 #endif

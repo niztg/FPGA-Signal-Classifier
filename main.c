@@ -27,6 +27,9 @@ March 2026
 #define SAMPLING_RATE      8000       // Hz
 #define FEATURES_0         12         // 12 features in the level 0 feature vector
 
+#define STANDARD_GRAPH_HEIGHT   110
+#define STANDARD_GRAPH_WIDTH    145
+
 // Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
 
@@ -95,6 +98,9 @@ int main(void){
     char greeting[] = "Hello World!";
     vga_text(0,0, greeting);
 
+    point bode_plot_top_left = {195, 80};
+    drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
+
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // Point back buffer to Buffer1
     waitForVsync(); // Apply buffer settings
     pixel_buffer_start = *pixel_ctrl_ptr; // Sync pointer to front buffer
@@ -104,7 +110,7 @@ int main(void){
     clearScreen(); // Clear second buffer
 
     compute_frequency_bins(frequency_bins);
-    
+
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
     while (1){
         int edge_reg = *(key_ptr+3);

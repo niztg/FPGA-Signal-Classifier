@@ -1,7 +1,7 @@
 INSTALL	:= C:/intelFPGA/QUARTUS_Lite_V23.1
 
 MAIN	:= main.c
-HDRS	:= address_map.h kiss_fft.h kiss_fftr.h helper/data_processing.h helper/signal_analysis.h helper/vga.h
+HDRS	:= address_map.h kiss_fft.h kiss_fft_guts.h kiss_fftr.h helper/data_processing.h helper/signal_analysis.h helper/vga.h
 SRCS	:= main.c kiss_fft.c kiss_fftr.c helper/data_processing.c helper/signal_analysis.c helper/vga.c
 
 SHELL	:= cmd.exe
@@ -39,11 +39,12 @@ RM	:= /usr/bin/rm -f
 
 # Flags
 USERCCFLAGS	:= -g -O1 -ffunction-sections -fverbose-asm -fno-inline -gdwarf-2 
-USERLDFLAGS	:= -Wl,--defsym=__stack_pointer$$=0x4000000 -Wl,--defsym  -Wl,JTAG_UART_BASE=0xff201000 -lm
+USERLDFLAGS	:= -Wl,--defsym=__stack_pointer$$=0x4000000 -Wl,--defsym -Wl,JTAG_UART_BASE=0xff201000
 ARCHCCFLAGS	:= -march=rv32im_zicsr -mabi=ilp32
 ARCHLDFLAGS	:= -march=rv32im_zicsr -mabi=ilp32
 CCFLAGS		:= -Wall -c -I. -Ihelper $(USERCCFLAGS) $(ARCHCCFLAGS)
 LDFLAGS		:= $(USERLDFLAGS) $(ARCHLDFLAGS)
+LIBS		:= -lm
 
 # Files
 OBJS		:= $(patsubst %, %.o, $(SRCS))
@@ -88,9 +89,9 @@ $(basename $(MAIN)).elf: $(OBJS)
 	@echo Linking
 	@$(BASH) 'printf "$(LD) "'
 	$(DEF_TEXT)
-	@echo $(LDFLAGS) $(OBJS) -o $@
+	@echo $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
 	@$(BASH) 'printf "\n"'
-	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(LD) $(LDFLAGS) $(OBJS) -o $@'
+	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)'
 
 %.c.o: %.c $(HDRS)
 	@$(BASH) 'cd "$(CURDIR)"; $(RM) $@'
@@ -144,4 +145,3 @@ GDB_CLIENT:
 # EXTRAS
 
 .SILENT: SYMBOLS OBJDUMP
-

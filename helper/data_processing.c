@@ -90,7 +90,7 @@ void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]){
     out[1]  = fv->zeroCrossingRate;
     out[2]  = fv->spectralCentroid;
     out[3]  = fv->spectralFlatness;
-    out[4]  = fv->spectralNandwidth;
+    out[4]  = fv->spectralBandwidth;
 
     out[5]  = fv->peakAmplitude;
     out[6]  = fv->crestFactor;

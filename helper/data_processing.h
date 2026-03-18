@@ -15,7 +15,7 @@ amenable to the neural network for further analysis.
 #define SAMPLING_RATE           8000
 #define FEATURES_0              12
 
-#include "kiss_fftr.h"
+#include "../kiss_fftr.h"
 
 typedef struct {
     double log_energy;

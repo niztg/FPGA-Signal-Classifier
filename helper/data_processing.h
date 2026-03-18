@@ -15,6 +15,8 @@ amenable to the neural network for further analysis.
 #define SAMPLING_RATE           8000
 #define FEATURES_0              12
 
+#include "kiss_fftr.h"
+
 typedef struct {
     double log_energy;
     double zero_crossing_rate;
@@ -31,7 +33,7 @@ typedef struct {
 } FeatureVector0;
 
 void unzip_recording_into_frames(int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH], int recording[RECORDING_LENGTH]);
-void compute_fft_magnitude(const int frame[FRAME_LENGTH], double fft_frame[NO_FREQ_BINS]);
+void compute_fft_magnitude(const int frame[FRAME_LENGTH], double fft_frame[NO_FREQ_BINS], kiss_fft_cfg cfg);
 void compute_frequency_bins(double frequency_bins[NO_FREQ_BINS]);
 FeatureVector0* create_feature_vector0(int frame[FRAME_LENGTH], double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]);
 void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]);

@@ -7,6 +7,8 @@ March 2026
 #include "helper/data_processing.h"
 #include "helper/signal_analysis.h"
 #include "helper/vga.h"
+#include "kiss_fftr.h"
+#include "kiss_fft.h"
 
 //Libraries
 #include <stdlib.h>

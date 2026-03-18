@@ -1,0 +1,14 @@
+# Build artifacts
+*.o
+*.elf
+
+# OS junk
+.DS_Store
+
+# VSCode (optional)
+.vscode/
+
+# Quartus / FPGA junk (optional)
+*.sof
+*.jdi
+*.qws

@@ -1,8 +1,8 @@
 INSTALL	:= C:/intelFPGA/QUARTUS_Lite_V23.1
 
 MAIN	:= main.c
-HDRS	:= address_map.h kiss_fft.h kiss_fft_guts.h kiss_fftr.h helper/data_processing.h helper/signal_analysis.h helper/vga.h
-SRCS	:= main.c kiss_fft.c kiss_fftr.c helper/data_processing.c helper/signal_analysis.c helper/vga.c
+HDRS	:= address_map.h fft_helper/kiss_fft.h fft_helper/kiss_fft_guts.h fft_helper/kiss_fft_log.h fft_helper/kiss_fftr.h helper/data_processing.h helper/signal_analysis.h helper/vga.h
+SRCS	:= main.c fft_helper/kiss_fft.c fft_helper/kiss_fftr.c helper/data_processing.c helper/signal_analysis.c helper/vga.c
 
 SHELL	:= cmd.exe
 

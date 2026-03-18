@@ -23,7 +23,7 @@ amenable to the neural network for further analysis.
 // Frequency resolution (Hz per bin)
 #define BIN_SPACING        ((double)SAMPLING_RATE / FRAME_LENGTH)
 
-#include "../kiss_fftr.h"
+#include "../fft_helper/kiss_fftr.h"
 
 typedef struct {
     double logEnergy;

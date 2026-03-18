@@ -22,7 +22,7 @@ amenable to the neural network for further analysis.
 
 #include <stdlib.h>
 #include <math.h>
-#include "../kiss_fftr.h"
+#include "../fft_helper/kiss_fftr.h"
 #include "signal_analysis.h"
 #include "data_processing.h"
 

@@ -4,8 +4,8 @@
 #define BACKGROUND_COLOR 0x528A //dark grey
 
 typedef struct{
-    x;
-    y;
+    int x;
+    int y;
 } point;
 
 void plotPixel(point p, short int line_color);

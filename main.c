@@ -95,7 +95,8 @@ int main(void){
     while (1){
         int edge_reg = *(key_ptr+3);
         point title = {30, 30};
-        drawText(title,"A", 65536, 4);
+        char* example = "AB";
+        drawText(title, example, 65536, 4);
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
             captureRecording();

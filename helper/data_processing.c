@@ -24,7 +24,7 @@ amenable to the neural network for further analysis.
 #include <math.h>
 #include "../kiss_fftr.h"
 #include "signal_analysis.h"
-#include "data_processing.c"
+#include "data_processing.h"
 
 void unzip_recording_into_frames(int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH],
                                  const int recording[RECORDING_LENGTH]) {

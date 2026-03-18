@@ -27,7 +27,7 @@ export PATH := $(INSTALL)/fpgacademy/AMP/bin/:$(PATH)
 # for checking JTAG chain
 export PATH := $(INSTALL)/quartus/sopc_builder/bin/:$(PATH)
 
-CYGWIN_INSTALL := $(shell $(BASH) 'export PATH=/usr/local/bin:/usr/bin; cygpath $(INSTALL)')
+CYGWIN_INSTALL := $(shell $(BASH) "export PATH=/usr/local/bin:/usr/bin; cygpath '$(INSTALL)'")
 CYGWIN_PATH := export PATH=/usr/local/bin:/usr/bin:$(CYGWIN_INSTALL)/fpgacademy/AMP/bin
 
 # Programs
@@ -84,62 +84,62 @@ DEF_TEXT          := @$(BASH) 'printf "\033[0m"'
 COMPILE: $(basename $(MAIN)).elf
 
 $(basename $(MAIN)).elf: $(OBJS)
-      @$(BASH) 'cd "$(CURDIR)"; $(RM) $@'
-      $(CYAN_TEXT)
-      @echo Linking
-      @$(BASH) 'printf "$(LD) "'
-      $(DEF_TEXT)
-      @echo $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
-      @$(BASH) 'printf "\n"'
-      @$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)'
+	@$(BASH) 'cd "$(CURDIR)"; $(RM) $@'
+	$(CYAN_TEXT)
+	@echo Linking
+	@$(BASH) 'printf "$(LD) "'
+	$(DEF_TEXT)
+	echo $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
+	@$(BASH) 'printf "\n"'
+	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)'
 
 %.c.o: %.c
-      @$(BASH) 'cd "$(CURDIR)"; $(RM) $@'
-      $(GREEN_TEXT)
-      @echo Compiling
-      @$(BASH) 'printf "$(CC) "'
-      $(DEF_TEXT)
-      @echo $(CCFLAGS) $< -o $@
-      @$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(CC) $(CCFLAGS) $< -o $@'
+	@$(BASH) 'cd "$(CURDIR)"; $(RM) $@'
+	$(GREEN_TEXT)
+	@echo Compiling
+	@$(BASH) 'printf "$(CC) "'
+	$(DEF_TEXT)
+	@echo $(CCFLAGS) $< -o $@
+	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(CC) $(CCFLAGS) $< -o $@'
 
 SYMBOLS: $(basename $(MAIN)).elf
-      @echo $(NM) -p $<
-      @$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(NM) -p $<'
+	@echo $(NM) -p $<
+	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(NM) -p $<'
 
 OBJDUMP: $(basename $(MAIN)).elf
-      @echo $(OD) -d -S $<
-      @$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(OD) -d -S $<'
+	@echo $(OD) -d -S $<
+	@$(BASH) 'cd "$(CURDIR)"; $(CYGWIN_PATH); $(OD) -d -S $<'
 
 CLEAN: 
-      $(RED_TEXT)
-      @$(BASH) 'printf "$(RM) "'
-      $(DEF_TEXT)
-      @echo $(basename $(MAIN)).elf $(OBJS)
-      @$(BASH) 'cd "$(CURDIR)"; $(RM) $(basename $(MAIN)).elf $(OBJS)'
+	$(RED_TEXT)
+	@$(BASH) 'printf "$(RM) "'
+	$(DEF_TEXT)
+	@echo $(basename $(MAIN)).elf $(OBJS)
+	@$(BASH) 'cd "$(CURDIR)"; $(RM) $(basename $(MAIN)).elf $(OBJS)'
 
 ############################################
 # System Targets
 
 DETECT_DEVICES:
-      $(QP_PROGRAMMER) $(SYS_FLAG_CABLE) --auto
+	$(QP_PROGRAMMER) $(SYS_FLAG_CABLE) --auto
 
 DE1-SoC:
-      $(QP_PROGRAMMER) $(SYS_FLAG_CABLE_SoC) -m jtag -o "P;$(HW_DE1-SoC)@$(JTAG_INDEX_SoC)"
+	$(QP_PROGRAMMER) $(SYS_FLAG_CABLE_SoC) -m jtag -o "P;$(HW_DE1-SoC)@$(JTAG_INDEX_SoC)"
 
 DE10-Lite:
-      $(QP_PROGRAMMER) $(SYS_FLAG_CABLE_Lite) -m jtag -o "P;$(HW_DE10-Lite)@$(JTAG_INDEX_Lite)"
+	$(QP_PROGRAMMER) $(SYS_FLAG_CABLE_Lite) -m jtag -o "P;$(HW_DE10-Lite)@$(JTAG_INDEX_Lite)"
 
 TERMINAL:
-      nios2-terminal.exe --instance 0
+	nios2-terminal.exe --instance 0
 
 ############################################
 # GDB Targets
 
 GDB_SERVER: 
-      $(GDB_SERVER) --device 02D120DD --gdb-port 2454 --instance 1 --probe-type USB-Blaster-2 --transport-type jtag --auto-detect true
+	$(GDB_SERVER) --device 02D120DD --gdb-port 2454 --instance 1 --probe-type USB-Blaster-2 --transport-type jtag --auto-detect true
 
 GDB_CLIENT: 
-      $(GDB_CLIENT) -silent -ex "target remote:2454" -ex "set $$mstatus=0" -ex "set $$mtvec=0" -ex "load" -ex "set $$pc=_start" -ex "info reg pc" "$(basename $(MAIN)).elf"
+	$(GDB_CLIENT) -silent -ex "target remote:2454" -ex "set $$mstatus=0" -ex "set $$mtvec=0" -ex "load" -ex "set $$pc=_start" -ex "info reg pc" "$(basename $(MAIN)).elf"
 
 ############################################
 # EXTRAS

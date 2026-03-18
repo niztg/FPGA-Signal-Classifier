@@ -9,6 +9,7 @@ amenable to the neural network for further analysis.
 #define FRAME_LENGTH       256        // samples per frame
 #define HOP_SIZE           128        // overlap step
 #define SAMPLING_RATE      8000       // Hz
+#define FEATURES_0         12         // 12 features in the level 0 feature vector
 
 // Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
@@ -22,6 +23,7 @@ amenable to the neural network for further analysis.
 #include <stdlib.h>
 #include <math.h>
 #include "kiss_fftr.h"
+#include "signal_analysis.h"
 
 void unzip_recording_into_frames(int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH],
                                  const int recording[RECORDING_LENGTH]) {
@@ -33,6 +35,12 @@ void unzip_recording_into_frames(int frame_array[FRAMES_PER_RECORDING][FRAME_LEN
         for (int sample_idx = 0; sample_idx < FRAME_LENGTH; sample_idx++) {
             frame_array[frame_idx][sample_idx] = recording[starting_index + sample_idx];
         }
+    }
+}
+
+void compute_frequency_bins(double frequency_bins[NO_FREQ_BINS]) {
+    for (int k = 0; k < NO_FREQ_BINS; k++) {
+        frequency_bins[k] = ((double)k * SAMPLING_RATE) / FRAME_LENGTH;
     }
 }
 
@@ -57,4 +65,38 @@ void compute_fft_magnitude(const int frame[FRAME_LENGTH],
         float imag = fft_output[k].i;
         fft_frame[k] = (double) sqrt(real * real + imag * imag);
     }
+}
+
+FeatureVector0* create_feature_vector0(int frame[FRAME_LENGTH], double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]){
+    FeatureVector0* feature_vector;
+    feature_vector -> log_energy = log_energy(frame);
+    feature_vector -> zero_crossing_rate = zero_crossing_rate(frame);
+    feature_vector -> spectral_centroid = spectral_centroid(frame_fft, frequency_bins);
+    feature_vector -> spectral_flatness = spectral_flatness(frame_fft);
+    feature_vector -> spectral_bandwidth = spectral_bandwidth(frame_fft, frequency_bins);
+    feature_vector -> peak_amplitude = peak_amplitude(frame);
+    feature_vector -> crest_factor = crest_factor(frame);
+    feature_vector -> dominant_frequency = dominant_frequency(frame_fft, frequency_bins);
+    feature_vector -> spectral_rolloff = spectral_rolloff(frame_fft, frequency_bins);
+    feature_vector -> spectral_entropy = spectral_entropy(frame_fft);
+    feature_vector -> low_band_power_ratio = low_band_power_ratio(frame_fft, frequency_bins);
+    feature_vector -> high_band_power_ratio = high_band_power_ratio(frame_fft, frequency_bins);
+    return feature_vector;
+}
+
+void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]){
+    out[0]  = fv->log_energy;
+    out[1]  = fv->zero_crossing_rate;
+    out[2]  = fv->spectral_centroid;
+    out[3]  = fv->spectral_flatness;
+    out[4]  = fv->spectral_bandwidth;
+
+    out[5]  = fv->peak_amplitude;
+    out[6]  = fv->crest_factor;
+    out[7]  = fv->dominant_frequency;
+    out[8]  = fv->spectral_rolloff;
+    out[9]  = fv->spectral_entropy;
+
+    out[10] = fv->low_band_power_ratio;
+    out[11] = fv->high_band_power_ratio;
 }

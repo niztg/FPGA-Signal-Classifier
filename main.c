@@ -23,6 +23,7 @@ March 2026
 #define FRAME_LENGTH       256        // samples per frame
 #define HOP_SIZE           128        // overlap step
 #define SAMPLING_RATE      8000       // Hz
+#define FEATURES_0         12         // 12 features in the Level 0 vector
 
 // Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
@@ -72,6 +73,9 @@ int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 // The reason we only take 129 samples is because the second half of the FFT is redundant
 // as the FFT is even for real-valued signals.
 double fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
+
+// Bins that map each sample index (0, 1, 2, 3, ...) in an FFT to its associated linear frequency
+double frequency_bins[NO_FREQ_BINS];
 
 int main(void){
     *led_ptr = 0;

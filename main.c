@@ -118,7 +118,6 @@ int main(void){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Sync pointer to back buffer
     clearScreen(); // Clear second buffer
 
-    clearScreen();
     compute_frequency_bins(frequency_bins);
     
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array

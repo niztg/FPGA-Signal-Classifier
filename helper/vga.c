@@ -135,41 +135,17 @@ void drawGraphPartitions(
     int inner_top_y    = top_y + 1;
     int inner_bottom_y = bottom_y - 1;
 
-    int dot_spacing = 6;   // adjust to taste
+	int x_partition_spacing = (int) graph_width / no_vertical_partitions;
+	int y_partition_spacing = (int) graph_height / no_horizontal_partitions;
 
-    // Draw horizontal partitions
-    if (no_horizontal_partitions > 1) {
-        for (int i = 1; i < no_horizontal_partitions; i++) {
-            int y = top_y + (i * (graph_height - 1)) / no_horizontal_partitions;
-
-            if (y <= inner_top_y || y >= inner_bottom_y) {
-                continue;
-            }
-
-            for (int x = inner_left_x; x <= inner_right_x; x++) {
-                // global dot lattice anchored to top-left of graph interior
-                if (((x - inner_left_x) % dot_spacing) == 0) {
-                    plotPixel((point){x, y}, partition_color);
-                }
-            }
-        }
-    }
-
-    // Draw vertical partitions
-    if (no_vertical_partitions > 1) {
-        for (int i = 1; i < no_vertical_partitions; i++) {
-            int x = left_x + (i * (graph_width - 1)) / no_vertical_partitions;
-
-            if (x <= inner_left_x || x >= inner_right_x) {
-                continue;
-            }
-
-            for (int y = inner_top_y; y <= inner_bottom_y; y++) {
-                // same global dot lattice anchored to same origin
-                if (((y - inner_top_y) % dot_spacing) == 0) {
-                    plotPixel((point){x, y}, partition_color);
-                }
-            }
-        }
-    }
+	for (int x = left_x; x <= right_x; x++){
+		for (int y = top_y; y <= bottom_y; y++){
+			// Check if each (x, y) coordinate is on the color lattice
+			// that is, check if its (x coordinate - graph width) is an integer multiple of the y partition spacing
+			// and its (y coordinate - graph height) is an integer multiple of the number of x partition spacing
+			if ((x - graph_width) % x_partition_spacing == 0 && (y-graph_height) % y_partition_spacing == 0){
+				plotPixel((point){x, y}, partition_color)
+			}
+		}
+	}
 }

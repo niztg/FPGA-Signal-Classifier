@@ -128,7 +128,7 @@ int main(void){
             }
 
             free(cfg); // free the dynamic memory used by KissFFT
-            compute_average_fft(fft_array, avg_fft);
+            compute_average_fft(fft_array, average_fft);
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {

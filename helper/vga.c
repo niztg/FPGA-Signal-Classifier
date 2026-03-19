@@ -129,23 +129,25 @@ void drawGraphPartitions(
     int top_y = top_left.y;
     int bottom_y = top_left.y + graph_height - 1;
 
-    if (no_horizontal_partitions > 1) {
-        for (int i = 1; i < no_horizontal_partitions; i++) {
+    // Draw horizontal interior partition lines
+    if (no_horizontal_partitions > 1){
+        for (int i = 1; i < no_horizontal_partitions; i++){
             int y = top_y + (i * (graph_height - 1)) / no_horizontal_partitions;
 
-            point left = { left_x, y };
-            point right = { right_x, y };
+            point left = { left_x + 1, y };
+            point right = { right_x - 1, y };
 
             drawLine(left, right, partition_color, true);
         }
     }
 
-    if (no_vertical_partitions > 1) {
-        for (int i = 1; i < no_vertical_partitions; i++) {
+    // Draw vertical interior partition lines
+    if (no_vertical_partitions > 1){
+        for (int i = 1; i < no_vertical_partitions; i++){
             int x = left_x + (i * (graph_width - 1)) / no_vertical_partitions;
 
-            point top = { x, top_y };
-            point bottom = { x, bottom_y };
+            point top = { x, top_y + 1 };
+            point bottom = { x, bottom_y - 1 };
 
             drawLine(top, bottom, partition_color, true);
         }

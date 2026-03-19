@@ -141,6 +141,8 @@ int main(void){
             compute_average_fft(fft_array, average_fft);
             
             displayCorrectGraph();
+            waitForVsync(); // Wait for screen refresh
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Switch pointer to new back buffer
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
@@ -151,9 +153,6 @@ int main(void){
         *led_ptr = 0;
         *(key_ptr+3) = CLEAR_KEY;
         
-        //uncomment if you need double buffering
-        waitForVsync(); // Wait for screen refresh
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Switch pointer to new back buffer
     }
 }
 

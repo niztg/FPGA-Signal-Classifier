@@ -202,9 +202,16 @@ void drawXAxisLabels(
     double scale_factor = 1.0;
     const char *display_units = x_units;
 
-    // Auto-scale only if the caller says this axis is in Hz
-    if (x_units && strcmp(x_units, "Hz") == 0){
-        chooseFrequencyScale(max_x, &scale_factor, &display_units);
+    // Auto-scale frequency axis
+    if (max_x >= 1000000.0) {
+        scale_factor = 1000000.0;
+        display_units = "MHz";
+    } else if (max_x >= 1000.0) {
+        scale_factor = 1000.0;
+        display_units = "kHz";
+    } else {
+        scale_factor = 1.0;
+        display_units = x_units;
     }
 
     for (int i = 0; i <= no_vertical_partitions; i++) {

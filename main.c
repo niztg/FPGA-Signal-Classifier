@@ -107,7 +107,7 @@ int main(void){
     clearScreen();
     point bode_plot_top_left = {160, 120};
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
-    drawGraphPartitions(10, 10, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xC000);
+    drawGraphPartitions(5, 5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7);
 
     point time_domain_plot_top_left = {15, 120};
     drawGraphBoundingBox(time_domain_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);

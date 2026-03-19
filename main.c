@@ -164,8 +164,9 @@ int main(void){
         *led_ptr = 0;
         *(key_ptr+3) = CLEAR_KEY;
         
-        waitForVsync(); // Wait for screen refresh
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Switch pointer to new back buffer
+        //uncomment if you need double buffering
+        //waitForVsync(); // Wait for screen refresh
+        //pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Switch pointer to new back buffer
     }
 }
 

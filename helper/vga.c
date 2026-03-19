@@ -347,7 +347,7 @@ void plotTimeDomain(point reference, int width, int height,
         // Draw bar centered on x-axis (symmetric above and below)
         drawLine((point){x, reference.y + (line_height/2)},
                  (point){x, reference.y - (line_height/2)},
-                 LINE_COLOR, false);
+                 GRAPH_COLOR, false);
     }
 }
 

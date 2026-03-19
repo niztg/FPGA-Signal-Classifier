@@ -26,7 +26,7 @@ void swap2Points(point* p0, point* p1);
 void drawLine(point p0, point p1, short int color, bool dotted);
 void fillBox(point p, int size, short int color);
 void drawGraphBoundingBox(point top_left, int graph_height, int graph_width);
-void drawGraphPartitions(
+void drawGraphGrid(
     int no_horizontal_partitions,
     int no_vertical_partitions,
     point top_left,
@@ -35,5 +35,33 @@ void drawGraphPartitions(
     short int partition_color,
     int dot_spacing
 );
+void drawXAxisLabels(
+    int no_vertical_partitions,
+    point top_left,
+    int graph_height,
+    int graph_width,
+    short int axis_color,
+    double max_x,
+    const char *x_units
+);
+void drawYAxisLabels(
+    int no_horizontal_partitions,
+    point top_left,
+    int graph_height,
+    int graph_width,
+    short int axis_color,
+    double max_y,
+    const char *y_units
+)
+
+// void drawGraphPartitions(
+//     int no_horizontal_partitions,
+//     int no_vertical_partitions,
+//     point top_left,
+//     int graph_height,
+//     int graph_width,
+//     short int partition_color,
+//     int dot_spacing
+// );
 
 #endif

@@ -298,7 +298,7 @@ void drawYAxisLabels(
             snprintf(label, sizeof(label), "%.3g", scaled_y_value);
         }
 
-        int label_pixel_x = left_x - 8 - ((int)strlen(label) * TEXT_CELL_W);
+        int label_pixel_x = left_x - 6 - ((int)strlen(label) * TEXT_CELL_W);
         int label_pixel_y = y_pixel - TEXT_CELL_H / 2;
 
         int text_x = pixelToTextX(label_pixel_x);

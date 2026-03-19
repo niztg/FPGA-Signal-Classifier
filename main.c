@@ -114,7 +114,7 @@ int main(void){
     point bode_plot_top_left = {25, 100};
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
 
-    point time_plot_mid_left = {25, 60};
+    point time_plot_mid_left = {25, 160};
     
     const char* x_axis_units = "Hz";
     const char* y_axis_units = "dB";
@@ -129,31 +129,31 @@ int main(void){
             *led_ptr = 1;
             max_sample_amplitude = captureRecording();
 
-            // *led_ptr = 0b1000000000;
-            // kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
-            // unzip_recording_into_frames(frame_array, recording);
+            *led_ptr = 0b1000000000;
+            kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
+            unzip_recording_into_frames(frame_array, recording);
 
-            // for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
-            //     compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-            //     FeatureVector0* fv = create_feature_vector0(frame_array, fft_array, frequency_bins);
-            // }
+            for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
+                compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+                FeatureVector0* fv = create_feature_vector0(frame_array, fft_array, frequency_bins);
+            }
 
-            // free(cfg); // free the dynamic memory used by KissFFT
-            // compute_average_fft(fft_array, average_fft);
+            free(cfg); // free the dynamic memory used by KissFFT
+            compute_average_fft(fft_array, average_fft);
             
-            // *led_ptr = 0b01000000000;
-            // plotMagnitudeSpectrum(
-            //     average_fft,
-            //     bode_plot_top_left,
-            //     STANDARD_GRAPH_WIDTH,
-            //     STANDARD_GRAPH_HEIGHT,
-            //     0xFDE0
-            // );
+            *led_ptr = 0b01000000000;
+            plotMagnitudeSpectrum(
+                average_fft,
+                bode_plot_top_left,
+                STANDARD_GRAPH_WIDTH,
+                STANDARD_GRAPH_HEIGHT,
+                0xFDE0
+            );
             
             *led_ptr = 0b0010000000;
             plotTimeDomain(time_plot_mid_left,
                 STANDARD_GRAPH_WIDTH,
-                STANDARD_GRAPH_HEIGHT - 20,
+                STANDARD_GRAPH_HEIGHT,
                 RECORDING_LENGTH,
                 max_sample_amplitude
             );
@@ -180,7 +180,7 @@ int captureRecording(){
     for (int i = 0; i < RECORDING_LENGTH; i++){
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0){
             recording[i] = audio_ptr->ldata;
-            max_sample_amplitude = recording[i] > max_sample_amplitude ? recording[i] : max_sample_amplitude;
+            max_sample_amplitude = fabs(recording[i]) > max_sample_amplitude ? fabs(recording[i]) : max_sample_amplitude;
         }
         else i--;
     }

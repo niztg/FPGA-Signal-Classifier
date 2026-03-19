@@ -27,8 +27,8 @@ March 2026
 #define SAMPLING_RATE      8000       // Hz
 #define FEATURES_0         12         // 12 features in the level 0 feature vector
 
-#define STANDARD_GRAPH_HEIGHT   110
-#define STANDARD_GRAPH_WIDTH    130
+#define STANDARD_GRAPH_HEIGHT   120
+#define STANDARD_GRAPH_WIDTH    280
 
 // Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
@@ -106,7 +106,7 @@ int main(void){
     clearScreen(); // Clear second buffer
 
     clearScreen();
-    point bode_plot_top_left = {150, 100};
+    point bode_plot_top_left = {20, 100};
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawGraphPartitions(5, 5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
 

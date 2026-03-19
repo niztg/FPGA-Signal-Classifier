@@ -36,7 +36,9 @@ void drawGraphGrid(
     short int partition_color,
     int dot_spacing
 );
-void chooseFrequencyScale(double max_x_hz, double *scale_factor, const char **display_units);
+static int pixelToTextX(int pixel_x);
+static int pixelToTextY(int pixel_y);
+static void chooseSIScale(double max_value, const char *base_units, double *scale_factor, const char **scaled_units);
 void drawXAxisLabels(
     int no_vertical_partitions,
     point top_left,

@@ -166,6 +166,20 @@ void drawGraphGrid(
     }
 }
 
+// Function which determines the order of magnitude of a label and adds the appropriate SI multipler.
+void chooseFrequencyScale(double max_x_hz, double *scale_factor, const char **display_units){
+    if (max_x_hz >= 1000000.0){
+        *scale_factor = 1000000.0;
+        *display_units = "MHz";
+    } else if (max_x_hz >= 1000.0){
+        *scale_factor = 1000.0;
+        *display_units = "kHz";
+    } else {
+        *scale_factor = 1.0;
+        *display_units = "Hz";
+    }
+}
+
 // Draw x-axis tick marks and labels below the graph.
 // Labels go from 0 to max_x.
 void drawXAxisLabels(
@@ -182,33 +196,39 @@ void drawXAxisLabels(
     int bottom_y = top_left.y + graph_height - 2;
 
     int tick_length = 4;
+    int label_y = bottom_y + 12;
+    int approx_char_width = 8;
+
+    double scale_factor = 1.0;
+    const char *display_units = x_units;
+
+    // Auto-scale only if the caller says this axis is in Hz
+    if (x_units && strcmp(x_units, "Hz") == 0){
+        chooseFrequencyScale(max_x, &scale_factor, &display_units);
+    }
 
     for (int i = 0; i <= no_vertical_partitions; i++) {
         int x_pixel = left_x + (i * (right_x - left_x)) / no_vertical_partitions;
         double x_value = (i * max_x) / no_vertical_partitions;
+        double scaled_x_value = x_value / scale_factor;
 
         for (int dy = 0; dy < tick_length; dy++) {
             plotPixel((point){x_pixel, bottom_y + 1 + dy}, axis_color);
         }
 
         char label[32];
-        if (x_units && x_units[0] != '\0') {
-            snprintf(label, sizeof(label), "%.1f %s", x_value, x_units);
+        if (display_units && display_units[0] != '\0') {
+            snprintf(label, sizeof(label), "%.3g %s", scaled_x_value, display_units);
         } else {
-            snprintf(label, sizeof(label), "%.1f", x_value);
+            snprintf(label, sizeof(label), "%.3g", scaled_x_value);
         }
 
-        int text_x = (x_pixel / 8) - ((int)strlen(label) / 2);
-        int text_y = (bottom_y + 10) / 8;
-
-        if (text_x < 0) {
-            text_x = 0;
-        }
-        if (text_y < 0) {
-            text_y = 0;
+        int label_x = x_pixel - ((int)strlen(label) * approx_char_width) / 2;
+        if (label_x < 0) {
+            label_x = 0;
         }
 
-        vga_text(text_x, text_y, label);
+        vga_text(label_x, label_y, label);
     }
 }
 

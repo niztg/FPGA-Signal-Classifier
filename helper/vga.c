@@ -362,7 +362,7 @@ void plotMagnitudeSpectrum(
 		point graph_point = {x_coordinate, y_coordinate};
 		fillBox(graph_point, 2, color);
 
-		if (prev_point != (point) {0,0}){
+		if (prev_point.x != 0 && prev_point.y != 0){
 			drawLine(prev_point, graph_point, color, true);
 		}
 

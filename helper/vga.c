@@ -126,6 +126,7 @@ void drawGraphPartitions(
 ){
     short int background_color = 0x0000;
     int dot_spacing = 6;
+    int intersection_hole_radius = 1;   // 1 => 3x3 erased neighborhood
 
     int left_x = top_left.x + 1;
     int right_x = top_left.x + graph_width - 2;
@@ -170,7 +171,7 @@ void drawGraphPartitions(
         drawLine(top, bottom, partition_color, false);
     }
 
-    // Erase parts of horizontal lines
+    // Erase parts of horizontal lines to make them dotted
     for (int h = 0; h < no_horizontal_lines; h++){
         int y = horizontal_y[h];
 
@@ -181,7 +182,7 @@ void drawGraphPartitions(
         }
     }
 
-    // Erase parts of vertical lines
+    // Erase parts of vertical lines to make them dotted
     for (int v = 0; v < no_vertical_lines; v++){
         int x = vertical_x[v];
 
@@ -192,10 +193,22 @@ void drawGraphPartitions(
         }
     }
 
-    // Erase exact intersection points
+    // Erase a small 5x5 neighborhood around each intersection
     for (int h = 0; h < no_horizontal_lines; h++){
         for (int v = 0; v < no_vertical_lines; v++){
-            plotPixel((point){vertical_x[v], horizontal_y[h]}, background_color);
+            int cx = vertical_x[v];
+            int cy = horizontal_y[h];
+
+            for (int dx = -intersection_hole_radius; dx <= intersection_hole_radius; dx++){
+                for (int dy = -intersection_hole_radius; dy <= intersection_hole_radius; dy++){
+                    int x = cx + dx;
+                    int y = cy + dy;
+
+                    if (x >= left_x && x <= right_x && y >= top_y && y <= bottom_y){
+                        plotPixel((point){x, y}, background_color);
+                    }
+                }
+            }
         }
     }
 }

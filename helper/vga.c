@@ -225,7 +225,7 @@ void drawXAxisLabels(
 ){
     if (no_vertical_partitions <= 0) return;
 
-    int left_x = top_left.x;
+    int left_x = top_left.x + 1;
     int bottom_y = top_left.y + graph_height - 1;
 
     int tick_length = 4;

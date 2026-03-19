@@ -23,5 +23,13 @@ void swap2Points(point* p0, point* p1);
 void drawLine(point p0, point p1, short int color);
 void fillBox(point p, int size, short int color);
 void drawGraphBoundingBox(point top_left, int graph_height, int graph_width);
+void drawGraphPartitions(
+	int no_horizontal_partitions,
+	int no_vertical_partitions,
+	point boundaries[4], // 0: top left 1: top right 2: bottom left 3: bottom right
+	int graph_height,
+	int graph_width,
+	short int partition_color
+);
 
 #endif

@@ -53,8 +53,9 @@ void swap2Points(point* p0, point* p1) {
     p1->y = temp;
 }
 
-void drawLine(point p0, point p1, short int color) {
+void drawLine(point p0, point p1, short int color, bool dotted) {
     bool is_steep = abs(p1.y - p0.y) > abs(p1.x - p0.x);
+	int dash_buffer = 4;
 
     if (is_steep) {
         swapXY(&p0);
@@ -71,13 +72,22 @@ void drawLine(point p0, point p1, short int color) {
     int y = p0.y;
     int y_step = (p1.y > p0.y) ? 1 : -1;
 
-    for (int x = p0.x; x <= p1.x; x++) {
-        if (is_steep) {
-            plotPixel((point){y, x}, color);
-        } else {
-            plotPixel((point){x, y}, color);
-        }
+	short int draw_color = color;
 
+    for (int x = p0.x; x <= p1.x; x++) {
+		if (dotted){
+			if (dash_buffer % 4 == 0){
+				draw_color = color;
+			} else{
+				draw_color = 0x0000;
+			}
+			dash_buffer++;
+		}
+        if (is_steep) {
+            plotPixel((point){y, x}, draw_color);
+        } else {
+            plotPixel((point){x, y}, draw_color);
+        }
         error = error + delta_y;
         if (error > 0) {
             y = y + y_step;
@@ -100,8 +110,19 @@ void drawGraphBoundingBox(point top_left, int graph_height, int graph_width){
 	point top_right = {top_left.x + graph_width, top_left.y};
 	point bottom_right = {top_left.x + graph_width, top_left.y + graph_height};
 
-	drawLine(top_left, top_right, 0xFFFF);
-	drawLine(top_left, bottom_left, 0xFFFF);
-	drawLine(bottom_right, top_right, 0xFFFF);
-	drawLine(bottom_right, bottom_left, 0xFFFF);
+	drawLine(top_left, top_right, 0xFFFF, false);
+	drawLine(top_left, bottom_left, 0xFFFF, true);
+	drawLine(bottom_right, top_right, 0xFFFF, false);
+	drawLine(bottom_right, bottom_left, 0xFFFF, false);
+}
+
+void drawGraphPartitions(
+	int no_horizontal_partitions,
+	int no_vertical_partitions,
+	point boundaries[4], // 0: top left 1: top right 2: bottom left 3: bottom right
+	int graph_height,
+	int graph_width,
+	short int partition_color
+){
+	return;
 }

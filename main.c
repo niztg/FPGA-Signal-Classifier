@@ -112,7 +112,7 @@ int main(void){
     const char[] x_axis_units = "Hz"
 
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
-    drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, x_axis_units);
+    drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, frequency_bins[NO_FREQ_BINS], x_axis_units);
 
     compute_frequency_bins(frequency_bins);
 

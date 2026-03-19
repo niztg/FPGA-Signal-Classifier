@@ -97,6 +97,7 @@ double frequency_bins[NO_FREQ_BINS];
 int max_sample_amplitude;
 
 bool cur_sw1;
+bool prev_sw1;
 
 int main(void){
     *led_ptr = 0;
@@ -122,8 +123,19 @@ int main(void){
     
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
     while (1){
+
+        prev_sw1 = cur_sw1;
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
+        
+        if (prev_sw1 != cur_sw1) {
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        }
+
+
         int edge_reg = *(key_ptr+3);
+        
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
             max_sample_amplitude = captureRecording();

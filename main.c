@@ -129,19 +129,28 @@ int main(void){
             *led_ptr = 1;
             max_sample_amplitude = captureRecording();
 
-            *led_ptr = 0b1000000000;
-            kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
-            unzip_recording_into_frames(frame_array, recording);
+            // *led_ptr = 0b1000000000;
+            // kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
+            // unzip_recording_into_frames(frame_array, recording);
 
-            for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
-                compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-                FeatureVector0* fv = create_feature_vector0(frame_array, fft_array, frequency_bins);
-            }
+            // for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
+            //     compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+            //     FeatureVector0* fv = create_feature_vector0(frame_array, fft_array, frequency_bins);
+            // }
 
-            free(cfg); // free the dynamic memory used by KissFFT
-            compute_average_fft(fft_array, average_fft);
-
-            *led_ptr = 0b0100000000;
+            // free(cfg); // free the dynamic memory used by KissFFT
+            // compute_average_fft(fft_array, average_fft);
+            
+            // *led_ptr = 0b01000000000;
+            // plotMagnitudeSpectrum(
+            //     average_fft,
+            //     bode_plot_top_left,
+            //     STANDARD_GRAPH_WIDTH,
+            //     STANDARD_GRAPH_HEIGHT,
+            //     0xFDE0
+            // );
+            
+            *led_ptr = 0b0010000000;
             plotTimeDomain(time_plot_mid_left,
                 STANDARD_GRAPH_WIDTH,
                 STANDARD_GRAPH_HEIGHT - 20,
@@ -149,14 +158,7 @@ int main(void){
                 max_sample_amplitude
             );
 
-            *led_ptr = 0b00100000000;
-            plotMagnitudeSpectrum(
-                average_fft,
-                bode_plot_top_left,
-                STANDARD_GRAPH_WIDTH,
-                STANDARD_GRAPH_HEIGHT,
-                0xFDE0
-            );
+            
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
@@ -168,8 +170,8 @@ int main(void){
         *(key_ptr+3) = CLEAR_KEY;
         
         //uncomment if you need double buffering
-        //waitForVsync(); // Wait for screen refresh
-        //pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Switch pointer to new back buffer
+        waitForVsync(); // Wait for screen refresh
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Switch pointer to new back buffer
     }
 }
 

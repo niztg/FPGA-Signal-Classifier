@@ -96,7 +96,7 @@ double frequency_bins[NO_FREQ_BINS];
 //used to scale the time-domain graph vertically
 int max_sample_amplitude;
 
-bool cur_sw1;
+bool cur_sw1 = true;
 bool prev_sw1;
 
 int main(void){

@@ -13,6 +13,7 @@ March 2026
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <string.h>
 
 // Global constants
 #define AUDIO_BASE			0xFF203040
@@ -106,6 +107,10 @@ int main(void){
     clearScreen(); // Clear second buffer
 
     clearScreen();
+    compute_frequency_bins(frequency_bins);
+    //used to scale the time-domain graph vertically
+    int max_sample_amplitude;
+
     point bode_plot_top_left = {25, 100};
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     
@@ -113,13 +118,7 @@ int main(void){
     const char* y_axis_units = "dB";
 
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
-    drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 4000, x_axis_units);
-    drawYAxisLabels(5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 1, y_axis_units);
-
-    compute_frequency_bins(frequency_bins);
-
-    //used to scale the time-domain graph vertically
-    int max_sample_amplitude;
+    drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], x_axis_units);
 
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
     while (1){

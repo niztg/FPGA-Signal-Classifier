@@ -165,43 +165,32 @@ void drawGraphPartitions(
         drawLine(top, bottom, partition_color, false);
     }
 
-    // Erase parts of horizontal lines, but never erase at vertical intersections
+    // Erase parts of horizontal lines, including true intersections
     for (int h = 0; h < no_horizontal_lines; h++){
         int y = horizontal_y[h];
 
         for (int x = top_left.x; x <= top_left.x + graph_width - 1; x++){
-            bool is_intersection = false;
-
-            for (int v = 0; v < no_vertical_lines; v++){
-                if (x == vertical_x[v]){
-                    is_intersection = true;
-                    break;
-                }
-            }
-
-            if (!is_intersection && ((x - top_left.x) % dot_spacing != 0)){
+            if ((x - top_left.x) % dot_spacing != 0){
                 plotPixel((point){x, y}, background_color);
             }
         }
     }
 
-    // Erase parts of vertical lines, but never erase at horizontal intersections
+    // Erase parts of vertical lines, including true intersections
     for (int v = 0; v < no_vertical_lines; v++){
         int x = vertical_x[v];
 
         for (int y = top_left.y; y <= top_left.y + graph_height - 1; y++){
-            bool is_intersection = false;
-
-            for (int h = 0; h < no_horizontal_lines; h++){
-                if (y == horizontal_y[h]){
-                    is_intersection = true;
-                    break;
-                }
-            }
-
-            if (!is_intersection && ((y - top_left.y) % dot_spacing != 0)){
+            if ((y - top_left.y) % dot_spacing != 0){
                 plotPixel((point){x, y}, background_color);
             }
+        }
+    }
+
+    // Explicitly erase every exact intersection point
+    for (int h = 0; h < no_horizontal_lines; h++){
+        for (int v = 0; v < no_vertical_lines; v++){
+            plotPixel((point){vertical_x[v], horizontal_y[h]}, background_color);
         }
     }
 }

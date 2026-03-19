@@ -16,6 +16,7 @@ extern volatile char* character_buffer_start;
 extern volatile int * character_ctrl_ptr;
 extern volatile int pixel_buffer_start;
 extern volatile int* pixel_ctrl_ptr;
+extern int recording[RECORDING_LENGTH];
 
 void vga_text(int x, int y, char * text_ptr);
 void plotPixel(point p, short int line_color);
@@ -52,6 +53,14 @@ void drawYAxisLabels(
     short int axis_color,
     double max_y,
     const char *y_units
+);
+
+//reference is the left horizontal midpoint of the graph
+//width and height correspond to the size of the axes being drawn
+
+void plotTimeDomain(point reference, int width, int height, 
+    /*char* x_label, char* y_label,*/ int number_of_samples 
+    /*int y_partition_size*/, int max_sample_amplitude
 );
 
 #endif

@@ -116,12 +116,15 @@ int main(void){
 
     compute_frequency_bins(frequency_bins);
 
+    //used to scale the time-domain graph vertically
+    int max_sample_amplitude;
+
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
     while (1){
         int edge_reg = *(key_ptr+3);
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
-            captureRecording();
+            max_sample_amplitude = captureRecording();
 
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
             unzip_recording_into_frames(frame_array, recording);
@@ -148,13 +151,16 @@ int main(void){
     }
 }
 
-void captureRecording(){
+int captureRecording(){
+    int max_sample_amplitude = 0;
     for (int i = 0; i < RECORDING_LENGTH; i++){
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0){
             recording[i] = audio_ptr->ldata;
+            max_sample_amplitude = recording[i] > max_sample_amplitude ? recording[i] : max_sample_amplitude;
         }
         else i--;
     }
+    return max_sample_amplitude;
 }
 
 void playbackRecording(){

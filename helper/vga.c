@@ -257,3 +257,28 @@ void drawYAxisLabels(
         vga_text(text_x, text_y, label);
     }
 }
+
+void plotTimeDomain(point reference, int width, int height, 
+    /*char* x_label, char* y_label,*/ int number_of_samples 
+    /*int y_partition_size*/, int max_sample_amplitude){
+    
+    int sample_per_pixel = number_of_samples / width;
+
+    int final_x = reference.x + width;
+
+    int sample_index = 0;
+
+    for (int x = reference.x; x < final_x; x+2){
+        int final_sample = sample_index + sample_per_pixel;
+        int amplitude = 0;
+        //loop through all the samples that are fit into one pixel and average them
+        for (sample_index; sample_index < final_sample; sample_index++){
+            amplitude += recording[sample_index];
+        } 
+        amplitude /= sample_per_pixel;
+        amplitude = amplitude < 0 ? 0 : amplitude;
+
+        int line_height = amplitude / max_sample_amplitude * height;
+        drawLine({x, reference.y + line_height/1}, {x, reference.y - line_height/1}, LINE_COLOR, false);
+    }
+}

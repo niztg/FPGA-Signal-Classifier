@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "data_processing.h"
+
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
@@ -336,4 +338,34 @@ void plotTimeDomain(point reference, int width, int height,
         int line_height = amplitude / max_sample_amplitude * (height - 2*axes_offset);
         drawLine((point){x, reference.y + (line_height/2)}, (point){x, reference.y - (line_height/2)}, LINE_COLOR, false);
     }
+}
+
+void plotMagnitudeSpectrum(
+	double average_fft[NO_FREQ_BINS],
+	point top_left,
+	int graph_width,
+	int graph_height,
+	short int color
+){
+	double pixel_step = (double) NO_FREQ_BINS / (graph_width-1); // each step to the right in k (bin index) 
+															// corresponds to `pixel_step` steps to the right in pixels
+	double max_value = get_max_value(average_fft, NO_FREQ_BINS); // we need this to know how to scale the graph
+	point prev_point = NULL;
+
+	for (int i = 0; i < NO_FREQ_BINS; i++){
+		double x_coordinate = i * pixel_step + (top_left.x + 1);
+
+		double percent = average_fft[i] / max_value;
+		double pixel_offset_from_bottom = percent * 0.9 * graph_height;
+		double y_coordinate = (top_left.y + graph_height) + pixel_offset_from_bottom;
+
+		point graph_point = {x_coordinate, y_coordinate};
+		fillBox(graph_point, 2, color);
+
+		if (prev_point != NULL){
+			drawLine(prev_point, graph_point, color, true);
+		}
+
+		prev_point = graph_point;
+	}
 }

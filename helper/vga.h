@@ -65,5 +65,12 @@ void plotTimeDomain(point reference, int width, int height,
     /*char* x_label, char* y_label,*/ int number_of_samples 
     /*int y_partition_size*/, int max_sample_amplitude
 );
+void plotMagnitudeSpectrum(
+	double average_fft[NO_FREQ_BINS],
+	point top_left,
+	int graph_width,
+	int graph_height,
+	short int color
+);
 
 #endif

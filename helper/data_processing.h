@@ -49,5 +49,6 @@ void compute_average_fft(
     double fft_magnitude[FRAMES_PER_RECORDING][NO_FREQ_BINS],
     double avg_fft[NO_FREQ_BINS]
 );
+double get_max_value(double arr[], int length);
 
 #endif

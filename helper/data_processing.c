@@ -123,3 +123,19 @@ void compute_average_fft(
         avg_fft[k] /= FRAMES_PER_RECORDING;
     }
 }
+
+double get_max_value(double arr[], int length) {
+    if (length <= 0) {
+        return 0.0; 
+    }
+
+    double max = arr[0];
+
+    for (int i = 1; i < length; i++) {
+        if (arr[i] > max) {
+            max = arr[i];
+        }
+    }
+
+    return max;
+}

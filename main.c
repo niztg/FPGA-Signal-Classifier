@@ -137,6 +137,13 @@ int main(void){
 
             free(cfg); // free the dynamic memory used by KissFFT
             compute_average_fft(fft_array, average_fft);
+            plotMagnitudeSpectrum(
+                average_fft,
+                bode_plot_top_left,
+                STANDARD_GRAPH_WIDTH,
+                STANDARD_GRAPH_HEIGHT,
+                0xFDE0
+            );
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {

@@ -341,31 +341,43 @@ void plotTimeDomain(point reference, int width, int height,
 }
 
 void plotMagnitudeSpectrum(
-	double average_fft[NO_FREQ_BINS],
-	point top_left,
-	int graph_width,
-	int graph_height,
-	short int color
+    double average_fft[NO_FREQ_BINS],
+    point top_left,
+    int graph_width,
+    int graph_height,
+    short int color
 ){
-	double pixel_step = (double) NO_FREQ_BINS / (graph_width-1); // each step to the right in k (bin index) 
-															// corresponds to `pixel_step` steps to the right in pixels
-	double max_value = get_max_value(average_fft, NO_FREQ_BINS); // we need this to know how to scale the graph
-	point prev_point = (point) {0,0};
+    if (NO_FREQ_BINS < 1 || graph_width <= 1 || graph_height <= 1) {
+        return;
+    }
 
-	for (int i = 0; i < NO_FREQ_BINS; i++){
-		double x_coordinate = i * pixel_step + (top_left.x + 1);
+    double max_value = get_max_value(average_fft, NO_FREQ_BINS);
+    if (max_value <= 0.0) {
+        return;
+    }
 
-		double percent = average_fft[i] / max_value;
-		double pixel_offset_from_bottom = percent * 0.9 * graph_height;
-		double y_coordinate = (top_left.y + graph_height) + pixel_offset_from_bottom;
+    double pixel_step = (double)(graph_width - 1) / (NO_FREQ_BINS - 1);
 
-		point graph_point = {x_coordinate, y_coordinate};
-		fillBox(graph_point, 2, color);
+    point prev_point = {0, 0};
+    bool first_point = true;
 
-		if (prev_point.x != 0 && prev_point.y != 0){
-			drawLine(prev_point, graph_point, color, true);
-		}
+    for (int i = 0; i < NO_FREQ_BINS; i++) {
+        double x_coordinate = top_left.x + i * pixel_step;
 
-		prev_point = graph_point;
-	}
+        double percent = average_fft[i] / max_value;
+        double pixel_offset_from_bottom = percent * 0.9 * (graph_height - 1);
+
+        double y_coordinate = (top_left.y + graph_height - 1) - pixel_offset_from_bottom;
+
+        point graph_point = {(int)x_coordinate, (int)y_coordinate};
+
+        fillBox(graph_point, 2, color);
+
+        if (!first_point) {
+            drawLine(prev_point, graph_point, color, true);
+        }
+
+        prev_point = graph_point;
+        first_point = false;
+    }
 }

@@ -53,14 +53,5 @@ void drawYAxisLabels(
     double max_y,
     const char *y_units
 );
-// void drawGraphPartitions(
-//     int no_horizontal_partitions,
-//     int no_vertical_partitions,
-//     point top_left,
-//     int graph_height,
-//     int graph_width,
-//     short int partition_color,
-//     int dot_spacing
-// );
 
 #endif

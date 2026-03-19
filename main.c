@@ -108,7 +108,7 @@ int main(void){
     clearScreen();
     point bode_plot_top_left = {20, 100};
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
-    // drawGraphPartitions(5, 5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
+    
     const char* x_axis_units = "Hz";
 
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);

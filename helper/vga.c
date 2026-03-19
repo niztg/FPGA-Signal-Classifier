@@ -168,7 +168,6 @@ void drawGraphGrid(
 
 // Draw x-axis tick marks and labels below the graph.
 // Labels go from 0 to max_x.
-// vga_text uses pixel coordinates.
 void drawXAxisLabels(
     int no_vertical_partitions,
     point top_left,
@@ -183,7 +182,6 @@ void drawXAxisLabels(
     int bottom_y = top_left.y + graph_height - 2;
 
     int tick_length = 4;
-    int label_y = bottom_y + 8;
 
     for (int i = 0; i <= no_vertical_partitions; i++) {
         int x_pixel = left_x + (i * (right_x - left_x)) / no_vertical_partitions;
@@ -200,20 +198,20 @@ void drawXAxisLabels(
             snprintf(label, sizeof(label), "%.1f", x_value);
         }
 
-        // Approximate 8 px per character for centering
-        int label_x = x_pixel - (int)strlen(label) * 4;
-        if (label_x < 0) {
-            label_x = 0;
+        int text_x = (x_pixel / 8) - ((int)strlen(label) / 2);
+        int text_y = (bottom_y + 10) / 8;
+
+        if (text_x < 0) {
+            text_x = 0;
+        }
+        if (text_y < 0) {
+            text_y = 0;
         }
 
-        vga_text(label_x, label_y, label);
+        vga_text(text_x, text_y, label);
     }
 }
 
-
-// Draw y-axis tick marks and labels to the left of the graph.
-// Labels go from 0 at the bottom to max_y at the top.
-// vga_text uses pixel coordinates.
 void drawYAxisLabels(
     int no_horizontal_partitions,
     point top_left,
@@ -228,12 +226,11 @@ void drawYAxisLabels(
     int bottom_y = top_left.y + graph_height - 2;
 
     (void)graph_width;
-    (void)top_y;
 
     int tick_length = 4;
 
     for (int i = 0; i <= no_horizontal_partitions; i++) {
-        int y_pixel = bottom_y - (i * (bottom_y - (top_left.y + 1))) / no_horizontal_partitions;
+        int y_pixel = bottom_y - (i * (bottom_y - top_y)) / no_horizontal_partitions;
         double y_value = (i * max_y) / no_horizontal_partitions;
 
         for (int dx = 0; dx < tick_length; dx++) {
@@ -247,76 +244,16 @@ void drawYAxisLabels(
             snprintf(label, sizeof(label), "%.1f", y_value);
         }
 
-        // Place label to left of tick mark
-        int label_x = top_left.x - 8 - (int)strlen(label) * 8;
-        int label_y = y_pixel - 4;   // small upward offset for visual centering
+        int text_x = (top_left.x / 8) - (int)strlen(label) - 1;
+        int text_y = y_pixel / 8;
 
-        if (label_x < 0) {
-            label_x = 0;
+        if (text_x < 0) {
+            text_x = 0;
         }
-        if (label_y < 0) {
-            label_y = 0;
+        if (text_y < 0) {
+            text_y = 0;
         }
 
-        vga_text(label_x, label_y, label);
+        vga_text(text_x, text_y, label);
     }
 }
-
-// void drawGraphPartitions(
-//     int no_horizontal_partitions,
-//     int no_vertical_partitions,
-//     point top_left,
-//     int graph_height,
-//     int graph_width,
-//     short int partition_color,
-//     int dot_spacing
-// ){
-//     int left_x = top_left.x + 1;
-//     int right_x = top_left.x + graph_width - 2;
-//     int top_y = top_left.y + 1;
-//     int bottom_y = top_left.y + graph_height - 2;
-
-//     int no_horizontal_lines = (no_horizontal_partitions > 1) ? (no_horizontal_partitions - 1) : 0;
-//     int no_vertical_lines = (no_vertical_partitions > 1) ? (no_vertical_partitions - 1) : 0;
-
-//     int horizontal_y[no_horizontal_lines];
-//     int vertical_x[no_vertical_lines];
-
-//     // Precompute horizontal partition y-coordinates
-//     for (int i = 0; i < no_horizontal_lines; i++) {
-//         horizontal_y[i] =
-//             top_left.y + ((i + 1) * graph_height) / no_horizontal_partitions;
-//     }
-
-//     // Precompute vertical partition x-coordinates
-//     for (int i = 0; i < no_vertical_lines; i++) {
-//         vertical_x[i] =
-//             top_left.x + ((i + 1) * graph_width) / no_vertical_partitions;
-//     }
-
-//     // Draw dotted horizontal partitions directly
-//     for (int h = 0; h < no_horizontal_lines; h++) {
-//         int y = horizontal_y[h];
-
-//         if (y <= top_y || y >= bottom_y) {
-//             continue;
-//         }
-
-//         for (int x = left_x; x <= right_x; x += dot_spacing) {
-//             plotPixel((point){x, y}, partition_color);
-//         }
-//     }
-
-//     // Draw dotted vertical partitions directly
-//     for (int v = 0; v < no_vertical_lines; v++) {
-//         int x = vertical_x[v];
-
-//         if (x <= left_x || x >= right_x) {
-//             continue;
-//         }
-
-//         for (int y = top_y; y <= bottom_y; y += dot_spacing) {
-//             plotPixel((point){x, y}, partition_color);
-//         }
-//     }
-// }

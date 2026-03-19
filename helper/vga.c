@@ -124,32 +124,52 @@ void drawGraphPartitions(
     int graph_width,
     short int partition_color
 ){
-    int left_x = top_left.x;
-    int right_x = top_left.x + graph_width - 1;
-    int top_y = top_left.y;
+    int left_x   = top_left.x;
+    int right_x  = top_left.x + graph_width - 1;
+    int top_y    = top_left.y;
     int bottom_y = top_left.y + graph_height - 1;
 
-    // Draw horizontal interior partition lines
-    if (no_horizontal_partitions > 1){
-        for (int i = 1; i < no_horizontal_partitions; i++){
+    // stay strictly inside the border
+    int inner_left_x   = left_x + 1;
+    int inner_right_x  = right_x - 1;
+    int inner_top_y    = top_y + 1;
+    int inner_bottom_y = bottom_y - 1;
+
+    int dot_spacing = 6;   // adjust to taste
+
+    // Draw horizontal partitions
+    if (no_horizontal_partitions > 1) {
+        for (int i = 1; i < no_horizontal_partitions; i++) {
             int y = top_y + (i * (graph_height - 1)) / no_horizontal_partitions;
 
-            point left = { left_x + 1, y };
-            point right = { right_x - 1, y };
+            if (y <= inner_top_y || y >= inner_bottom_y) {
+                continue;
+            }
 
-            drawLine(left, right, partition_color, true);
+            for (int x = inner_left_x; x <= inner_right_x; x++) {
+                // global dot lattice anchored to top-left of graph interior
+                if (((x - inner_left_x) % dot_spacing) == 0) {
+                    plotPixel((point){x, y}, partition_color);
+                }
+            }
         }
     }
 
-    // Draw vertical interior partition lines
-    if (no_vertical_partitions > 1){
-        for (int i = 1; i < no_vertical_partitions; i++){
+    // Draw vertical partitions
+    if (no_vertical_partitions > 1) {
+        for (int i = 1; i < no_vertical_partitions; i++) {
             int x = left_x + (i * (graph_width - 1)) / no_vertical_partitions;
 
-            point top = { x, top_y + 1 };
-            point bottom = { x, bottom_y - 1 };
+            if (x <= inner_left_x || x >= inner_right_x) {
+                continue;
+            }
 
-            drawLine(top, bottom, partition_color, true);
+            for (int y = inner_top_y; y <= inner_bottom_y; y++) {
+                // same global dot lattice anchored to same origin
+                if (((y - inner_top_y) % dot_spacing) == 0) {
+                    plotPixel((point){x, y}, partition_color);
+                }
+            }
         }
     }
 }

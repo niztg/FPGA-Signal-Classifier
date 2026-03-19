@@ -113,6 +113,8 @@ int main(void){
 
     point bode_plot_top_left = {25, 100};
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
+
+    point time_plot_mid_left = {25, 60}
     
     const char* x_axis_units = "Hz";
     const char* y_axis_units = "dB";
@@ -137,6 +139,14 @@ int main(void){
 
             free(cfg); // free the dynamic memory used by KissFFT
             compute_average_fft(fft_array, average_fft);
+
+            plotTimeDomain(time_plot_mid_left,
+                STANDARD_GRAPH_WIDTH,
+                STANDARD_GRAPH_HEIGHT - 20,
+                RECORDING_LENGTH,
+                max_sample_amplitude
+            );
+
             plotMagnitudeSpectrum(
                 average_fft,
                 bode_plot_top_left,

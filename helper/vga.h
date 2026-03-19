@@ -75,7 +75,6 @@ void drawYAxisLabels(
     const char *y_units
 );
 
-//reference is the left horizontal midpoint of the graph
 //width and height correspond to the size of the bounding box
 //refernce is the midpoint of the left edge of the bounding box
 void plotTimeDomain(point reference, int width, int height, 

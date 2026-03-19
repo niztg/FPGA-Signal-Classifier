@@ -21,6 +21,7 @@ March 2026
 #define LED_BASE            0xFF200000
 #define VGA_BASE            0xFF203020
 #define CHARACTER_BASE      0xFF203030
+#define SWITCH_BASE         0xFF200040
 
 #define RECORDING_LENGTH   40000      // total samples
 #define FRAME_LENGTH       256        // samples per frame
@@ -44,6 +45,9 @@ March 2026
 #define PLAYBACK_KEY        0b0010
 #define CLEAR_KEY           0b1111
 
+#define SW1_TIMEPLOT        1
+
+
 typedef struct { // Define structure for the audio core registers
 	volatile unsigned int control;
 	volatile unsigned char rarc;
@@ -60,6 +64,8 @@ int recording[RECORDING_LENGTH] = {0};
 volatile int* key_ptr = (int*) KEY_BASE;
 
 volatile int* led_ptr = (int*) LED_BASE;
+
+volatile int* sw_ptr = (int*) SWITCH_BASE;
 
 volatile int pixel_buffer_start; // Global for drawing target address
 short int Buffer1[240][512]; // Buffer 1 memory allocation
@@ -87,6 +93,11 @@ double average_fft[NO_FREQ_BINS]; // the pointwise average of every frame. This 
 // Bins that map each sample index (0, 1, 2, 3, ...) in an FFT to its associated linear frequency
 double frequency_bins[NO_FREQ_BINS];
 
+//used to scale the time-domain graph vertically
+int max_sample_amplitude;
+
+bool cur_sw1;
+
 int main(void){
     *led_ptr = 0;
     *(key_ptr+3) = CLEAR_KEY;
@@ -108,22 +119,10 @@ int main(void){
 
     clearScreen();
     compute_frequency_bins(frequency_bins);
-    //used to scale the time-domain graph vertically
-    int max_sample_amplitude;
-
-    point bode_plot_top_left = {25, 100};
-    drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
-
-    point time_plot_mid_left = {25, 160};
     
-    const char* x_axis_units = "Hz";
-    const char* y_axis_units = "dB";
-
-    drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
-    drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], x_axis_units);
-
     // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
     while (1){
+        cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
         int edge_reg = *(key_ptr+3);
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
@@ -141,24 +140,7 @@ int main(void){
             free(cfg); // free the dynamic memory used by KissFFT
             compute_average_fft(fft_array, average_fft);
             
-            *led_ptr = 0b01000000000;
-            plotMagnitudeSpectrum(
-                average_fft,
-                bode_plot_top_left,
-                STANDARD_GRAPH_WIDTH,
-                STANDARD_GRAPH_HEIGHT,
-                0xFDE0
-            );
-            
-            *led_ptr = 0b0010000000;
-            plotTimeDomain(time_plot_mid_left,
-                STANDARD_GRAPH_WIDTH,
-                STANDARD_GRAPH_HEIGHT,
-                RECORDING_LENGTH,
-                max_sample_amplitude
-            );
-
-            
+            displayCorrectGraph();
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
@@ -194,5 +176,48 @@ void playbackRecording(){
             audio_ptr->rdata = recording[i];
         }
         else i--;
+    }
+}
+
+void displayBode(){
+    *led_ptr = 0b01000000000;
+
+    point bode_plot_top_left = {25, 100};
+
+    const char* x_axis_units = "Hz";
+    const char* y_axis_units = "dB";
+
+    drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
+    drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
+    drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], x_axis_units);
+    plotMagnitudeSpectrum(
+        average_fft,
+        bode_plot_top_left,
+        STANDARD_GRAPH_WIDTH,
+        STANDARD_GRAPH_HEIGHT,
+        0xFDE0
+    );  
+}
+
+void displayTime(){
+    *led_ptr = 0b0010000000;
+
+    point time_plot_mid_left = {25, 160};
+
+    plotTimeDomain(time_plot_mid_left,
+        STANDARD_GRAPH_WIDTH,
+        STANDARD_GRAPH_HEIGHT,
+        RECORDING_LENGTH,
+        max_sample_amplitude
+    );
+}
+
+void displayCorrectGraph(){
+    clearScreen();
+    if (cur_sw1 == SW1_TIMEPLOT){
+        displayTime();
+    }
+    else{
+        displayBode();
     }
 }

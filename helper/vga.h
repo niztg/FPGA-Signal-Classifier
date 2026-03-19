@@ -26,7 +26,7 @@ void drawGraphBoundingBox(point top_left, int graph_height, int graph_width);
 void drawGraphPartitions(
 	int no_horizontal_partitions,
 	int no_vertical_partitions,
-	point boundaries[4], // 0: top left 1: top right 2: bottom left 3: bottom right
+	point top_left;
 	int graph_height,
 	int graph_width,
 	short int partition_color

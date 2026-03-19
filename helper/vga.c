@@ -119,10 +119,43 @@ void drawGraphBoundingBox(point top_left, int graph_height, int graph_width){
 void drawGraphPartitions(
 	int no_horizontal_partitions,
 	int no_vertical_partitions,
-	point boundaries[4], // 0: top left 1: top right 2: bottom left 3: bottom right
+	point top_left;
 	int graph_height,
 	int graph_width,
 	short int partition_color
 ){
-	return;
+	int horizontal_partition_spacing = (int) graph_width / no_horizontal_partitions;
+	int vertical_parition_spacing = (int) graph_height / no_vertical_partitions;
+
+	// Loop to draw horizontal partitions on graph visualisations
+	for (int horizontal_partition_idx = 1; horizontal_partition_idx < no_horizontal_partitions; horizontal_partition_idx++){
+		point top = {
+			top_left.x,
+			top_left.y + horizontal_partition_idx * horizontal_partition_spacing
+		};
+		point bottom = {
+			top_left.x + graph_width,
+			top_left.y + horizontal_partition_idx * horizontal_partition_spacing
+		};
+
+		drawLine(
+			top, bottom, partition_color, true
+		);
+	}
+
+	// Loop to draw vertical partitions
+	for (int vertical_partition_idx = 1; vertical_partition_idx < no_vertical_partitions; vertical_partition_idx++){
+		point top = {
+			top_left.x + vertical_partition_idx * vertical_parition_spacing,
+			top_left.y
+		};
+		point bottom = {
+			top_left.x + vertical_partition_idx * vertical_parition_spacing,
+			top_left.y + graph_height
+		};
+
+		drawLine(
+			top, bottom, partition_color, true
+		);
+	}
 }

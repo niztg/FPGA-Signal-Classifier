@@ -283,8 +283,8 @@ void plotTimeDomain(point reference, int width, int height,
     /*int y_partition_size*/, int max_sample_amplitude){
 
     int const axes_offset = 2;
-    drawLine({reference.x + axes_offset, reference.y + (height/2) - axes_offset}, {reference.x + axes_offset, reference.y - (height/2) + axes_offset}, LINE_COLOR, false);
-    drawLine({reference.x + axes_offset, reference.y}, {reference.x + width - axes_offset, reference.y}, LINE_COLOR, false);
+    drawLine((point){reference.x + axes_offset, reference.y + (height/2) - axes_offset},(point) {reference.x + axes_offset, reference.y - (height/2) + axes_offset}, LINE_COLOR, false);
+    drawLine((point){reference.x + axes_offset, reference.y}, (point){reference.x + width - axes_offset, reference.y}, LINE_COLOR, false);
     
     int sample_per_pixel = number_of_samples / width;
 
@@ -303,6 +303,6 @@ void plotTimeDomain(point reference, int width, int height,
         amplitude = amplitude < 0 ? 0 : amplitude;
 
         int line_height = amplitude / max_sample_amplitude * height;
-        drawLine({x, reference.y + line_height/2}, {x, reference.y - line_height/2}, LINE_COLOR, false);
+        drawLine((point){x, reference.y + (line_height/2)}, (point){x, reference.y - (line_height/2)}, LINE_COLOR, false);
     }
 }

@@ -16,7 +16,7 @@ extern volatile char* character_buffer_start;
 extern volatile int * character_ctrl_ptr;
 extern volatile int pixel_buffer_start;
 extern volatile int* pixel_ctrl_ptr;
-extern int recording[RECORDING_LENGTH];
+extern int recording[];
 
 void vga_text(int x, int y, char * text_ptr);
 void plotPixel(point p, short int line_color);

@@ -124,31 +124,84 @@ void drawGraphPartitions(
     int graph_width,
     short int partition_color
 ){
+    short int background_color = 0x0000;
+    int dot_spacing = 6;
+
+    int horizontal_y[no_horizontal_partitions - 1];
+    int vertical_x[no_vertical_partitions - 1];
+
+    int no_horizontal_lines = 0;
+    int no_vertical_lines = 0;
+
+    // Precompute all horizontal partition y-coordinates
     if (no_horizontal_partitions > 1){
-        for (int horizontal_partition_idx = 1;
-             horizontal_partition_idx < no_horizontal_partitions;
-             horizontal_partition_idx++){
-
-            int y = top_left.y + (horizontal_partition_idx * graph_height) / no_horizontal_partitions;
-
-            point left = { top_left.x, y };
-            point right = { top_left.x + graph_width - 1, y };
-
-            drawLine(left, right, partition_color, false);
+        for (int i = 1; i < no_horizontal_partitions; i++){
+            horizontal_y[no_horizontal_lines] =
+                top_left.y + (i * graph_height) / no_horizontal_partitions;
+            no_horizontal_lines++;
         }
     }
 
+    // Precompute all vertical partition x-coordinates
     if (no_vertical_partitions > 1){
-        for (int vertical_partition_idx = 1;
-             vertical_partition_idx < no_vertical_partitions;
-             vertical_partition_idx++){
+        for (int i = 1; i < no_vertical_partitions; i++){
+            vertical_x[no_vertical_lines] =
+                top_left.x + (i * graph_width) / no_vertical_partitions;
+            no_vertical_lines++;
+        }
+    }
 
-            int x = top_left.x + (vertical_partition_idx * graph_width) / no_vertical_partitions;
+    // Draw horizontal lines solid
+    for (int i = 0; i < no_horizontal_lines; i++){
+        point left = { top_left.x, horizontal_y[i] };
+        point right = { top_left.x + graph_width - 1, horizontal_y[i] };
+        drawLine(left, right, partition_color, false);
+    }
 
-            point top = { x, top_left.y };
-            point bottom = { x, top_left.y + graph_height - 1 };
+    // Draw vertical lines solid
+    for (int i = 0; i < no_vertical_lines; i++){
+        point top = { vertical_x[i], top_left.y };
+        point bottom = { vertical_x[i], top_left.y + graph_height - 1 };
+        drawLine(top, bottom, partition_color, false);
+    }
 
-            drawLine(top, bottom, partition_color, false);
+    // Erase parts of horizontal lines, but never erase at vertical intersections
+    for (int h = 0; h < no_horizontal_lines; h++){
+        int y = horizontal_y[h];
+
+        for (int x = top_left.x; x <= top_left.x + graph_width - 1; x++){
+            bool is_intersection = false;
+
+            for (int v = 0; v < no_vertical_lines; v++){
+                if (x == vertical_x[v]){
+                    is_intersection = true;
+                    break;
+                }
+            }
+
+            if (!is_intersection && ((x - top_left.x) % dot_spacing != 0)){
+                plotPixel((point){x, y}, background_color);
+            }
+        }
+    }
+
+    // Erase parts of vertical lines, but never erase at horizontal intersections
+    for (int v = 0; v < no_vertical_lines; v++){
+        int x = vertical_x[v];
+
+        for (int y = top_left.y; y <= top_left.y + graph_height - 1; y++){
+            bool is_intersection = false;
+
+            for (int h = 0; h < no_horizontal_lines; h++){
+                if (y == horizontal_y[h]){
+                    is_intersection = true;
+                    break;
+                }
+            }
+
+            if (!is_intersection && ((y - top_left.y) % dot_spacing != 0)){
+                plotPixel((point){x, y}, background_color);
+            }
         }
     }
 }

@@ -325,7 +325,7 @@ void plotTimeDomain(point reference, int width, int height,
 
     int sample_index = 0;
 
-    for (int x = reference.x + axes_offset; x < final_x; x+2){
+    for (int x = reference.x + axes_offset; x < final_x; x += 2){
         int final_sample = sample_index + sample_per_pixel;
         int amplitude = 0;
         //loop through all the samples that are fit into one pixel and average them

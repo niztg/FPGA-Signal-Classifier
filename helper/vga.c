@@ -32,6 +32,11 @@ void clearScreen(void) {
             plotPixel((point){x, y}, BACKGROUND_COLOR);
         }
     }
+    for (int y = 0; y < 60; y++) {
+        for (int x = 0; x < 128; x++) {
+            *(character_buffer_start + (y << 7) + x) = ' ';
+        }
+    }
 }
 
 void waitForVsync(void)

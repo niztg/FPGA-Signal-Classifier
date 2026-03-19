@@ -129,6 +129,7 @@ int main(void){
             *led_ptr = 1;
             max_sample_amplitude = captureRecording();
 
+            *led_ptr = 0b1000000000;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
             unzip_recording_into_frames(frame_array, recording);
 
@@ -140,6 +141,7 @@ int main(void){
             free(cfg); // free the dynamic memory used by KissFFT
             compute_average_fft(fft_array, average_fft);
 
+            *led_ptr = 0b0100000000;
             plotTimeDomain(time_plot_mid_left,
                 STANDARD_GRAPH_WIDTH,
                 STANDARD_GRAPH_HEIGHT - 20,
@@ -147,6 +149,7 @@ int main(void){
                 max_sample_amplitude
             );
 
+            *led_ptr = 0b00100000000;
             plotMagnitudeSpectrum(
                 average_fft,
                 bode_plot_top_left,

@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TEXT_CELL_H 8
-#define TEXT_CELL_W 8
+#define TEXT_CELL_H 4
+#define TEXT_CELL_W 4
 
 void vga_text(int x, int y, char * text_ptr) {
     int offset;

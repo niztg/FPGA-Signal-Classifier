@@ -6,7 +6,6 @@
 
 #define BACKGROUND_COLOR 0x0000
 #define LINE_COLOR       0xFFFF
-
 typedef struct {
     int x;
     int y;
@@ -16,6 +15,7 @@ extern volatile char* character_buffer_start;
 extern volatile int * character_ctrl_ptr;
 extern volatile int pixel_buffer_start;
 extern volatile int* pixel_ctrl_ptr;
+extern int recording[];
 
 #define RECORDING_LENGTH   40000      // total samples
 #define FRAME_LENGTH       256        // samples per frame

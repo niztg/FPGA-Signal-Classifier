@@ -111,51 +111,43 @@ void drawGraphBoundingBox(point top_left, int graph_height, int graph_width){
 	point bottom_right = {top_left.x + graph_width, top_left.y + graph_height};
 
 	drawLine(top_left, top_right, 0xFFFF, false);
-	drawLine(top_left, bottom_left, 0xFFFF, true);
+	drawLine(top_left, bottom_left, 0xFFFF, false);
 	drawLine(bottom_right, top_right, 0xFFFF, false);
 	drawLine(bottom_right, bottom_left, 0xFFFF, false);
 }
 
 void drawGraphPartitions(
-	int no_horizontal_partitions,
-	int no_vertical_partitions,
-	point top_left;
-	int graph_height,
-	int graph_width,
-	short int partition_color
+    int no_horizontal_partitions,
+    int no_vertical_partitions,
+    point top_left,
+    int graph_height,
+    int graph_width,
+    short int partition_color
 ){
-	int horizontal_partition_spacing = (int) graph_width / no_horizontal_partitions;
-	int vertical_parition_spacing = (int) graph_height / no_vertical_partitions;
+    int left_x = top_left.x;
+    int right_x = top_left.x + graph_width - 1;
+    int top_y = top_left.y;
+    int bottom_y = top_left.y + graph_height - 1;
 
-	// Loop to draw horizontal partitions on graph visualisations
-	for (int horizontal_partition_idx = 1; horizontal_partition_idx < no_horizontal_partitions; horizontal_partition_idx++){
-		point top = {
-			top_left.x,
-			top_left.y + horizontal_partition_idx * horizontal_partition_spacing
-		};
-		point bottom = {
-			top_left.x + graph_width,
-			top_left.y + horizontal_partition_idx * horizontal_partition_spacing
-		};
+    if (no_horizontal_partitions > 1) {
+        for (int i = 1; i < no_horizontal_partitions; i++) {
+            int y = top_y + (i * (graph_height - 1)) / no_horizontal_partitions;
 
-		drawLine(
-			top, bottom, partition_color, true
-		);
-	}
+            point left = { left_x, y };
+            point right = { right_x, y };
 
-	// Loop to draw vertical partitions
-	for (int vertical_partition_idx = 1; vertical_partition_idx < no_vertical_partitions; vertical_partition_idx++){
-		point top = {
-			top_left.x + vertical_partition_idx * vertical_parition_spacing,
-			top_left.y
-		};
-		point bottom = {
-			top_left.x + vertical_partition_idx * vertical_parition_spacing,
-			top_left.y + graph_height
-		};
+            drawLine(left, right, partition_color, true);
+        }
+    }
 
-		drawLine(
-			top, bottom, partition_color, true
-		);
-	}
+    if (no_vertical_partitions > 1) {
+        for (int i = 1; i < no_vertical_partitions; i++) {
+            int x = left_x + (i * (graph_width - 1)) / no_vertical_partitions;
+
+            point top = { x, top_y };
+            point bottom = { x, bottom_y };
+
+            drawLine(top, bottom, partition_color, true);
+        }
+    }
 }

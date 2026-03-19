@@ -27,12 +27,13 @@ void drawLine(point p0, point p1, short int color, bool dotted);
 void fillBox(point p, int size, short int color);
 void drawGraphBoundingBox(point top_left, int graph_height, int graph_width);
 void drawGraphPartitions(
-	int no_horizontal_partitions,
-	int no_vertical_partitions,
-	point top_left,
-	int graph_height,
-	int graph_width,
-	short int partition_color
+    int no_horizontal_partitions,
+    int no_vertical_partitions,
+    point top_left,
+    int graph_height,
+    int graph_width,
+    short int partition_color,
+    int dot_spacing
 );
 
 #endif

@@ -28,7 +28,7 @@ March 2026
 #define FEATURES_0         12         // 12 features in the level 0 feature vector
 
 #define STANDARD_GRAPH_HEIGHT   120
-#define STANDARD_GRAPH_WIDTH    280
+#define STANDARD_GRAPH_WIDTH    270
 
 // Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
@@ -106,13 +106,15 @@ int main(void){
     clearScreen(); // Clear second buffer
 
     clearScreen();
-    point bode_plot_top_left = {20, 100};
+    point bode_plot_top_left = {25, 100};
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     
     const char* x_axis_units = "Hz";
+    const char* y_axis_units = "dB";
 
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
     drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 4000, x_axis_units);
+    drawYAxisLabels(5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 1, y_axis_units);
 
     compute_frequency_bins(frequency_bins);
 

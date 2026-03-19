@@ -124,28 +124,31 @@ void drawGraphPartitions(
     int graph_width,
     short int partition_color
 ){
-    int left_x   = top_left.x;
-    int right_x  = top_left.x + graph_width - 1;
-    int top_y    = top_left.y;
-    int bottom_y = top_left.y + graph_height - 1;
+    if (no_horizontal_partitions > 1){
+        for (int horizontal_partition_idx = 1;
+             horizontal_partition_idx < no_horizontal_partitions;
+             horizontal_partition_idx++){
 
-    // stay strictly inside the border
-    int inner_left_x   = left_x + 1;
-    int inner_right_x  = right_x - 1;
-    int inner_top_y    = top_y + 1;
-    int inner_bottom_y = bottom_y - 1;
+            int y = top_left.y + (horizontal_partition_idx * graph_height) / no_horizontal_partitions;
 
-	int x_partition_spacing = (int) graph_width / no_vertical_partitions;
-	int y_partition_spacing = (int) graph_height / no_horizontal_partitions;
+            point left = { top_left.x, y };
+            point right = { top_left.x + graph_width - 1, y };
 
-	for (int x = left_x; x <= right_x; x++){
-		for (int y = top_y; y <= bottom_y; y++){
-			// Check if each (x, y) coordinate is on the color lattice
-			// that is, check if its (x coordinate - graph width) is an integer multiple of the y partition spacing
-			// and its (y coordinate - graph height) is an integer multiple of the number of x partition spacing
-			if ((x - graph_width) % x_partition_spacing == 0 && (y-graph_height) % y_partition_spacing == 0){
-				plotPixel((point){x, y}, partition_color)
-			}
-		}
-	}
+            drawLine(left, right, partition_color, false);
+        }
+    }
+
+    if (no_vertical_partitions > 1){
+        for (int vertical_partition_idx = 1;
+             vertical_partition_idx < no_vertical_partitions;
+             vertical_partition_idx++){
+
+            int x = top_left.x + (vertical_partition_idx * graph_width) / no_vertical_partitions;
+
+            point top = { x, top_left.y };
+            point bottom = { x, top_left.y + graph_height - 1 };
+
+            drawLine(top, bottom, partition_color, false);
+        }
+    }
 }

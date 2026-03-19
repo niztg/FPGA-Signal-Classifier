@@ -101,3 +101,25 @@ void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]){
     out[10] = fv->lowBandPowerRatio;
     out[11] = fv->highBandPowerRatio;
 }
+
+void compute_average_fft(
+    double fft_magnitude[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+    double avg_fft[NO_FREQ_BINS]
+){
+    // Initialize output
+    for (int k = 0; k < NO_FREQ_BINS; k++){
+        avg_fft[k] = 0.0;
+    }
+
+    // Sum across all frames
+    for (int frame = 0; frame < FRAMES_PER_RECORDING; frame++){
+        for (int k = 0; k < NO_FREQ_BINS; k++){
+            avg_fft[k] += fft_magnitude[frame][k];
+        }
+    }
+
+    // Divide to get average
+    for (int k = 0; k < NO_FREQ_BINS; k++){
+        avg_fft[k] /= FRAMES_PER_RECORDING;
+    }
+}

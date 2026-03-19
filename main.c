@@ -81,6 +81,7 @@ int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 // The reason we only take 129 samples is because the second half of the FFT is redundant
 // as the FFT is even for real-valued signals.
 double fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
+double average_fft[NO_FREQ_BINS]; // the pointwise average of every frame. This is what we plot
 
 // Bins that map each sample index (0, 1, 2, 3, ...) in an FFT to its associated linear frequency
 double frequency_bins[NO_FREQ_BINS];
@@ -130,6 +131,7 @@ int main(void){
             }
 
             free(cfg); // free the dynamic memory used by KissFFT
+            compute_average_fft(fft_array, avg_fft);
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {

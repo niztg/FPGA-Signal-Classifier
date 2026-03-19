@@ -45,5 +45,9 @@ void compute_fft_magnitude(const int frame[FRAME_LENGTH], double fft_frame[NO_FR
 void compute_frequency_bins(double frequency_bins[NO_FREQ_BINS]);
 FeatureVector0* create_feature_vector0(int frame[FRAME_LENGTH], double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]);
 void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]);
+void compute_average_fft(
+    double fft_magnitude[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+    double avg_fft[NO_FREQ_BINS]
+);
 
 #endif

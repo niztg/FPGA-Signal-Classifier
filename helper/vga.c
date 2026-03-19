@@ -122,93 +122,55 @@ void drawGraphPartitions(
     point top_left,
     int graph_height,
     int graph_width,
-    short int partition_color
+    short int partition_color,
+    int dot_spacing
 ){
-    short int background_color = BACKGROUND_COLOR;
-    int dot_spacing = 6;
-    int intersection_hole_radius = 1;   // 1 => 3x3 erased neighborhood
-
     int left_x = top_left.x + 1;
     int right_x = top_left.x + graph_width - 2;
     int top_y = top_left.y + 1;
     int bottom_y = top_left.y + graph_height - 2;
 
-    int horizontal_y[no_horizontal_partitions - 1];
-    int vertical_x[no_vertical_partitions - 1];
+    int no_horizontal_lines = (no_horizontal_partitions > 1) ? (no_horizontal_partitions - 1) : 0;
+    int no_vertical_lines = (no_vertical_partitions > 1) ? (no_vertical_partitions - 1) : 0;
 
-    int no_horizontal_lines = 0;
-    int no_vertical_lines = 0;
+    int horizontal_y[no_horizontal_lines];
+    int vertical_x[no_vertical_lines];
 
     // Precompute horizontal partition y-coordinates
-    if (no_horizontal_partitions > 1){
-        for (int i = 1; i < no_horizontal_partitions; i++){
-            horizontal_y[no_horizontal_lines] =
-                top_y + (i * (bottom_y - top_y)) / no_horizontal_partitions;
-            no_horizontal_lines++;
-        }
+    for (int i = 0; i < no_horizontal_lines; i++) {
+        horizontal_y[i] =
+            top_left.y + ((i + 1) * graph_height) / no_horizontal_partitions;
     }
 
     // Precompute vertical partition x-coordinates
-    if (no_vertical_partitions > 1){
-        for (int i = 1; i < no_vertical_partitions; i++){
-            vertical_x[no_vertical_lines] =
-                left_x + (i * (right_x - left_x)) / no_vertical_partitions;
-            no_vertical_lines++;
-        }
+    for (int i = 0; i < no_vertical_lines; i++) {
+        vertical_x[i] =
+            top_left.x + ((i + 1) * graph_width) / no_vertical_partitions;
     }
 
-    // Draw horizontal lines solid
-    for (int i = 0; i < no_horizontal_lines; i++){
-        point left = { left_x, horizontal_y[i] };
-        point right = { right_x, horizontal_y[i] };
-        drawLine(left, right, partition_color, false);
-    }
-
-    // Draw vertical lines solid
-    for (int i = 0; i < no_vertical_lines; i++){
-        point top = { vertical_x[i], top_y };
-        point bottom = { vertical_x[i], bottom_y };
-        drawLine(top, bottom, partition_color, false);
-    }
-
-    // Erase parts of horizontal lines to make them dotted
-    for (int h = 0; h < no_horizontal_lines; h++){
+    // Draw dotted horizontal partitions directly
+    for (int h = 0; h < no_horizontal_lines; h++) {
         int y = horizontal_y[h];
 
-        for (int x = left_x; x <= right_x; x++){
-            if ((x - left_x) % dot_spacing != 0){
-                plotPixel((point){x, y}, background_color);
-            }
+        if (y <= top_y || y >= bottom_y) {
+            continue;
+        }
+
+        for (int x = left_x; x <= right_x; x += dot_spacing) {
+            plotPixel((point){x, y}, partition_color);
         }
     }
 
-    // Erase parts of vertical lines to make them dotted
-    for (int v = 0; v < no_vertical_lines; v++){
+    // Draw dotted vertical partitions directly
+    for (int v = 0; v < no_vertical_lines; v++) {
         int x = vertical_x[v];
 
-        for (int y = top_y; y <= bottom_y; y++){
-            if ((y - top_y) % dot_spacing != 0){
-                plotPixel((point){x, y}, background_color);
-            }
+        if (x <= left_x || x >= right_x) {
+            continue;
         }
-    }
 
-    // Erase a small 5x5 neighborhood around each intersection
-    for (int h = 0; h < no_horizontal_lines; h++){
-        for (int v = 0; v < no_vertical_lines; v++){
-            int cx = vertical_x[v];
-            int cy = horizontal_y[h];
-
-            for (int dx = -intersection_hole_radius; dx <= intersection_hole_radius; dx++){
-                for (int dy = -intersection_hole_radius; dy <= intersection_hole_radius; dy++){
-                    int x = cx + dx;
-                    int y = cy + dy;
-
-                    if (x >= left_x && x <= right_x && y >= top_y && y <= bottom_y){
-                        plotPixel((point){x, y}, background_color);
-                    }
-                }
-            }
+        for (int y = top_y; y <= bottom_y; y += dot_spacing) {
+            plotPixel((point){x, y}, partition_color);
         }
     }
 }

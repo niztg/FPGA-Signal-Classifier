@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <math.h>
 
+#define BACKGROUND_COLOR 0x0000
+#define LINE_COLOR       0xFFFF
+
 typedef struct {
     int x;
     int y;

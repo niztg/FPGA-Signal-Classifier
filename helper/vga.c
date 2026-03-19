@@ -22,7 +22,7 @@ void plotPixel(point p, short int line_color)
 void clearScreen(void) {
     for (int x = 0; x < 320; x++) {
         for (int y = 0; y < 240; y++) {
-            plotPixel((point){x, y}, 0x0000);
+            plotPixel((point){x, y}, BACKGROUND_COLOR);
         }
     }
 }
@@ -79,7 +79,7 @@ void drawLine(point p0, point p1, short int color, bool dotted) {
 			if (dash_buffer % 4 == 0){
 				draw_color = color;
 			} else{
-				draw_color = 0x0000;
+				draw_color = BACKGROUND_COLOR;
 			}
 			dash_buffer++;
 		}
@@ -110,10 +110,10 @@ void drawGraphBoundingBox(point top_left, int graph_height, int graph_width){
 	point top_right = {top_left.x + graph_width, top_left.y};
 	point bottom_right = {top_left.x + graph_width, top_left.y + graph_height};
 
-	drawLine(top_left, top_right, 0xFFFF, false);
-	drawLine(top_left, bottom_left, 0xFFFF, false);
-	drawLine(bottom_right, top_right, 0xFFFF, false);
-	drawLine(bottom_right, bottom_left, 0xFFFF, false);
+	drawLine(top_left, top_right, LINE_COLOR, false);
+	drawLine(top_left, bottom_left, LINE_COLOR, false);
+	drawLine(bottom_right, top_right, LINE_COLOR, false);
+	drawLine(bottom_right, bottom_left, LINE_COLOR, false);
 }
 
 void drawGraphPartitions(
@@ -124,7 +124,7 @@ void drawGraphPartitions(
     int graph_width,
     short int partition_color
 ){
-    short int background_color = 0x0000;
+    short int background_color = BACKGROUND_COLOR;
     int dot_spacing = 6;
     int intersection_hole_radius = 1;   // 1 => 3x3 erased neighborhood
 

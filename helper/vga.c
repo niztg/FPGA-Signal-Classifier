@@ -289,17 +289,18 @@ void plotTimeDomain(point reference, int width, int height,
     /*char* x_label, char* y_label,*/ int number_of_samples 
     /*int y_partition_size*/, int max_sample_amplitude){
 
+    //plot the x and y axes with some offset with the bounding box
     int const axes_offset = 2;
     drawLine((point){reference.x + axes_offset, reference.y + (height/2) - axes_offset},(point) {reference.x + axes_offset, reference.y - (height/2) + axes_offset}, LINE_COLOR, false);
     drawLine((point){reference.x + axes_offset, reference.y}, (point){reference.x + width - axes_offset, reference.y}, LINE_COLOR, false);
     
-    int sample_per_pixel = number_of_samples / width;
+    int sample_per_pixel = number_of_samples / (width - 2*axes_offset);
 
-    int final_x = reference.x + width;
+    int final_x = reference.x + width - axes_offset;
 
     int sample_index = 0;
 
-    for (int x = reference.x; x < final_x; x+2){
+    for (int x = reference.x + axes_offset; x < final_x; x+2){
         int final_sample = sample_index + sample_per_pixel;
         int amplitude = 0;
         //loop through all the samples that are fit into one pixel and average them
@@ -309,7 +310,7 @@ void plotTimeDomain(point reference, int width, int height,
         amplitude /= sample_per_pixel;
         amplitude = amplitude < 0 ? 0 : amplitude;
 
-        int line_height = amplitude / max_sample_amplitude * height;
+        int line_height = amplitude / max_sample_amplitude * (height - 2*axes_offset);
         drawLine((point){x, reference.y + (line_height/2)}, (point){x, reference.y - (line_height/2)}, LINE_COLOR, false);
     }
 }

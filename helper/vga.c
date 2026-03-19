@@ -350,7 +350,7 @@ void plotMagnitudeSpectrum(
 	double pixel_step = (double) NO_FREQ_BINS / (graph_width-1); // each step to the right in k (bin index) 
 															// corresponds to `pixel_step` steps to the right in pixels
 	double max_value = get_max_value(average_fft, NO_FREQ_BINS); // we need this to know how to scale the graph
-	point prev_point = NULL;
+	point prev_point = (point) {0,0};
 
 	for (int i = 0; i < NO_FREQ_BINS; i++){
 		double x_coordinate = i * pixel_step + (top_left.x + 1);
@@ -362,7 +362,7 @@ void plotMagnitudeSpectrum(
 		point graph_point = {x_coordinate, y_coordinate};
 		fillBox(graph_point, 2, color);
 
-		if (prev_point != NULL){
+		if (prev_point != (point) {0,0}){
 			drawLine(prev_point, graph_point, color, true);
 		}
 

@@ -56,31 +56,22 @@ void compute_fft_magnitude(const int frame[FRAME_LENGTH],
     }
 }
 
-FeatureVector0* create_feature_vector0(int frame[FRAME_LENGTH], float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS]){
-    FeatureVector0* feature_vector = (FeatureVector0*) malloc(sizeof(FeatureVector0));
-    if (feature_vector == NULL) return NULL;
-
-    // Compute sum_fft once — reused by spectral_rolloff, spectral_entropy,
-    // low_band_power_ratio, and high_band_power_ratio, which previously each
-    // summed the entire bin array independently
+void create_feature_vector0(FeatureVector0* fv, int frame[FRAME_LENGTH], float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS]){
     float sum_fft = 0.0f;
-    for (int k = 0; k < NO_FREQ_BINS; k++){
-        sum_fft += frame_fft[k];
-    }
+    for (int k = 0; k < NO_FREQ_BINS; k++) sum_fft += frame_fft[k];
 
-    feature_vector->logEnergy          = log_energy(frame);
-    feature_vector->zeroCrossingRate   = zero_crossing_rate(frame);
-    feature_vector->spectralCentroid   = spectral_centroid(frame_fft, frequency_bins);
-    feature_vector->spectralFlatness   = spectral_flatness(frame_fft);
-    feature_vector->spectralBandwidth  = spectral_bandwidth(frame_fft, frequency_bins);
-    feature_vector->peakAmplitude      = peak_amplitude(frame);
-    feature_vector->crestFactor        = crest_factor(frame);
-    feature_vector->dominantFrequency  = dominant_frequency(frame_fft, frequency_bins);
-    feature_vector->spectralRolloff    = spectral_rolloff(frame_fft, frequency_bins, sum_fft);
-    feature_vector->spectralEntropy    = spectral_entropy(frame_fft, sum_fft);
-    feature_vector->lowBandPowerRatio  = low_band_power_ratio(frame_fft, frequency_bins, sum_fft);
-    feature_vector->highBandPowerRatio = high_band_power_ratio(frame_fft, frequency_bins, sum_fft);
-    return feature_vector;
+    fv->logEnergy          = log_energy(frame);
+    fv->zeroCrossingRate   = zero_crossing_rate(frame);
+    fv->spectralCentroid   = spectral_centroid(frame_fft, frequency_bins);
+    fv->spectralFlatness   = spectral_flatness(frame_fft);
+    fv->spectralBandwidth  = spectral_bandwidth(frame_fft, frequency_bins);
+    fv->peakAmplitude      = peak_amplitude(frame);
+    fv->crestFactor        = crest_factor(frame);
+    fv->dominantFrequency  = dominant_frequency(frame_fft, frequency_bins);
+    fv->spectralRolloff    = spectral_rolloff(frame_fft, frequency_bins, sum_fft);
+    fv->spectralEntropy    = spectral_entropy(frame_fft, sum_fft);
+    fv->lowBandPowerRatio  = low_band_power_ratio(frame_fft, frequency_bins, sum_fft);
+    fv->highBandPowerRatio = high_band_power_ratio(frame_fft, frequency_bins, sum_fft);
 }
 
 void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]){

@@ -119,18 +119,11 @@ int main(void){
             *led_ptr = 0b1000000000;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
-
+            
+            FeatureVector0 fv;   // stack allocation — no malloc needed at all
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-
-                // Fixed: pass the current frame's row, not the entire 2D array
-                FeatureVector0* fv = create_feature_vector0(
-                    frame_array[frame_idx],
-                    fft_array[frame_idx],
-                    frequency_bins
-                );
-                // Fixed: free the heap allocation returned by create_feature_vector0
-                free(fv);
+                create_feature_vector0(&fv, frame_array[frame_idx], fft_array[frame_idx], frequency_bins);
             }
 
             free(cfg);

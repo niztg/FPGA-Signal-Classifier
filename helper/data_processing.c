@@ -9,7 +9,7 @@ amenable to the neural network for further analysis.
 #define FRAME_LENGTH       256
 #define HOP_SIZE           128
 #define SAMPLING_RATE      8000
-#define FEATURES_0         12
+#define FEATURES_0         6
 
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
 #define NO_FREQ_BINS       ((FRAME_LENGTH / 2) + 1)
@@ -60,33 +60,21 @@ void create_feature_vector0(FeatureVector0* fv, int frame[FRAME_LENGTH], float f
     float sum_fft = 0.0f;
     for (int k = 0; k < NO_FREQ_BINS; k++) sum_fft += frame_fft[k];
 
-    fv->logEnergy          = log_energy(frame);
     fv->zeroCrossingRate   = zero_crossing_rate(frame);
     fv->spectralCentroid   = spectral_centroid(frame_fft, frequency_bins);
-    fv->spectralFlatness   = spectral_flatness(frame_fft);
     fv->spectralBandwidth  = spectral_bandwidth(frame_fft, frequency_bins);
-    fv->peakAmplitude      = peak_amplitude(frame);
-    fv->crestFactor        = crest_factor(frame);
     fv->dominantFrequency  = dominant_frequency(frame_fft, frequency_bins);
-    fv->spectralRolloff    = spectral_rolloff(frame_fft, frequency_bins, sum_fft);
-    fv->spectralEntropy    = spectral_entropy(frame_fft, sum_fft);
     fv->lowBandPowerRatio  = low_band_power_ratio(frame_fft, frequency_bins, sum_fft);
     fv->highBandPowerRatio = high_band_power_ratio(frame_fft, frequency_bins, sum_fft);
 }
 
 void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]){
-    out[0]  = fv->logEnergy;
-    out[1]  = fv->zeroCrossingRate;
-    out[2]  = (double) fv->spectralCentroid;
-    out[3]  = (double) fv->spectralFlatness;
-    out[4]  = (double) fv->spectralBandwidth;
-    out[5]  = fv->peakAmplitude;
-    out[6]  = fv->crestFactor;
-    out[7]  = (double) fv->dominantFrequency;
-    out[8]  = (double) fv->spectralRolloff;
-    out[9]  = (double) fv->spectralEntropy;
-    out[10] = (double) fv->lowBandPowerRatio;
-    out[11] = (double) fv->highBandPowerRatio;
+    out[0]  = fv->zeroCrossingRate;
+    out[1]  = (double) fv->spectralCentroid;
+    out[2]  = (double) fv->spectralBandwidth;
+    out[3]  = (double) fv->dominantFrequency;
+    out[4] = (double) fv->lowBandPowerRatio;
+    out[5] = (double) fv->highBandPowerRatio;
 }
 
 void compute_average_fft(

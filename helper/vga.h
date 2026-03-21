@@ -23,7 +23,7 @@ extern int recording[];
 #define FRAME_LENGTH       256
 #define HOP_SIZE           128
 #define SAMPLING_RATE      8000
-#define FEATURES_0         12
+#define FEATURES_0         6
 
 #define STANDARD_GRAPH_HEIGHT   120
 #define STANDARD_GRAPH_WIDTH    270

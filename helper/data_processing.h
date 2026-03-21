@@ -9,7 +9,7 @@ data_processing.h
 #define FRAME_LENGTH       256
 #define HOP_SIZE           128
 #define SAMPLING_RATE      8000
-#define FEATURES_0         12
+#define FEATURES_0         6
 
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
 #define NO_FREQ_BINS       ((FRAME_LENGTH / 2) + 1)
@@ -18,16 +18,10 @@ data_processing.h
 #include "../fft_helper/kiss_fftr.h"
 
 typedef struct {
-    double logEnergy;           // kept as double — computed from integer samples
-    double zeroCrossingRate;    // kept as double — computed from integer samples
+    float zeroCrossingRate;    // kept as double — computed from integer samples
     float spectralCentroid;
-    float spectralFlatness;
     float spectralBandwidth;
-    double peakAmplitude;       // kept as double — computed from integer samples
-    double crestFactor;         // kept as double — computed from integer samples
     float dominantFrequency;
-    float spectralRolloff;
-    float spectralEntropy;
     float lowBandPowerRatio;
     float highBandPowerRatio;
 } FeatureVector0;

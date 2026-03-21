@@ -32,6 +32,6 @@ void compute_frequency_bins(float frequency_bins[NO_FREQ_BINS]);
 void create_feature_vector0(FeatureVector0* fv, int frame[FRAME_LENGTH], float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS]);
 void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]);
 void compute_average_fft(float fft_magnitude[FRAMES_PER_RECORDING][NO_FREQ_BINS], float avg_fft[NO_FREQ_BINS]);
-double get_max_value(double arr[], int length);
+float get_max_value(float arr[], int length);
 
 #endif

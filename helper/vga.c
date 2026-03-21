@@ -340,38 +340,37 @@ void plotMagnitudeSpectrum(
     point top_left,
     int graph_width,
     int graph_height,
-    short int color
+    short int color,
+    short int fill_color
 ){
     if (NO_FREQ_BINS < 1 || graph_width <= 1 || graph_height <= 1) return;
 
-    // find max using float array directly
-    float max_value = average_fft[0];
-    for (int i = 1; i < NO_FREQ_BINS; i++){
-        if (average_fft[i] > max_value) max_value = average_fft[i];
-    }
+    float max_value = get_max_value(average_fft, NO_FREQ_BINS);
     if (max_value <= 0.0f) return;
 
-    double pixel_step = (double)(graph_width - 1) / (NO_FREQ_BINS - 1);
+    float pixel_step = (float)(graph_width - 1) / (NO_FREQ_BINS - 1);
+    int bottom_y = top_left.y + graph_height - 1;
 
-    point prev_point = {0, 0};
-    bool first_point = true;
+    point prev_point = {
+        top_left.x,
+        bottom_y - (int)((average_fft[0] / max_value) * (graph_height - 1))
+    };
+    drawLine(prev_point, (point){prev_point.x, bottom_y}, fill_color, false);
+    plotPixel(prev_point, color);
 
-    for (int i = 0; i < NO_FREQ_BINS; i++) {
-        double x_coordinate = top_left.x + i * pixel_step;
-
+    for (int i = 1; i < NO_FREQ_BINS; i++) {
         float percent = average_fft[i] / max_value;
-        double pixel_offset_from_bottom = percent * 0.9 * (graph_height - 1);
-        double y_coordinate = (top_left.y + graph_height - 1) - pixel_offset_from_bottom;
+        point graph_point = {
+            top_left.x + (int)(i * pixel_step),
+            bottom_y - (int)(percent * (graph_height - 1))
+        };
 
-        point graph_point = {(int)x_coordinate, (int)y_coordinate};
+        // fill under this bin
+        drawLine(graph_point, (point){graph_point.x, bottom_y}, fill_color, false);
 
-        plotPixel(graph_point, color);  // was fillBox(graph_point, 1, color) — same result, no loop overhead
-
-        if (!first_point) {
-            drawLine(prev_point, graph_point, color, false);
-        }
+        // connecting line along the top edge
+        drawLine(prev_point, graph_point, color, false);
 
         prev_point = graph_point;
-        first_point = false;
     }
 }

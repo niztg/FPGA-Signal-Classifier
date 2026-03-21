@@ -181,7 +181,8 @@ void displayBode(){
         bode_plot_top_left,
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
-        0xFDE0
+        0xFDE0,
+        0x3ADF
     );
 }
 

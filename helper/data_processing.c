@@ -94,9 +94,9 @@ void compute_average_fft(
     }
 }
 
-double get_max_value(double arr[], int length) {
-    if (length <= 0) return 0.0;
-    double max = arr[0];
+float get_max_value(float arr[], int length) {
+    if (length <= 0) return 0.0f;
+    float max = arr[0];
     for (int i = 1; i < length; i++) {
         if (arr[i] > max) max = arr[i];
     }

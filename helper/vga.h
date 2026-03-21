@@ -77,7 +77,8 @@ void plotMagnitudeSpectrum(
     point top_left,
     int graph_width,
     int graph_height,
-    short int color
+    short int color,
+    short int fill_color
 );
 
 #endif

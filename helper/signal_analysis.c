@@ -12,7 +12,7 @@ each level of implementation:
 5. Spectral Bandwidth
 
 (Note: All function headers prefixed by "spectral" are analyzed using the FFT of a frame)
-The following seven features are unique to our level 1 implementation (where we distinguish between tones, noises and speech):
+The following seven features are unique to our level 0 implementation:
 
 6. Peak Amplitude
 7. Crest Factor
@@ -24,16 +24,15 @@ The following seven features are unique to our level 1 implementation (where we 
 */
 
 #define FRAME_LENGTH       256
-#define NO_FREQ_BINS       128
+#define NO_FREQ_BINS       129
 #define SAMPLING_RATE      8000
-#define EPSILON            1e-12
+#define EPSILON            1e-7f
 
 #include "signal_analysis.h"
 #include <math.h>
-
+#include <stdlib.h>
 
 // Sign function for integers
-// Returns the sign of an integer
 int sign_int(int n){
     if (n > 0) return 1;
     else if (n < 0) return -1;
@@ -41,102 +40,71 @@ int sign_int(int n){
 }
 
 // Arithmetic Mean
-double arithmetic_mean(double frame[NO_FREQ_BINS]){
-    double sum = 0.0;
+float arithmetic_mean(float frame[NO_FREQ_BINS]){
+    float sum = 0.0f;
     for (int i = 0; i < NO_FREQ_BINS; i++){
         sum += frame[i];
     }
-
-    return (double) sum / NO_FREQ_BINS;
+    return sum / NO_FREQ_BINS;
 }
 
 // Geometric Mean
-double geometric_mean(double frame[NO_FREQ_BINS]){
-    double log_sum = 0.0; // Use a log sum to prevent overflow
+float geometric_mean(float frame[NO_FREQ_BINS]){
+    float log_sum = 0.0f;
     for (int i = 0; i < NO_FREQ_BINS; i++){
-        log_sum += log(frame[i] + EPSILON); // want small offset incase argument value is 0 otherwise
+        log_sum += logf(frame[i] + EPSILON);
     }
-
-    return (double) exp(log_sum / NO_FREQ_BINS);
+    return expf(log_sum / NO_FREQ_BINS);
 }
 
 // Log Energy
-// Measures overall signal power on a log scale, acts as a proxy for loudness and signal strength
-// Separates silence vs active signal
 double log_energy(int frame[FRAME_LENGTH]){
     double running_sum = 0.0;
     for (int n = 0; n < FRAME_LENGTH; n++){
         running_sum += (frame[n] * frame[n]);
     }
-    return (double) log(running_sum + EPSILON);
+    return log(running_sum + 1e-12);
 }
 
 // Zero-Crossing Rate
-// Measures how often the signal crosses zero, measures high frequency content --> proxy for noise
 double zero_crossing_rate(int frame[FRAME_LENGTH]){
     int running_sum = 0;
     for (int n = 1; n < FRAME_LENGTH; n++){
-        running_sum += abs(
-            sign_int(frame[n]) - sign_int(frame[n-1])
-        );
+        running_sum += abs(sign_int(frame[n]) - sign_int(frame[n-1]));
     }
-
-    return (double) running_sum / (2*FRAME_LENGTH);
+    return (double) running_sum / (2 * FRAME_LENGTH);
 }
 
-/*
-Note: What are the frequency bins? 
-
-The FFT is indexed by integers k
-The frequency bins convert each integer k to roughly the linear frequency that they correspond to
-The frequency bin array is of size FRAME_LENGTH / 2, as |FFT| is even for real signals.
-*/
-
 // Spectral Centroid
-// Center of mass of the spectrum, measures the spectrum's brightness
-double spectral_centroid(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]){
-    double sum_top = 0.0;
-    double sum_bottom = 0.0;
-
+float spectral_centroid(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS]){
+    float sum_top = 0.0f;
+    float sum_bottom = 0.0f;
     for (int k = 0; k < NO_FREQ_BINS; k++){
-        sum_top += frequency_bins[k] * frame_fft[k];
+        sum_top    += frequency_bins[k] * frame_fft[k];
         sum_bottom += frame_fft[k];
     }
-    
-    return (double) sum_top / (sum_bottom + EPSILON); // epsilon to guard against divide by 0
+    return sum_top / (sum_bottom + EPSILON);
 }
 
 // Spectral Flatness
-// How flat the spectrum is. Tone has low flatness, noise has high flatness
-double spectral_flatness(double frame_fft[NO_FREQ_BINS]){
-    return (double) geometric_mean(frame_fft) / (arithmetic_mean(frame_fft) + EPSILON);
+float spectral_flatness(float frame_fft[NO_FREQ_BINS]){
+    return geometric_mean(frame_fft) / (arithmetic_mean(frame_fft) + EPSILON);
 }
 
 // Spectral Bandwidth
-// Spread of frequencies around the centroid, measures how wide the spectrum is.
-// Tones have narrow bandwidth, noise and speech have higher bandwidth
-double spectral_bandwidth(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]){
-    double sum_top = 0.0;
-    double sum_bottom = 0.0;
-
-    double centroid = spectral_centroid(frame_fft, frequency_bins);
-
+float spectral_bandwidth(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS]){
+    float sum_top = 0.0f;
+    float sum_bottom = 0.0f;
+    float centroid = spectral_centroid(frame_fft, frequency_bins);
     for (int k = 0; k < NO_FREQ_BINS; k++){
-        double inner_term = (frequency_bins[k] - centroid);
-        sum_top += (inner_term * inner_term) * frame_fft[k];
+        float inner_term = frequency_bins[k] - centroid;
+        sum_top    += (inner_term * inner_term) * frame_fft[k];
         sum_bottom += frame_fft[k];
     }
-
-    double quotient = (double) sum_top / (sum_bottom + EPSILON);
-    return sqrt(quotient);
+    return sqrtf(sum_top / (sum_bottom + EPSILON));
 }
 
-/*
-LEVEL 1 EXCLUSIVE FEATURES
-*/
-
 // Peak Amplitude
-// Maximum absolute value of signal
 double peak_amplitude(int frame[FRAME_LENGTH]){
     int max_value = abs(frame[0]);
     for (int i = 1; i < FRAME_LENGTH; i++){
@@ -148,120 +116,77 @@ double peak_amplitude(int frame[FRAME_LENGTH]){
 }
 
 // Crest Factor
-// Peak relative to RMS
-// Reveals information about the shape of the waveform
 double crest_factor(int frame[FRAME_LENGTH]){
     double sum_of_squares = 0.0;
     for (int i = 0; i < FRAME_LENGTH; i++){
         sum_of_squares += (frame[i] * frame[i]);
     }
-    return peak_amplitude(frame) / (sqrt(sum_of_squares / FRAME_LENGTH) + EPSILON);
+    return peak_amplitude(frame) / (sqrt(sum_of_squares / FRAME_LENGTH) + 1e-12);
 }
 
 // Dominant Frequency
-// Frequency with the maximum energy
-double dominant_frequency(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]){
+float dominant_frequency(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS]){
     int dominant_k = 0;
-    double max_value = frame_fft[0];
+    float max_value = frame_fft[0];
     for (int k = 1; k < NO_FREQ_BINS; k++){
         if (frame_fft[k] > max_value){
             dominant_k = k;
             max_value = frame_fft[k];
         }
     }
-
     return frequency_bins[dominant_k];
 }
 
 // Spectral Rolloff
-// Frequency below which 85% of the energy lies
-// Measures energy distribution cutoff, tones have low rolloff, noise has high rolloff
-double spectral_rolloff(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]){
-    double sum_fft = 0.0;
-    double running_sum = 0.0;
-
-    for (int k = 0; k < NO_FREQ_BINS; k++){
-        sum_fft += frame_fft[k];
-    }
-    
-    int final_index = 0;
+// sum_fft is precomputed in create_feature_vector0 and passed in
+float spectral_rolloff(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS], float sum_fft){
+    float running_sum = 0.0f;
     for (int l = 0; l < NO_FREQ_BINS; l++){
         running_sum += frame_fft[l];
-        if (running_sum >= (0.85 * sum_fft)){
-            final_index = l;
-            break;
+        if (running_sum >= 0.85f * sum_fft){
+            return frequency_bins[l];
         }
     }
-
-    return frequency_bins[final_index];
+    return frequency_bins[NO_FREQ_BINS - 1];
 }
 
 // Spectral Entropy
-// Normalized entropy of the spectrum, measures disorder
-// Noise has high entropy, tones have low entropy
-double spectral_entropy(double frame_fft[NO_FREQ_BINS]){
-        double sum_fft = 0.0;
-        double entropy = 0.0;
-        for (int k = 0; k < NO_FREQ_BINS; k++){
-            sum_fft += frame_fft[k];
-        }    
-
+// sum_fft is precomputed in create_feature_vector0 and passed in
+float spectral_entropy(float frame_fft[NO_FREQ_BINS], float sum_fft){
+    float entropy = 0.0f;
     for (int l = 0; l < NO_FREQ_BINS; l++){
-        double p_l = (double) frame_fft[l] / (sum_fft + EPSILON);
-        entropy += p_l * (log(p_l + EPSILON));
+        float p_l = frame_fft[l] / (sum_fft + EPSILON);
+        entropy += p_l * logf(p_l + EPSILON);
     }
-
     return -entropy;
 }
 
 // Low-Band Power Ratio
-// Energy in low frequencies vs in total
-double low_band_power_ratio(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]){
-    double f_L = 1000.0;
-    // iterate through the frequency bins to find which index we need to stop at
+// sum_fft is precomputed in create_feature_vector0 and passed in
+float low_band_power_ratio(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS], float sum_fft){
+    float f_L = 1000.0f;
     int stopping_index = 0;
     for (int l = 0; l < NO_FREQ_BINS; l++){
-        if (frequency_bins[l] >= f_L){
-            stopping_index = l;
-            break;
-        }
+        if (frequency_bins[l] >= f_L){ stopping_index = l; break; }
     }
-
-    double sum_fft = 0.0;
-    double running_sum = 0.0;
-    for (int m = 0; m < NO_FREQ_BINS; m++){
-        sum_fft += frame_fft[m];
-    }    
-
+    float running_sum = 0.0f;
     for (int k = 0; k < stopping_index; k++){
         running_sum += frame_fft[k];
     }
-
-    return (double) running_sum / (sum_fft + EPSILON);
+    return running_sum / (sum_fft + EPSILON);
 }
 
 // High-Band Power Ratio
-// Measures high frequency content
-double high_band_power_ratio(double frame_fft[NO_FREQ_BINS], double frequency_bins[NO_FREQ_BINS]){
-    double f_H = 2000.0;
-    // iterate through the frequency bins to find which index we need to start at
+// sum_fft is precomputed in create_feature_vector0 and passed in
+float high_band_power_ratio(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS], float sum_fft){
+    float f_H = 2000.0f;
     int starting_index = 0;
     for (int l = 0; l < NO_FREQ_BINS; l++){
-        if (frequency_bins[l] >= f_H){
-            starting_index = l;
-            break;
-        }
+        if (frequency_bins[l] >= f_H){ starting_index = l; break; }
     }
-
-    double sum_fft = 0.0;
-    double running_sum = 0.0;
-    for (int m = 0; m < NO_FREQ_BINS; m++){
-        sum_fft += frame_fft[m];
-    }    
-
+    float running_sum = 0.0f;
     for (int k = starting_index; k < NO_FREQ_BINS; k++){
         running_sum += frame_fft[k];
     }
-
-    return (double) running_sum / (sum_fft + EPSILON);
+    return running_sum / (sum_fft + EPSILON);
 }

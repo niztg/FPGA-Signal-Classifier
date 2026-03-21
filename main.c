@@ -3,43 +3,35 @@ FPGA SIGNAL CLASSIFIER
 March 2026
 */
 
-//Helper Files
 #include "helper/data_processing.h"
 #include "helper/signal_analysis.h"
 #include "helper/vga.h"
 #include "fft_helper/kiss_fftr.h"
 
-//Libraries
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
 #include <string.h>
 
-// Global constants
-#define AUDIO_BASE			0xFF203040
+#define AUDIO_BASE          0xFF203040
 #define KEY_BASE            0xFF200050
 #define LED_BASE            0xFF200000
 #define VGA_BASE            0xFF203020
 #define CHARACTER_BASE      0xFF203030
 #define SWITCH_BASE         0xFF200040
 
-#define RECORDING_LENGTH   40000      // total samples
-#define FRAME_LENGTH       256        // samples per frame
-#define HOP_SIZE           128        // overlap step
-#define SAMPLING_RATE      8000       // Hz
-#define FEATURES_0         12         // 12 features in the level 0 feature vector
+#define RECORDING_LENGTH   40000
+#define FRAME_LENGTH       256
+#define HOP_SIZE           128
+#define SAMPLING_RATE      8000
+#define FEATURES_0         12
 
 #define STANDARD_GRAPH_HEIGHT   120
 #define STANDARD_GRAPH_WIDTH    270
 
-// Derived constants
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
-
-// For real-valued signals: bins 0..N/2 inclusive
 #define NO_FREQ_BINS       ((FRAME_LENGTH / 2) + 1)
-
-// Frequency resolution (Hz per bin)
-#define BIN_SPACING        ((double)SAMPLING_RATE / FRAME_LENGTH)
+#define BIN_SPACING        ((float)SAMPLING_RATE / FRAME_LENGTH)
 
 #define RECORD_KEY          0b0001
 #define PLAYBACK_KEY        0b0010
@@ -47,115 +39,107 @@ March 2026
 
 #define SW1_TIMEPLOT        1
 
-
-typedef struct { // Define structure for the audio core registers
-	volatile unsigned int control;
-	volatile unsigned char rarc;
-	volatile unsigned char ralc;
-	volatile unsigned char wsrc;
-	volatile unsigned char wslc;
-	volatile unsigned int ldata;
-	volatile unsigned int rdata;
+typedef struct {
+    volatile unsigned int control;
+    volatile unsigned char rarc;
+    volatile unsigned char ralc;
+    volatile unsigned char wsrc;
+    volatile unsigned char wslc;
+    volatile unsigned int ldata;
+    volatile unsigned int rdata;
 } audio;
 
-audio* audio_ptr = (audio*) AUDIO_BASE; // Instantiate audio pointer
+audio* audio_ptr = (audio*) AUDIO_BASE;
 int recording[RECORDING_LENGTH] = {0};
 
-volatile int* key_ptr = (int*) KEY_BASE;
+volatile int* key_ptr   = (int*) KEY_BASE;
+volatile int* led_ptr   = (int*) LED_BASE;
+volatile int* sw_ptr    = (int*) SWITCH_BASE;
 
-volatile int* led_ptr = (int*) LED_BASE;
-
-volatile int* sw_ptr = (int*) SWITCH_BASE;
-
-volatile int pixel_buffer_start; // Global for drawing target address
-short int Buffer1[240][512]; // Buffer 1 memory allocation
-short int Buffer2[240][512]; // Buffer 2 memory allocation
-volatile int * pixel_ctrl_ptr = (int *)VGA_BASE; // VGA controller address
+volatile int pixel_buffer_start;
+short int Buffer1[240][512];
+short int Buffer2[240][512];
+volatile int * pixel_ctrl_ptr = (int *)VGA_BASE;
 
 volatile char* character_buffer_start;
 volatile int * character_ctrl_ptr = (int *)CHARACTER_BASE;
 
-// The 2D array which stores the frame-discretized recording
-// Each frame is represented by 200 consecutive samples, and any two adjacent
-// frames share 100 mutual samples; the last 100 of the first frame and the
-// first 100 of the second frame are common.
-
-// A recording of 40k samples consists of 400 frames.
-// Each frame is sent to the neural network for processing.
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
-// A nested array of FFT's for each frame, where each FFT is 129 samples long
-// The reason we only take 129 samples is because the second half of the FFT is redundant
-// as the FFT is even for real-valued signals.
-double fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
-double average_fft[NO_FREQ_BINS]; // the pointwise average of every frame. This is what we plot
+// Changed from double to float — soft-float emulation of 32-bit ops is
+// substantially cheaper than 64-bit on the NiosV rv32im target
+float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
+float average_fft[NO_FREQ_BINS];
+float frequency_bins[NO_FREQ_BINS];
 
-// Bins that map each sample index (0, 1, 2, 3, ...) in an FFT to its associated linear frequency
-double frequency_bins[NO_FREQ_BINS];
-
-//used to scale the time-domain graph vertically
 int max_sample_amplitude;
 
 bool cur_sw1 = true;
 bool prev_sw1;
 
+int captureRecording();
+void playbackRecording();
+void displayBode();
+void displayTime();
+void displayCorrectGraph();
+
 int main(void){
     *led_ptr = 0;
     *(key_ptr+3) = CLEAR_KEY;
 
-    character_buffer_start = *character_ctrl_ptr;
+    character_buffer_start = (volatile char*) *character_ctrl_ptr;
 
-    //cons: constant size, color, font.
-    //pros: twice higher res
-    //note: keep text coordinates alligned with multiples of 8 since each char is 8 x 8.
-    //      you can write a maximum of 80x60 characters at one time
+    // Initialise double buffer — no explicit clearScreen needed,
+    // the pixel buffers are zeroed by the hardware on reset
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
+    waitForVsync();
+    pixel_buffer_start = *pixel_ctrl_ptr;
 
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // Point back buffer to Buffer1
-    waitForVsync(); // Apply buffer settings
-    pixel_buffer_start = *pixel_ctrl_ptr; // Sync pointer to front buffer
-    clearScreen(); // Clear first buffer
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer2; // Point back buffer to Buffer2
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Sync pointer to back buffer
-    clearScreen(); // Clear second buffer
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
     compute_frequency_bins(frequency_bins);
-    
-    // Polling the key to get a sample when there is a key edge and record the last 400 samples in a c array
-    while (1){
 
+    while (1){
         prev_sw1 = cur_sw1;
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
-        
+
         if (prev_sw1 != cur_sw1) {
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
         }
 
-
         int edge_reg = *(key_ptr+3);
-        
+
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
             max_sample_amplitude = captureRecording();
 
             *led_ptr = 0b1000000000;
-            kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL); // configure KissFFT
+            kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
 
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-                FeatureVector0* fv = create_feature_vector0(frame_array, fft_array, frequency_bins);
+
+                // Fixed: pass the current frame's row, not the entire 2D array
+                FeatureVector0* fv = create_feature_vector0(
+                    frame_array[frame_idx],
+                    fft_array[frame_idx],
+                    frequency_bins
+                );
+                // Fixed: free the heap allocation returned by create_feature_vector0
+                free(fv);
             }
 
-            free(cfg); // free the dynamic memory used by KissFFT
+            free(cfg);
             compute_average_fft(fft_array, average_fft);
-            
-            displayCorrectGraph();
-            waitForVsync(); // Wait for screen refresh
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1); // Switch pointer to new back buffer
-        }
 
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        }
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
             *led_ptr = 2;
             playbackRecording();
@@ -163,7 +147,6 @@ int main(void){
 
         *led_ptr = 0;
         *(key_ptr+3) = CLEAR_KEY;
-        
     }
 }
 
@@ -172,7 +155,8 @@ int captureRecording(){
     for (int i = 0; i < RECORDING_LENGTH; i++){
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0){
             recording[i] = audio_ptr->ldata;
-            max_sample_amplitude = fabs(recording[i]) > max_sample_amplitude ? fabs(recording[i]) : max_sample_amplitude;
+            int abs_val = abs(recording[i]);
+            max_sample_amplitude = abs_val > max_sample_amplitude ? abs_val : max_sample_amplitude;
         }
         else i--;
     }
@@ -195,7 +179,6 @@ void displayBode(){
     point bode_plot_top_left = {25, 100};
 
     const char* x_axis_units = "Hz";
-    const char* y_axis_units = "dB";
 
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
@@ -206,7 +189,7 @@ void displayBode(){
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
         0xFDE0
-    );  
+    );
 }
 
 void displayTime(){
@@ -223,11 +206,14 @@ void displayTime(){
 }
 
 void displayCorrectGraph(){
-    clearScreen();
+    // Clear only the region the graph occupies rather than the full 320x240 screen.
+    // Both plot types fit within this rectangle.
+    point graph_region = {15, 90};
+    clearRegion(graph_region, 295, 155);
+
     if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();
-    }
-    else{
+    } else {
         displayBode();
     }
 }

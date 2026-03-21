@@ -153,20 +153,20 @@ int main(void){
             // 10 = speech (2)
             // 11 = unused
 
+            *led_ptr |= 0b100; // LEDR2 on
             for (int i = 0; i < FRAMES_PER_RECORDING; i++){
                 FeatureVector0 fv;
                 double feature_vector[FEATURES_0];
-
                 create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
                 flatten_feature_vector(&fv, feature_vector);
-
                 for (int j = 0; j < FEATURES_0; j++){
                     printf("%.6f,", feature_vector[j]);
                 }
-
                 printf("%d\n", current_label);
             }
+            *led_ptr &= ~0b100; // LEDR2 off
         }
+        
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
             *led_ptr = 2;
             playbackRecording();

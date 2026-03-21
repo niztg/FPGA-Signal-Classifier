@@ -72,6 +72,8 @@ float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
 float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
 
+float feature_matrix[FRAMES_PER_RECORDING][FEATURES_0];
+
 int max_sample_amplitude;
 
 bool cur_sw1 = true;
@@ -120,10 +122,8 @@ int main(void){
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
             
-            FeatureVector0 fv;   // stack allocation — no malloc needed at all
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-                create_feature_vector0(&fv, frame_array[frame_idx], fft_array[frame_idx], frequency_bins);
             }
 
             free(cfg);

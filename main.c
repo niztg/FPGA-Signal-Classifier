@@ -182,7 +182,7 @@ void displayBode(){
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
         0xFDE0,
-        0x3ADF
+        0xFDE0
     );
 }
 

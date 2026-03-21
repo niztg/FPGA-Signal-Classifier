@@ -128,10 +128,44 @@ int main(void){
 
             free(cfg);
             compute_average_fft(fft_array, average_fft);
-
             displayCorrectGraph();
+
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            /*
+            COLLECT TRAINING DATA
+            LEGEND (LEVEL 0)
+            TONE: 0
+            NOISE: 1
+            SPEECH: 2
+
+            PRINT FEATURE VECTOR FOR EACH FRAME, ALONG WITH DESIGNATION OF SIGNAL TYPE
+            PRINTF THIS INFORMATION OUT, WILL BE POOLED INTO THE DATA.CSV FILE
+            SEND THIS PRINTED DATA TO AN EXTERNAL MACHINE FOR TRAINING.
+
+            ORDER FOR LEVEL0:
+            (ZCR, Spectral Centroid, Spectral Bandwidth, Dominant Frequency, LBPR, HBPR, *designation*)
+            */
+            int current_label = (*sw_ptr >> 8) & 0b11;
+            // 00 = tone (0)
+            // 01 = noise (1)
+            // 10 = speech (2)
+            // 11 = unused
+
+            for (int i = 0; i < FRAMES_PER_RECORDING; i++){
+                FeatureVector0 fv;
+                double feature_vector[FEATURES_0];
+
+                create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
+                flatten_feature_vector(&fv, feature_vector);
+
+                for (int j = 0; j < FEATURES_0; j++){
+                    printf("%.6f,", feature_vector[j]);
+                }
+
+                printf("%d\n", current_label);
+            }
         }
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
             *led_ptr = 2;

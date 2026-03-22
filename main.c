@@ -320,7 +320,7 @@ void displayCorrectGraph(){
     if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();
     } else {
-        // displayBode();
-        displaySpectrogram();
+        displayBode();
+        // displaySpectrogram();
     }
 }

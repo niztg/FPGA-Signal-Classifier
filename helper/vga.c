@@ -452,7 +452,7 @@ void plotSpectrogram(
         for (int l = 0; l < NO_FREQ_BINS; l++){
             int y_coord = y_max - (l*y_spacing);
             plotPixel((point){x_coord, y_coord}, magnitude_to_color(
-                fft_array[k][l] / running_max_value;
+                fft_array[k][l] / running_max_value
             ));
         }
     }

@@ -82,6 +82,7 @@ int captureRecording();
 void playbackRecording();
 void displayBode();
 void displayTime();
+void displaySpectrogram();
 void displayCorrectGraph();
 
 int main(void){

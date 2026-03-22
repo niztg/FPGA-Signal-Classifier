@@ -290,6 +290,15 @@ void displaySpectrogram(){
     const char* x_axis_units = "s";
     const char* y_axis_units = "Hz";
 
+    // Part 1: draw box and labels, show immediately
+    drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
+    drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 5.0, x_axis_units);
+    drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);
+    waitForVsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+    // Part 2: draw the spectrogram pixels into the new back buffer
+    // but first redraw box/labels into this buffer too
     drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 5.0, x_axis_units);
     drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);

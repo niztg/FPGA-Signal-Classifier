@@ -305,7 +305,6 @@ void drawYAxisLabels(
 void plotTimeDomain(point reference, int width, int height,
     int number_of_samples, int max_sample_amplitude){
 
-    int const axes_offset = 2;
     drawLine((point){reference.x + axes_offset, reference.y + (height/2) - axes_offset},
              (point){reference.x + axes_offset, reference.y - (height/2) + axes_offset},
              LINE_COLOR, false);
@@ -317,7 +316,7 @@ void plotTimeDomain(point reference, int width, int height,
     int final_x = reference.x + width - axes_offset;
     int sample_index = 0;
 
-    for (int x = reference.x + axes_offset; x < final_x; x += 2){
+    for (int x = reference.x; x < final_x - axes_offset; x += 2){
         int final_sample = sample_index + sample_per_pixel;
         int peak = 0;
 
@@ -329,8 +328,10 @@ void plotTimeDomain(point reference, int width, int height,
         int line_height = (int)(((float)peak / (float)max_sample_amplitude)
                           * (height - 2*axes_offset));
 
-        drawLine((point){x, reference.y + (line_height/2)},
-                 (point){x, reference.y - (line_height/2)},
+        time_plot_line_heights[(x - reference.x) / 2] = line_height;
+
+        drawLine((point){x + axes_offset, reference.y + (line_height/2)},
+                 (point){x + axes_offset, reference.y - (line_height/2)},
                  GRAPH_COLOR, false);
     }
 }

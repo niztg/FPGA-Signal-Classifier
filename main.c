@@ -39,6 +39,11 @@ March 2026
 
 #define SW1_TIMEPLOT        1
 
+int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
+int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
+point const time_plot_mid_left = {25, 160};
+int const axes_offset = 2;
+
 typedef struct {
     volatile unsigned int control;
     volatile unsigned char rarc;
@@ -78,7 +83,7 @@ int max_sample_amplitude;
 bool cur_sw1 = true;
 bool prev_sw1;
 
-int captureRecording();
+int captureRecordingAndGraphTime();
 void playbackRecording();
 void displayBode();
 void displayTime();
@@ -116,7 +121,7 @@ int main(void){
 
         if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
             *led_ptr = 1;
-            max_sample_amplitude = captureRecording();
+            max_sample_amplitude = captureRecordingAndGraphTime();
 
             *led_ptr = 0b1000000000;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
@@ -216,14 +221,10 @@ int main(void){
 
 int captureRecordingAndGraphTime() {
     int max_sample_amplitude = 0;
-    int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
-    point const time_plot_mid_left = {25, 160};
-    int const axes_offset = 2;
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
     int const MAX_AMPLITUDE = 0x7FFFFFFF;
     int x = time_plot_mid_left.x;
     int col_peak = 0;  // tracks peak within current pixel column
-
     
     // Draw directly to the front (currently displayed) buffer — no vsync stalls
     pixel_buffer_start = *pixel_ctrl_ptr;
@@ -251,8 +252,8 @@ int captureRecordingAndGraphTime() {
                 if (idx > 255) idx = 255;
                 int line_height = dB_to_height[idx];
                 
-                drawLine((point){x, time_plot_mid_left.y + line_height / 2},
-                         (point){x, time_plot_mid_left.y - line_height / 2},
+                drawLine((point){x + axes_offset, time_plot_mid_left.y + line_height / 2},
+                         (point){x + axes_offset, time_plot_mid_left.y - line_height / 2},
                          GRAPH_COLOR, false);
                 x += 2;
                 col_peak = 0;  // reset for next column
@@ -269,13 +270,32 @@ int captureRecordingAndGraphTime() {
 }
 
 void playbackRecording(){
+    pixel_buffer_start = *pixel_ctrl_ptr; //set single buffer
+
+    //make current graph white
+    for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH - 2*axes_offset; x += 2){
+        drawLine((point){x + axes_offset, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x + axes_offset, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    LINE_COLOR, false);
+    }
+
+    int x = time_plot_mid_left.x;
+
     for (int i = 0; i < RECORDING_LENGTH; i++){
         if (audio_ptr->wsrc > 0 && audio_ptr->wslc > 0){
             audio_ptr->ldata = recording[i];
             audio_ptr->rdata = recording[i];
+            if (i % samples_per_pixel == samples_per_pixel - 1){
+                drawLine((point){x + axes_offset, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x + axes_offset, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    GRAPH_COLOR, false);
+                x += 2;
+            }
         }
         else i--;
     }
+
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); //restore to double buffering
 }
 
 void displayBode(){
@@ -300,8 +320,6 @@ void displayBode(){
 
 void displayTime(){
     *led_ptr = 0b0010000000;
-
-    point time_plot_mid_left = {25, 160};
 
     plotTimeDomain(time_plot_mid_left,
         STANDARD_GRAPH_WIDTH,

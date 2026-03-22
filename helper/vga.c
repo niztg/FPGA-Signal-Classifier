@@ -374,3 +374,87 @@ void plotMagnitudeSpectrum(
         prev_point = graph_point;
     }
 }
+
+short int magnitude_to_color(float v) {
+    // clamp
+    if (v < 0.0f) v = 0.0f;
+    if (v > 1.0f) v = 1.0f;
+
+    int r, g, b;
+
+    if (v < 0.25f) {
+        // black → blue
+        float t = v / 0.25f;
+        r = 0;
+        g = 0;
+        b = (int)(t * 31);
+    } else if (v < 0.5f) {
+        // blue → cyan
+        float t = (v - 0.25f) / 0.25f;
+        r = 0;
+        g = (int)(t * 63);
+        b = 31;
+    } else if (v < 0.75f) {
+        // cyan → yellow
+        float t = (v - 0.5f) / 0.25f;
+        r = (int)(t * 31);
+        g = 63;
+        b = (int)((1.0f - t) * 31);
+    } else {
+        // yellow → white
+        float t = (v - 0.75f) / 0.25f;
+        r = 31;
+        g = 63;
+        b = (int)(t * 31);
+    }
+
+    return (short int)((r << 11) | (g << 5) | b);
+}
+
+void plotSpectrogram(
+    float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+    point top_left,
+    int graph_height,
+    int graph_width
+){
+    /*
+    COLOR MAPPING (inspired by MATLAB's `jet` color scheme):
+    Normalized Magnitude of FFT at given frequency   |  Color
+    –––––––––––––––––––––––––––––––––––––––––––––––– | –––––––
+    0.00                                             |   Black
+    0.25                                             |   Blue
+    0.50                                             |   Cyan
+    0.75                                             |   Yellow
+    1.00                                             |   Red
+    */
+
+    // Finds the max cellular value of the FFT array; this value will be used to normalize the remainder of the array
+    float running_max_value = get_max_value(fft_array[0], NO_FREQ_BINS);
+    for (int f = 1; f < FRAMES_PER_RECORDING; f++){
+        float max_f = get_max_value(fft_array[f], NO_FREQ_BINS);
+        if (max_f > running_max_value){
+            running_max_value = max_f;
+        }
+    }
+
+    // Clamps the colored pixels to be strictly within the spectrogram's bounding box
+    int x_min = top_left.x + 1;
+    int x_max = top_left.x + graph_width  - 1;
+    int y_min = top_left.y + 1;
+    int y_max = top_left.y + graph_height - 1;
+
+    int x_spacing = (int) graph_width / FRAMES_PER_RECORDING;
+    int y_spacing = (int) graph_height / NO_FREQ_BINS;
+
+    for (int k = 0; k < FRAMES_PER_RECORDING; k++){
+        int x_coord = x_min + (k*x_spacing);
+        
+        for (int l = 0; l < NO_FREQ_BINS; l++){
+            int y_coord = y_max - (l*y_spacing);
+            plotPixel((point){x_coord, y_coord}, magnitude_to_color(
+                fft_array[k][l] / running_max_value;
+            ));
+        }
+    }
+
+}

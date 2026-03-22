@@ -271,6 +271,22 @@ void displayTime(){
     );
 }
 
+void displaySpectrogram(){
+    point spectrogram_top_left = {25, 100}
+    const char* x_axis_units = "s";
+    const char* y_axis_units = "kHz";
+
+    drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
+    drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 5.0, x_axis_units);
+    drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);
+    plotSpectrogram(
+        fft_array,
+        spectrogram_top_left,
+        STANDARD_GRAPH_HEIGHT,
+        STANDARD_GRAPH_WIDTH
+    );
+}
+
 void displayCorrectGraph(){
     // Clear only the region the graph occupies rather than the full 320x240 screen.
     // Both plot types fit within this rectangle.
@@ -280,6 +296,7 @@ void displayCorrectGraph(){
     if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();
     } else {
-        displayBode();
+        // displayBode();
+        displaySpectrogram();
     }
 }

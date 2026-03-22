@@ -454,3 +454,32 @@ void plotSpectrogram(
     }
 
 }
+
+void drawSpectrogramLabel(
+    point top_left,
+    int graph_height,
+    int graph_width
+){
+    int bar_x = top_left.x + graph_width + 8; // 8 px of padding
+    int bar_inital_y = top_left.y + 10; // leave 10 px for the top label
+
+    int bar_height = graph_height - 20; // 10 px on the top for the top label, 10px on the bottom for the bottom label
+    int bar_width = 15; // 15 px wide bar
+
+    const char* high = "HIGH";
+    const char* low = "LOW";
+
+    vga_text(bar_x, bar_inital_y, high);
+
+    for (int i = 0; i <= bar_height; i++){
+        int y_coord = bar_inital_y + i;
+        short int color = magnitude_to_color(
+            (float) 1.0 - (i / bar_height)
+        );
+        for (int j = 0; j < bar_width; j++){
+            plotPixel((point){bar_x + j, y_coord}, color);
+        }
+    }
+
+    vga_text(bar_x, bar_inital_y + bar_height, low);
+}

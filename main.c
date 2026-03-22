@@ -306,7 +306,7 @@ void displaySpectrogram(){
     drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 5.0, x_axis_units);
     drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);
     plotSpectrogram(fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);
-    drawSpectrogramLabel(top_left, graph_height, graph_width);
+    drawSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
 }
 
 void displayCorrectGraph(){

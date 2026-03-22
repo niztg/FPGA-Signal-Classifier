@@ -80,12 +80,13 @@ void plotMagnitudeSpectrum(
     short int color,
     short int fill_color
 );
+short int magnitude_to_color(float v);
 void plotSpectrogram(
     float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS],
     point top_left,
     int graph_height,
     int graph_width
 );
-short int magnitude_to_color(float v);
+void drawSpectrogramLabel(point top_left, int graph_height, int graph_width);
 
 #endif

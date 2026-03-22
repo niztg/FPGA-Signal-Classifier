@@ -273,7 +273,7 @@ void displayTime(){
 }
 
 void displaySpectrogram(){
-    point spectrogram_top_left = {25, 100}
+    point spectrogram_top_left = {25, 100};
     const char* x_axis_units = "s";
     const char* y_axis_units = "kHz";
 

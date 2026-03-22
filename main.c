@@ -102,6 +102,10 @@ int main(void){
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
+    // Before the while(1) loop, after compute_mel_filterbank:
+    cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
+    prev_sw1 = !cur_sw1;   // force first-iteration mismatch → guaranteed initial draw
+
     while (1){
         prev_sw1 = cur_sw1;
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
@@ -168,11 +172,7 @@ int main(void){
             } else {
                 // combined — speech only, so level 0 label is always 2
                 // SW8: 0 = unauthorized, 1 = authorized (level 1 label)
-                int label1 = (*sw_ptr >> 8) & 0b11;
-                // 00 = unauthorized (0)
-                // 01 = authorized speaker A (1)
-                // 10 = authorized speaker B (2)
-                // 11 = unused
+                int label1 = (*sw_ptr >> 8) & 0b1;
                 *led_ptr |= 0b100;
 
                 // level 0 per-frame rows, label hardcoded to 2 (speech)

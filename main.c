@@ -201,16 +201,17 @@ int main(void){
 
                 *led_ptr &= ~0b100;
             }
+        }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
             *led_ptr = 2;
             playbackRecording();
         }
 
+        //when done
         *led_ptr = 0;
         *(key_ptr+3) = CLEAR_KEY;
     }
-}
 }
 
 int captureRecordingAndGraphTime() {
@@ -223,6 +224,21 @@ int captureRecordingAndGraphTime() {
     int x = time_plot_mid_left.x;
     int col_peak = 0;  // tracks peak within current pixel column
 
+    
+    // Draw directly to the front (currently displayed) buffer — no vsync stalls
+    pixel_buffer_start = *pixel_ctrl_ptr;
+
+    // Precompute dB -> line_height lookup table
+    // Index is col_peak normalized to 0-255
+    int dB_to_height[256];
+    for (int v = 0; v < 256; v++) {
+        float dB = (v > 0)
+            ? 20.0f * log10f((float)v / 255.0f)
+            : -60.0f;
+        if (dB < -60.0f) dB = -60.0f;
+        dB_to_height[v] = (int)((1.0f + dB / 60.0f) * usable_height);
+    }
+
     for (int i = 0; i < RECORDING_LENGTH; i++) {
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             recording[i] = audio_ptr->ldata;
@@ -231,11 +247,9 @@ int captureRecordingAndGraphTime() {
             if (absval > col_peak) col_peak = absval;
 
             if (i % samples_per_pixel == samples_per_pixel - 1) {
-                float dB = (col_peak > 0)
-                    ? 20.0f * log10f((float)col_peak / (float)MAX_AMPLITUDE)
-                    : -60.0f;
-                if (dB < -60.0f) dB = -60.0f;
-                int line_height = (int)((1.0f + dB / 60.0f) * usable_height);
+                int idx = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * 255.0f);
+                if (idx > 255) idx = 255;
+                int line_height = dB_to_height[idx];
                 
                 drawLine((point){x, time_plot_mid_left.y + line_height / 2},
                          (point){x, time_plot_mid_left.y - line_height / 2},
@@ -247,6 +261,10 @@ int captureRecordingAndGraphTime() {
             i--;
         }
     }
+
+    // Restore back buffer for normal double-buffered rendering after recording
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
     return max_sample_amplitude;
 }
 

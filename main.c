@@ -112,16 +112,27 @@ int main(void){
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
 
         if (prev_sw1 != cur_sw1) {
-            // clear both buffers first
             point graph_region = {0, 85};
+
+            // clear both buffers
             clearRegion(graph_region, 320, 160);
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
             clearRegion(graph_region, 320, 160);
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-            
-            // now draw once
+
+            // draw box and labels only into back buffer, swap so user sees it
+            if (cur_sw1 != SW1_TIMEPLOT) {
+                point tl = {25, 100};
+                drawGraphBoundingBox(tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
+                drawXAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 5.0, "s");
+                drawYAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
+                waitForVsync();
+                pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            }
+
+            // now draw fully into both buffers
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
@@ -290,24 +301,10 @@ void displaySpectrogram(){
     const char* x_axis_units = "s";
     const char* y_axis_units = "Hz";
 
-    // Part 1: draw box and labels, show immediately
     drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 5.0, x_axis_units);
     drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-    // Part 2: draw the spectrogram pixels into the new back buffer
-    // but first redraw box/labels into this buffer too
-    drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
-    drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 5.0, x_axis_units);
-    drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);
-    plotSpectrogram(
-        fft_array,
-        spectrogram_top_left,
-        STANDARD_GRAPH_HEIGHT,
-        STANDARD_GRAPH_WIDTH
-    );
+    plotSpectrogram(fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
 }
 
 void displayCorrectGraph(){

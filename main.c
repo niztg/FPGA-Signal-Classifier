@@ -112,6 +112,19 @@ int main(void){
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
 
         if (prev_sw1 != cur_sw1) {
+            // clear both buffers first
+            point graph_region = {0, 85};
+            clearRegion(graph_region, 320, 160);
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            clearRegion(graph_region, 320, 160);
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            
+            // now draw once
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);

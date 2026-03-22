@@ -168,7 +168,11 @@ int main(void){
             } else {
                 // combined — speech only, so level 0 label is always 2
                 // SW8: 0 = unauthorized, 1 = authorized (level 1 label)
-                int label1 = (*sw_ptr >> 8) & 0b1;
+                int label1 = (*sw_ptr >> 8) & 0b11;
+                // 00 = unauthorized (0)
+                // 01 = authorized speaker A (1)
+                // 10 = authorized speaker B (2)
+                // 11 = unused
                 *led_ptr |= 0b100;
 
                 // level 0 per-frame rows, label hardcoded to 2 (speech)

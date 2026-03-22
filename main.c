@@ -73,7 +73,7 @@ float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
-int max_sample_amplitude;
+int max_sample_amplitude = 1;
 
 bool cur_sw1 = true;
 bool prev_sw1;

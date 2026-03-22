@@ -439,12 +439,12 @@ void plotSpectrogram(
 
     // Clamps the colored pixels to be strictly within the spectrogram's bounding box
     int x_min = top_left.x + 1;
-    int x_max = top_left.x + graph_width  - 1;
+    int x_max = top_left.x + graph_width  - 2;
     int y_min = top_left.y + 1;
-    int y_max = top_left.y + graph_height - 1;
+    int y_max = top_left.y + graph_height - 2;
 
-    int x_spacing = (int) graph_width / FRAMES_PER_RECORDING;
-    int y_spacing = (int) graph_height / NO_FREQ_BINS;
+    int x_spacing = (int) FRAMES_PER_RECORDING / graph_width;
+    int y_spacing = (int) NO_FREQ_BINS / graph_height;
 
     for (int k = 0; k < FRAMES_PER_RECORDING; k++){
         int x_coord = x_min + (k*x_spacing);

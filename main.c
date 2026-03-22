@@ -202,15 +202,17 @@ int main(void){
                 *led_ptr &= ~0b100;
             }
 
+        }
+
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
             *led_ptr = 2;
             playbackRecording();
         }
 
+        //when done
         *led_ptr = 0;
         *(key_ptr+3) = CLEAR_KEY;
     }
-}
 }
 
 int captureRecording(){

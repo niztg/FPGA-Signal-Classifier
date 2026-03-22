@@ -213,15 +213,39 @@ int main(void){
 }
 }
 
-int captureRecording(){
+int captureRecordingAndGraphTime() {
     int max_sample_amplitude = 0;
-    for (int i = 0; i < RECORDING_LENGTH; i++){
-        if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0){
+    int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
+    point const time_plot_mid_left = {25, 160};
+    int const axes_offset = 2;
+    int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
+    int const MAX_AMPLITUDE = 0x7FFFFFFF;
+    int x = time_plot_mid_left.x;
+    int col_peak = 0;  // tracks peak within current pixel column
+
+    for (int i = 0; i < RECORDING_LENGTH; i++) {
+        if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             recording[i] = audio_ptr->ldata;
-            int abs_val = abs(recording[i]);
-            max_sample_amplitude = abs_val > max_sample_amplitude ? abs_val : max_sample_amplitude;
+            int absval = abs(recording[i]);
+            if (absval > max_sample_amplitude) max_sample_amplitude = absval;
+            if (absval > col_peak) col_peak = absval;
+
+            if (i % samples_per_pixel == samples_per_pixel - 1) {
+                float dB = (col_peak > 0)
+                    ? 20.0f * log10f((float)col_peak / (float)MAX_AMPLITUDE)
+                    : -60.0f;
+                if (dB < -60.0f) dB = -60.0f;
+                int line_height = (int)((1.0f + dB / 60.0f) * usable_height);
+                
+                drawLine((point){x, time_plot_mid_left.y + line_height / 2},
+                         (point){x, time_plot_mid_left.y - line_height / 2},
+                         GRAPH_COLOR, false);
+                x += 2;
+                col_peak = 0;  // reset for next column
+            }
+        } else {
+            i--;
         }
-        else i--;
     }
     return max_sample_amplitude;
 }

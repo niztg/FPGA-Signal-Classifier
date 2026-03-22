@@ -229,7 +229,7 @@ void drawXAxisLabels(
 ){
     if (no_vertical_partitions <= 0) return;
 
-    int left_x   = top_left.x + 1;
+    int left_x = top_left.x;
     int bottom_y = top_left.y + graph_height - 1;
     int tick_length = 4;
     int label_pixel_y = bottom_y + tick_length + 6;
@@ -443,16 +443,12 @@ void plotSpectrogram(
     int y_min = top_left.y + 1;
     int y_max = top_left.y + graph_height - 2;
 
-    int x_spacing = (int) FRAMES_PER_RECORDING / graph_width;
-    int y_spacing = (int) NO_FREQ_BINS / graph_height;
-
-    for (int k = 0; k < FRAMES_PER_RECORDING; k++){
-        int x_coord = x_min + (k*x_spacing);
-        
-        for (int l = 0; l < NO_FREQ_BINS; l++){
-            int y_coord = y_max - (l*y_spacing);
-            plotPixel((point){x_coord, y_coord}, magnitude_to_color(
-                fft_array[k][l] / running_max_value
+    for (int px = x_min; px <= x_max; px++) {
+        int f = (px - x_min) * FRAMES_PER_RECORDING / (x_max - x_min + 1);
+        for (int py = y_min; py <= y_max; py++) {
+            int k = (y_max - py) * NO_FREQ_BINS / (y_max - y_min + 1);
+            plotPixel((point){px, py}, magnitude_to_color(
+                fft_array[f][k] / running_max_value
             ));
         }
     }

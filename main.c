@@ -291,8 +291,10 @@ void displaySpectrogram(){
 void displayCorrectGraph(){
     // Clear only the region the graph occupies rather than the full 320x240 screen.
     // Both plot types fit within this rectangle.
-    point graph_region = {15, 90};
-    clearRegion(graph_region, 295, 155);
+
+    // Niz: expanded this to catch the spectrogram's y labels
+    point graph_region = {0, 85};  
+    clearRegion(graph_region, 320, 160);  
 
     if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();

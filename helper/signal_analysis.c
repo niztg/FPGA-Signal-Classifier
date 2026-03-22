@@ -122,3 +122,59 @@ float high_band_power_ratio(float frame_fft[NO_FREQ_BINS], float frequency_bins[
     }
     return running_sum / (sum_fft + EPSILON);
 }
+
+static float hz_to_mel(float hz) {
+    return 2595.0f * log10f(1.0f + hz / 700.0f);
+}
+
+static float mel_to_hz(float mel) {
+    return 700.0f * (powf(10.0f, mel / 2595.0f) - 1.0f);
+}
+
+void compute_mel_filterbank(float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS],
+                             float f_low, float f_high) {
+    float mel_low  = hz_to_mel(f_low);
+    float mel_high = hz_to_mel(f_high);
+
+    // M+2 equally spaced points in mel domain, convert back to bin indices
+    float mel_points[NUM_MEL_FILTERS + 2];
+    int   bin_points[NUM_MEL_FILTERS + 2];
+    for (int m = 0; m < NUM_MEL_FILTERS + 2; m++) {
+        mel_points[m] = mel_low + (float)m * (mel_high - mel_low) / (NUM_MEL_FILTERS + 1);
+        float hz = mel_to_hz(mel_points[m]);
+        bin_points[m] = (int)(hz / BIN_SPACING + 0.5f);
+        if (bin_points[m] >= NO_FREQ_BINS) bin_points[m] = NO_FREQ_BINS - 1;
+    }
+
+    for (int m = 0; m < NUM_MEL_FILTERS; m++) {
+        int left   = bin_points[m];
+        int centre = bin_points[m + 1];
+        int right  = bin_points[m + 2];
+        for (int k = 0; k < NO_FREQ_BINS; k++) {
+            if      (k <= left || k >= right) filterbank[m][k] = 0.0f;
+            else if (k < centre)              filterbank[m][k] = (float)(k - left)  / (float)(centre - left);
+            else                              filterbank[m][k] = (float)(right - k) / (float)(right - centre);
+        }
+    }
+}
+
+void compute_mfcc(const float fft_magnitude[NO_FREQ_BINS],
+                  const float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS],
+                  float mfcc_out[NUM_MFCC]) {
+    float log_energies[NUM_MEL_FILTERS];
+    for (int m = 0; m < NUM_MEL_FILTERS; m++) {
+        float energy = 0.0f;
+        for (int k = 0; k < NO_FREQ_BINS; k++)
+            energy += filterbank[m][k] * fft_magnitude[k] * fft_magnitude[k];
+        log_energies[m] = logf(energy + EPSILON);
+    }
+
+    // type-II DCT, skip c0, keep c1..c8
+    for (int i = 0; i < NUM_MFCC; i++) {
+        int ci = i + 1;
+        float sum = 0.0f;
+        for (int m = 0; m < NUM_MEL_FILTERS; m++)
+            sum += log_energies[m] * cosf(3.14159265f * ci / NUM_MEL_FILTERS * (m + 0.5f));
+        mfcc_out[i] = sum;
+    }
+}

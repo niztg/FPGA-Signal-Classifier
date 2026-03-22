@@ -102,3 +102,89 @@ float get_max_value(float arr[], int length) {
     }
     return max;
 }
+
+void create_feature_vector1(FeatureVector1* fv,
+                             int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH],
+                             float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+                             float frequency_bins[NO_FREQ_BINS],
+                             const float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS]) {
+    // average the spectral features across all frames
+    float zcr_sum = 0.0f, sc_sum = 0.0f, lbpr_sum = 0.0f, hbpr_sum = 0.0f;
+    for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
+        float sum_fft = 0.0f;
+        for (int k = 0; k < NO_FREQ_BINS; k++) sum_fft += fft_array[i][k];
+        zcr_sum  += zero_crossing_rate(frame_array[i]);
+        sc_sum   += spectral_centroid(fft_array[i], frequency_bins);
+        lbpr_sum += low_band_power_ratio(fft_array[i], frequency_bins, sum_fft);
+        hbpr_sum += high_band_power_ratio(fft_array[i], frequency_bins, sum_fft);
+    }
+    fv->zeroCrossingRate  = zcr_sum  / FRAMES_PER_RECORDING;
+    fv->spectralCentroid  = sc_sum   / FRAMES_PER_RECORDING;
+    fv->lowBandPowerRatio = lbpr_sum / FRAMES_PER_RECORDING;
+    fv->highBandPowerRatio= hbpr_sum / FRAMES_PER_RECORDING;
+
+    // Welford's online mean/variance for MFCC coefficients across frames
+    float mean[NUM_MFCC] = {0};
+    float M2[NUM_MFCC]   = {0};
+    float buf[NUM_MFCC];
+    for (int f = 0; f < FRAMES_PER_RECORDING; f++) {
+        compute_mfcc(fft_array[f], filterbank, buf);
+        for (int i = 0; i < NUM_MFCC; i++) {
+            float delta = buf[i] - mean[i];
+            mean[i] += delta / (f + 1);
+            M2[i]   += delta * (buf[i] - mean[i]);
+        }
+    }
+    for (int i = 0; i < NUM_MFCC; i++) {
+        fv->mfcc_mean[i] = mean[i];
+        fv->mfcc_std[i]  = sqrtf(M2[i] / FRAMES_PER_RECORDING);
+    }
+}
+
+void flatten_feature_vector1(FeatureVector1* fv, float out[FEATURES_1]) {
+    out[0] = fv->zeroCrossingRate;
+    out[1] = fv->spectralCentroid;
+    out[2] = fv->lowBandPowerRatio;
+    out[3] = fv->highBandPowerRatio;
+    for (int i = 0; i < NUM_MFCC; i++) out[4 + i]            = fv->mfcc_mean[i];
+    for (int i = 0; i < NUM_MFCC; i++) out[4 + NUM_MFCC + i] = fv->mfcc_std[i];
+}
+
+void create_feature_vector1_chunk(FeatureVector1* fv,
+                                   int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH],
+                                   float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+                                   float frequency_bins[NO_FREQ_BINS],
+                                   const float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS],
+                                   int start, int end) {
+    int count = end - start;
+
+    float zcr_sum = 0.0f, sc_sum = 0.0f, lbpr_sum = 0.0f, hbpr_sum = 0.0f;
+    for (int i = start; i < end; i++) {
+        float sum_fft = 0.0f;
+        for (int k = 0; k < NO_FREQ_BINS; k++) sum_fft += fft_array[i][k];
+        zcr_sum  += zero_crossing_rate(frame_array[i]);
+        sc_sum   += spectral_centroid(fft_array[i], frequency_bins);
+        lbpr_sum += low_band_power_ratio(fft_array[i], frequency_bins, sum_fft);
+        hbpr_sum += high_band_power_ratio(fft_array[i], frequency_bins, sum_fft);
+    }
+    fv->zeroCrossingRate   = zcr_sum  / count;
+    fv->spectralCentroid   = sc_sum   / count;
+    fv->lowBandPowerRatio  = lbpr_sum / count;
+    fv->highBandPowerRatio = hbpr_sum / count;
+
+    float mean[NUM_MFCC] = {0};
+    float M2[NUM_MFCC]   = {0};
+    float buf[NUM_MFCC];
+    for (int f = start; f < end; f++) {
+        compute_mfcc(fft_array[f], filterbank, buf);
+        for (int i = 0; i < NUM_MFCC; i++) {
+            float delta = buf[i] - mean[i];
+            mean[i] += delta / (f - start + 1);
+            M2[i]   += delta * (buf[i] - mean[i]);
+        }
+    }
+    for (int i = 0; i < NUM_MFCC; i++) {
+        fv->mfcc_mean[i] = mean[i];
+        fv->mfcc_std[i]  = sqrtf(M2[i] / count);
+    }
+}

@@ -71,8 +71,7 @@ int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
 float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
-
-float feature_matrix[FRAMES_PER_RECORDING][FEATURES_0];
+float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
 int max_sample_amplitude;
 
@@ -101,6 +100,7 @@ int main(void){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
     compute_frequency_bins(frequency_bins);
+    compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
     while (1){
         prev_sw1 = cur_sw1;
@@ -147,26 +147,56 @@ int main(void){
             ORDER FOR LEVEL0:
             (ZCR, Spectral Centroid, Spectral Bandwidth, Dominant Frequency, LBPR, HBPR, *designation*)
             */
-            int current_label = (*sw_ptr >> 8) & 0b11;
-            // 00 = tone (0)
-            // 01 = noise (1)
-            // 10 = speech (2)
-            // 11 = unused
+            // SW7 selects collection mode: 0 = level 0, 1 = level 1
+            int collect_mode = (*sw_ptr >> 7) & 0b1;  // 0 = level 0 only, 1 = combined
 
-            *led_ptr |= 0b100; // LEDR2 on
-            for (int i = 0; i < FRAMES_PER_RECORDING; i++){
-                if (i % 4 != 0) continue;
-                FeatureVector0 fv;
-                double feature_vector[FEATURES_0];
-                create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
-                flatten_feature_vector(&fv, feature_vector);
-                for (int j = 0; j < FEATURES_0; j++){
-                    printf("%.3f,", feature_vector[j]);
+            if (!collect_mode) {
+                // level 0 only — original behaviour, SW8-9 selects label
+                int label0 = (*sw_ptr >> 8) & 0b11;
+                *led_ptr |= 0b100;
+                for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
+                    if (i % 4 != 0) continue;
+                    FeatureVector0 fv;
+                    double feature_vector[FEATURES_0];
+                    create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
+                    flatten_feature_vector(&fv, feature_vector);
+                    for (int j = 0; j < FEATURES_0; j++) printf("%.4f,", feature_vector[j]);
+                    printf("%d\n", label0);
                 }
-                printf("%d\n", current_label);
+                *led_ptr &= ~0b100;
+
+            } else {
+                // combined — speech only, so level 0 label is always 2
+                // SW8: 0 = unauthorized, 1 = authorized (level 1 label)
+                int label1 = (*sw_ptr >> 8) & 0b1;
+                *led_ptr |= 0b100;
+
+                // level 0 per-frame rows, label hardcoded to 2 (speech)
+                for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
+                    if (i % 4 != 0) continue;
+                    FeatureVector0 fv;
+                    double feature_vector[FEATURES_0];
+                    create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
+                    flatten_feature_vector(&fv, feature_vector);
+                    for (int j = 0; j < FEATURES_0; j++) printf("%.3f,", feature_vector[j]);
+                    printf("%d\n", 2);  // always speech
+                }
+
+                // level 1 single row
+                // level 1: one row per chunk
+                for (int chunk = 0; chunk < CHUNKS_PER_RECORDING; chunk++) {
+                    int start = chunk * FRAMES_PER_CHUNK;
+                    int end   = start + FRAMES_PER_CHUNK;
+                    FeatureVector1 fv1;
+                    float fv1_flat[FEATURES_1];
+                    create_feature_vector1_chunk(&fv1, frame_array, fft_array, frequency_bins, filterbank, start, end);
+                    flatten_feature_vector1(&fv1, fv1_flat);
+                    for (int j = 0; j < FEATURES_1; j++) printf("%.4f,", fv1_flat[j]);
+                    printf("%d\n", label1);
+                }
+
+                *led_ptr &= ~0b100;
             }
-            *led_ptr &= ~0b100; // LEDR2 off
-        }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
             *led_ptr = 2;
@@ -176,6 +206,7 @@ int main(void){
         *led_ptr = 0;
         *(key_ptr+3) = CLEAR_KEY;
     }
+}
 }
 
 int captureRecording(){

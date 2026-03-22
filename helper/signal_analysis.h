@@ -18,6 +18,9 @@ signal_analysis.h
 #define NO_FREQ_BINS       ((FRAME_LENGTH / 2) + 1)
 #define BIN_SPACING        ((float)SAMPLING_RATE / FRAME_LENGTH)
 
+#define NUM_MEL_FILTERS    26
+#define NUM_MFCC           8
+
 #define EPSILON 1e-7f
 
 int sign_int(int n);
@@ -27,5 +30,10 @@ float spectral_bandwidth(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_
 float dominant_frequency(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS]);
 float low_band_power_ratio(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS], float sum_fft);
 float high_band_power_ratio(float frame_fft[NO_FREQ_BINS], float frequency_bins[NO_FREQ_BINS], float sum_fft);
+
+void compute_mel_filterbank(float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS], float f_low, float f_high);
+void compute_mfcc(const float fft_magnitude[NO_FREQ_BINS],
+                  const float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS],
+                  float mfcc_out[NUM_MFCC]);
 
 #endif

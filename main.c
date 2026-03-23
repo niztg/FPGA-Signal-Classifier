@@ -125,9 +125,9 @@ int main(void){
             // draw box and labels only into back buffer, swap so user sees it
             if (cur_sw1 != SW1_TIMEPLOT) {
                 point tl = {25, 100};
-                drawGraphBoundingBox(tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
-                drawXAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, 5.0, "s");
-                drawYAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
+                drawGraphBoundingBox(tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH-40);
+                drawXAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH-40, 0xFFFF, 5.0, "s");
+                drawYAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH-40, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
                 waitForVsync();
                 pixel_buffer_start = *(pixel_ctrl_ptr + 1);
             }

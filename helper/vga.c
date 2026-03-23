@@ -469,7 +469,7 @@ void drawSpectrogramLabel(
     const char* high = "HIGH";
     const char* low = "LOW";
 
-    vga_text(bar_x / TEXT_CELL_W, bar_inital_y / TEXT_CELL_H, "HIGH");
+    vga_text((bar_x + 4) / TEXT_CELL_W, (bar_inital_y + 4) / TEXT_CELL_H, "HIGH");
 
     for (int i = 0; i <= bar_height; i++){
         int y_coord = bar_inital_y + i;
@@ -481,5 +481,5 @@ void drawSpectrogramLabel(
         }
     }
 
-    vga_text(bar_x / TEXT_CELL_W, (bar_inital_y + bar_height) / TEXT_CELL_H, "LOW");
+    vga_text((bar_x + 4) / TEXT_CELL_W, (bar_inital_y + bar_height + 4) / TEXT_CELL_H, "LOW");
 }

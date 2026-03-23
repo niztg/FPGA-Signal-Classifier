@@ -469,17 +469,17 @@ void drawSpectrogramLabel(
     const char* high = "HIGH";
     const char* low = "LOW";
 
-    vga_text(bar_x, bar_inital_y, high);
+    vga_text(bar_x, top_left.y, high);
 
     for (int i = 0; i <= bar_height; i++){
         int y_coord = bar_inital_y + i;
         short int color = magnitude_to_color(
-            (float) 1.0 - (i / bar_height)
+            1.0f - (float) ((float)i / (float)bar_height)
         );
         for (int j = 0; j < bar_width; j++){
             plotPixel((point){bar_x + j, y_coord}, color);
         }
     }
 
-    vga_text(bar_x, bar_inital_y + bar_height, low);
+    vga_text(bar_x, top_left.y + bar_height + 8, low);
 }

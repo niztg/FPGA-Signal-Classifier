@@ -89,7 +89,7 @@ void displayBode();
 void displayTime();
 void displayCorrectGraph();
 
-static void handler(void) __attribute__ ((interrupt ("machine")));
+//static void handler(void) __attribute__ ((interrupt ("machine")));
 
 int main(void){
     *led_ptr = 0;
@@ -253,16 +253,12 @@ int captureRecordingAndGraphTime() {
     // Draw directly to the front (currently displayed) buffer — no vsync stalls
     pixel_buffer_start = *pixel_ctrl_ptr;
 
-    // Precompute dB -> line_height lookup table
-    // Index is col_peak normalized to 0-255
-    // int dB_to_height[256];
-    // for (int v = 0; v < 256; v++) {
-    //     float dB = (v > 0)
-    //         ? 20.0f * log10f((float)v / 255.0f)
-    //         : -60.0f;
-    //     if (dB < -60.0f) dB = -60.0f;
-    //     dB_to_height[v] = (int)((1.0f + dB / 60.0f) * usable_height);
-    // }
+    drawLine((point){x, time_plot_mid_left.y + (STANDARD_GRAPH_HEIGHT/2) - axes_offset},
+             (point){x, time_plot_mid_left.y - (STANDARD_GRAPH_HEIGHT/2) + axes_offset},
+             LINE_COLOR, false);
+    drawLine((point){x, time_plot_mid_left.y},
+             (point){x + STANDARD_GRAPH_WIDTH, time_plot_mid_left.y},
+             LINE_COLOR, false);
 
     for (int i = 0; i < RECORDING_LENGTH; i++) {
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
@@ -273,9 +269,10 @@ int captureRecordingAndGraphTime() {
 
             if (i % samples_per_pixel == samples_per_pixel - 1) {
                 int line_height = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * usable_height);
+                time_plot_line_heights[(x - time_plot_mid_left.x) / 2] = line_height;
                 
-                drawLine((point){x + axes_offset, time_plot_mid_left.y + line_height / 2},
-                         (point){x + axes_offset, time_plot_mid_left.y - line_height / 2},
+                drawLine((point){x, time_plot_mid_left.y + line_height / 2},
+                         (point){x, time_plot_mid_left.y - line_height / 2},
                          GRAPH_COLOR, false);
                 x += 2;
                 col_peak = 0;  // reset for next column

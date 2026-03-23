@@ -8,6 +8,8 @@
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
+extern int time_plot_line_heights[];
+
 void vga_text(int x, int y, char * text_ptr) {
     int offset;
     offset = (y << 7) + x;
@@ -302,36 +304,26 @@ void drawYAxisLabels(
     }
 }
 
+
 void plotTimeDomain(point reference, int width, int height,
     int number_of_samples, int max_sample_amplitude){
 
-    drawLine((point){reference.x + axes_offset, reference.y + (height/2) - axes_offset},
-             (point){reference.x + axes_offset, reference.y - (height/2) + axes_offset},
+    // draw axes
+    drawLine((point){reference.x, reference.y + (height/2) - axes_offset},
+             (point){reference.x, reference.y - (height/2) + axes_offset},
              LINE_COLOR, false);
-    drawLine((point){reference.x + axes_offset, reference.y},
-             (point){reference.x + width - axes_offset, reference.y},
+    drawLine((point){reference.x, reference.y},
+             (point){reference.x + width, reference.y},
              LINE_COLOR, false);
 
-    int sample_per_pixel = number_of_samples / (width - 2*axes_offset);
-    int final_x = reference.x + width - axes_offset;
-    int sample_index = 0;
+    int const usable_height = height - 2 * axes_offset;
+    int x = reference.x;
 
-    for (int x = reference.x; x < final_x - axes_offset; x += 2){
-        int final_sample = sample_index + sample_per_pixel;
-        int peak = 0;
+    for (int x = reference.x; x < reference.x + width; x += 2) {
+        int line_height = time_plot_line_heights[(x - reference.x) / 2];
 
-        for (; sample_index < final_sample; sample_index++){
-            int abs_sample = abs(recording[sample_index]);   // was fabs — unnecessary float promotion
-            if (abs_sample > peak) peak = abs_sample;
-        }
-
-        int line_height = (int)(((float)peak / (float)max_sample_amplitude)
-                          * (height - 2*axes_offset));
-
-        time_plot_line_heights[(x - reference.x) / 2] = line_height;
-
-        drawLine((point){x + axes_offset, reference.y + (line_height/2)},
-                 (point){x + axes_offset, reference.y - (line_height/2)},
+        drawLine((point){x, reference.y + (line_height / 2)},
+                 (point){x, reference.y - (line_height / 2)},
                  GRAPH_COLOR, false);
     }
 }

@@ -78,7 +78,7 @@ float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
-int max_sample_amplitude;
+int max_sample_amplitude = 1;
 
 bool cur_sw1 = true;
 bool prev_sw1;
@@ -88,6 +88,8 @@ void playbackRecording();
 void displayBode();
 void displayTime();
 void displayCorrectGraph();
+
+static void handler(void) __attribute__ ((interrupt ("machine")));
 
 int main(void){
     *led_ptr = 0;
@@ -106,6 +108,28 @@ int main(void){
 
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
+
+    audio_ptr -> control |= 0b1100;
+    /*
+    HANDLE INTERRUPTS
+    */
+    int mstatus_value, mtvec_value, mie_value;
+    mstatus_value = 0b1000; // interrupt bit mask
+    // disable interrupts
+    __asm__ volatile ("csrc mstatus, %0" :: "r"(mstatus_value));
+    mtvec_value = (int) &handler; // set trap address
+    __asm__ volatile ("csrw mtvec, %0" :: "r"(mtvec_value));
+    // disable all interrupts that are currently enabled
+    __asm__ volatile ("csrr %0, mie" : "=r"(mie_value));
+    __asm__ volatile ("csrc mie, %0" :: "r"(mie_value));
+    mie_value = (1 << 21);
+    // set interrupt enables
+    __asm__ volatile ("csrs mie, %0" :: "r"(mie_value));
+    // enable Nios V interrupts
+    __asm__ volatile ("csrs mstatus, %0" :: "r"(mstatus_value));
+
+    *(key_ptr + 2) = 0xf;
+    audio_ptr->control |= 1;
 
     while (1){
         prev_sw1 = cur_sw1;
@@ -153,59 +177,59 @@ int main(void){
             (ZCR, Spectral Centroid, Spectral Bandwidth, Dominant Frequency, LBPR, HBPR, *designation*)
             */
             // SW7 selects collection mode: 0 = level 0, 1 = level 1
-            int collect_mode = (*sw_ptr >> 7) & 0b1;  // 0 = level 0 only, 1 = combined
+            // int collect_mode = (*sw_ptr >> 7) & 0b1;  // 0 = level 0 only, 1 = combined
 
-            if (!collect_mode) {
-                // level 0 only — original behaviour, SW8-9 selects label
-                int label0 = (*sw_ptr >> 8) & 0b11;
-                *led_ptr |= 0b100;
-                for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
-                    if (i % 4 != 0) continue;
-                    FeatureVector0 fv;
-                    double feature_vector[FEATURES_0];
-                    create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
-                    flatten_feature_vector(&fv, feature_vector);
-                    for (int j = 0; j < FEATURES_0; j++) printf("%.4f,", feature_vector[j]);
-                    printf("%d\n", label0);
-                }
-                *led_ptr &= ~0b100;
+            // if (!collect_mode) {
+            //     // level 0 only — original behaviour, SW8-9 selects label
+            //     int label0 = (*sw_ptr >> 8) & 0b11;
+            //     *led_ptr |= 0b100;
+            //     for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
+            //         if (i % 4 != 0) continue;
+            //         FeatureVector0 fv;
+            //         double feature_vector[FEATURES_0];
+            //         create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
+            //         flatten_feature_vector(&fv, feature_vector);
+            //         for (int j = 0; j < FEATURES_0; j++) printf("%.4f,", feature_vector[j]);
+            //         printf("%d\n", label0);
+            //     }
+            //     *led_ptr &= ~0b100;
 
-            } else {
-                // combined — speech only, so level 0 label is always 2
-                // SW8: 0 = unauthorized, 1 = authorized (level 1 label)
-                int label1 = (*sw_ptr >> 8) & 0b11;
-                // 00 = unauthorized (0)
-                // 01 = authorized speaker A (1)
-                // 10 = authorized speaker B (2)
-                // 11 = unused
-                *led_ptr |= 0b100;
+            // } else {
+            //     // combined — speech only, so level 0 label is always 2
+            //     // SW8: 0 = unauthorized, 1 = authorized (level 1 label)
+            //     int label1 = (*sw_ptr >> 8) & 0b11;
+            //     // 00 = unauthorized (0)
+            //     // 01 = authorized speaker A (1)
+            //     // 10 = authorized speaker B (2)
+            //     // 11 = unused
+            //     *led_ptr |= 0b100;
 
-                // level 0 per-frame rows, label hardcoded to 2 (speech)
-                for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
-                    if (i % 4 != 0) continue;
-                    FeatureVector0 fv;
-                    double feature_vector[FEATURES_0];
-                    create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
-                    flatten_feature_vector(&fv, feature_vector);
-                    for (int j = 0; j < FEATURES_0; j++) printf("%.3f,", feature_vector[j]);
-                    printf("%d\n", 2);  // always speech
-                }
+            //     // level 0 per-frame rows, label hardcoded to 2 (speech)
+            //     for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
+            //         if (i % 4 != 0) continue;
+            //         FeatureVector0 fv;
+            //         double feature_vector[FEATURES_0];
+            //         create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
+            //         flatten_feature_vector(&fv, feature_vector);
+            //         for (int j = 0; j < FEATURES_0; j++) printf("%.3f,", feature_vector[j]);
+            //         printf("%d\n", 2);  // always speech
+            //     }
 
-                // level 1 single row
-                // level 1: one row per chunk
-                for (int chunk = 0; chunk < CHUNKS_PER_RECORDING; chunk++) {
-                    int start = chunk * FRAMES_PER_CHUNK;
-                    int end   = start + FRAMES_PER_CHUNK;
-                    FeatureVector1 fv1;
-                    float fv1_flat[FEATURES_1];
-                    create_feature_vector1_chunk(&fv1, frame_array, fft_array, frequency_bins, filterbank, start, end);
-                    flatten_feature_vector1(&fv1, fv1_flat);
-                    for (int j = 0; j < FEATURES_1; j++) printf("%.4f,", fv1_flat[j]);
-                    printf("%d\n", label1);
-                }
+            //     // level 1 single row
+            //     // level 1: one row per chunk
+            //     for (int chunk = 0; chunk < CHUNKS_PER_RECORDING; chunk++) {
+            //         int start = chunk * FRAMES_PER_CHUNK;
+            //         int end   = start + FRAMES_PER_CHUNK;
+            //         FeatureVector1 fv1;
+            //         float fv1_flat[FEATURES_1];
+            //         create_feature_vector1_chunk(&fv1, frame_array, fft_array, frequency_bins, filterbank, start, end);
+            //         flatten_feature_vector1(&fv1, fv1_flat);
+            //         for (int j = 0; j < FEATURES_1; j++) printf("%.4f,", fv1_flat[j]);
+            //         printf("%d\n", label1);
+            //     }
 
-                *led_ptr &= ~0b100;
-            }
+            //     *led_ptr &= ~0b100;
+            // }
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
@@ -240,6 +264,8 @@ int captureRecordingAndGraphTime() {
         dB_to_height[v] = (int)((1.0f + dB / 60.0f) * usable_height);
     }
 
+    
+    audio_ptr -> control &= 0xfffffff3;
     for (int i = 0; i < RECORDING_LENGTH; i++) {
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             recording[i] = audio_ptr->ldata;
@@ -340,4 +366,13 @@ void displayCorrectGraph(){
     } else {
         displayBode();
     }
+}
+
+void handler (void){
+    int mcause_value;
+    __asm__ volatile ("csrr %0, mcause" : "=r"(mcause_value));
+    mcause_value &= 0x7FFFFFFF;
+    if (mcause_value == 21){
+        *led_ptr = (1 << 5);
+   } 
 }

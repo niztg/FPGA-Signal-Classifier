@@ -109,27 +109,27 @@ int main(void){
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
-    audio_ptr -> control |= 0b1100;
+    //audio_ptr -> control |= 0b1100;
     /*
     HANDLE INTERRUPTS
     */
-    int mstatus_value, mtvec_value, mie_value;
-    mstatus_value = 0b1000; // interrupt bit mask
-    // disable interrupts
-    __asm__ volatile ("csrc mstatus, %0" :: "r"(mstatus_value));
-    mtvec_value = (int) &handler; // set trap address
-    __asm__ volatile ("csrw mtvec, %0" :: "r"(mtvec_value));
-    // disable all interrupts that are currently enabled
-    __asm__ volatile ("csrr %0, mie" : "=r"(mie_value));
-    __asm__ volatile ("csrc mie, %0" :: "r"(mie_value));
-    mie_value = (1 << 21);
-    // set interrupt enables
-    __asm__ volatile ("csrs mie, %0" :: "r"(mie_value));
-    // enable Nios V interrupts
-    __asm__ volatile ("csrs mstatus, %0" :: "r"(mstatus_value));
+    // int mstatus_value, mtvec_value, mie_value;
+    // mstatus_value = 0b1000; // interrupt bit mask
+    // // disable interrupts
+    // __asm__ volatile ("csrc mstatus, %0" :: "r"(mstatus_value));
+    // mtvec_value = (int) &handler; // set trap address
+    // __asm__ volatile ("csrw mtvec, %0" :: "r"(mtvec_value));
+    // // disable all interrupts that are currently enabled
+    // __asm__ volatile ("csrr %0, mie" : "=r"(mie_value));
+    // __asm__ volatile ("csrc mie, %0" :: "r"(mie_value));
+    // mie_value = (1 << 21);
+    // // set interrupt enables
+    // //__asm__ volatile ("csrs mie, %0" :: "r"(mie_value));
+    // // enable Nios V interrupts
+    // __asm__ volatile ("csrs mstatus, %0" :: "r"(mstatus_value));
 
-    *(key_ptr + 2) = 0xf;
-    audio_ptr->control |= 1;
+    // *(key_ptr + 2) = 0xf;
+    // audio_ptr->control |= 1;
 
     while (1){
         prev_sw1 = cur_sw1;
@@ -246,7 +246,7 @@ int main(void){
 int captureRecordingAndGraphTime() {
     int max_sample_amplitude = 0;
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
-    int const MAX_AMPLITUDE = 0x7FFFFFFF;
+    int const MAX_AMPLITUDE = 0x6FFFFFFF;
     int x = time_plot_mid_left.x;
     int col_peak = 0;  // tracks peak within current pixel column
     
@@ -255,17 +255,15 @@ int captureRecordingAndGraphTime() {
 
     // Precompute dB -> line_height lookup table
     // Index is col_peak normalized to 0-255
-    int dB_to_height[256];
-    for (int v = 0; v < 256; v++) {
-        float dB = (v > 0)
-            ? 20.0f * log10f((float)v / 255.0f)
-            : -60.0f;
-        if (dB < -60.0f) dB = -60.0f;
-        dB_to_height[v] = (int)((1.0f + dB / 60.0f) * usable_height);
-    }
+    // int dB_to_height[256];
+    // for (int v = 0; v < 256; v++) {
+    //     float dB = (v > 0)
+    //         ? 20.0f * log10f((float)v / 255.0f)
+    //         : -60.0f;
+    //     if (dB < -60.0f) dB = -60.0f;
+    //     dB_to_height[v] = (int)((1.0f + dB / 60.0f) * usable_height);
+    // }
 
-    
-    audio_ptr -> control &= 0xfffffff3;
     for (int i = 0; i < RECORDING_LENGTH; i++) {
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             recording[i] = audio_ptr->ldata;
@@ -274,9 +272,7 @@ int captureRecordingAndGraphTime() {
             if (absval > col_peak) col_peak = absval;
 
             if (i % samples_per_pixel == samples_per_pixel - 1) {
-                int idx = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * 255.0f);
-                if (idx > 255) idx = 255;
-                int line_height = dB_to_height[idx];
+                int line_height = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * usable_height);
                 
                 drawLine((point){x + axes_offset, time_plot_mid_left.y + line_height / 2},
                          (point){x + axes_offset, time_plot_mid_left.y - line_height / 2},
@@ -368,11 +364,11 @@ void displayCorrectGraph(){
     }
 }
 
-void handler (void){
-    int mcause_value;
-    __asm__ volatile ("csrr %0, mcause" : "=r"(mcause_value));
-    mcause_value &= 0x7FFFFFFF;
-    if (mcause_value == 21){
-        *led_ptr = (1 << 5);
-   } 
-}
+// void handler (void){
+//     int mcause_value;
+//     __asm__ volatile ("csrr %0, mcause" : "=r"(mcause_value));
+//     mcause_value &= 0x7FFFFFFF;
+//     if (mcause_value == 21){
+//         *led_ptr = (1 << 5);
+//    } 
+// }

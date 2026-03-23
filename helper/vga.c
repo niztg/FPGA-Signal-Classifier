@@ -460,26 +460,22 @@ void drawSpectrogramLabel(
     int graph_height,
     int graph_width
 ){
-    int bar_x = top_left.x + graph_width + 8; // 8 px of padding
-    int bar_inital_y = top_left.y + 10; // leave 10 px for the top label
+    // snap all positions to the 4x4 character grid
+    int bar_x      = ((top_left.x + graph_width + 8) / TEXT_CELL_W) * TEXT_CELL_W;
+    int bar_top    = ((top_left.y + 8) / TEXT_CELL_H) * TEXT_CELL_H;
+    int bar_bottom = ((top_left.y + graph_height - 8) / TEXT_CELL_H) * TEXT_CELL_H;
+    int bar_height = bar_bottom - bar_top;
+    int bar_width  = 15;
 
-    int bar_height = graph_height - 20; // 10 px on the top for the top label, 10px on the bottom for the bottom label
-    int bar_width = 15; // 15 px wide bar
+    // text lands exactly on grid rows that match bar top and bottom
+    vga_text(bar_x / TEXT_CELL_W, bar_top / TEXT_CELL_H,    "HIGH");
+    vga_text(bar_x / TEXT_CELL_W, bar_bottom / TEXT_CELL_H, "LOW");
 
-    const char* high = "HIGH";
-    const char* low = "LOW";
-
-    vga_text((bar_x + 1) / TEXT_CELL_W, (bar_inital_y - 6) / TEXT_CELL_H, "HIGH");
-
+    // draw the gradient bar
     for (int i = 0; i <= bar_height; i++){
-        int y_coord = bar_inital_y + i;
-        short int color = magnitude_to_color(
-            1.0f - (float) ((float)i / (float)bar_height)
-        );
+        short int color = magnitude_to_color(1.0f - (float) ((float)i / (float)bar_height));
         for (int j = 0; j < bar_width; j++){
-            plotPixel((point){bar_x + j, y_coord}, color);
+            plotPixel((point){bar_x + j, bar_top + i}, color);
         }
     }
-
-    vga_text((bar_x + 4) / TEXT_CELL_W, (bar_inital_y + bar_height + 8) / TEXT_CELL_H, "LOW");
 }

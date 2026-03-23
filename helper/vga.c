@@ -326,6 +326,12 @@ void plotTimeDomain(point reference, int width, int height,
                  (point){x, reference.y - (line_height / 2)},
                  GRAPH_COLOR, false);
     }
+    drawLine((point){reference.x, reference.y + (height/2) - axes_offset},
+             (point){reference.x, reference.y - (height/2) + axes_offset},
+             LINE_COLOR, false);
+    drawLine((point){reference.x, reference.y},
+             (point){reference.x + width, reference.y},
+             LINE_COLOR, false);
 }
 
 void plotMagnitudeSpectrum(

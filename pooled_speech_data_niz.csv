@@ -1,7 +1,3 @@
-nios2-terminal: connected to hardware target using JTAG UART on cable
-nios2-terminal: "DE-SoC [USB-1]", device 2, instance 0
-nios2-terminal: (Use the IDE stop button or Ctrl-C to terminate)
-
 0.098,881.020,881.263,437.500,0.762,0.126,2
 0.062,694.555,878.732,250.000,0.778,0.110,2
 0.090,749.205,847.229,31.250,0.734,0.108,2

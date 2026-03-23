@@ -139,6 +139,7 @@ int main(void){
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            displayCorrectGraph();
         }
 
         int edge_reg = *(key_ptr+3);
@@ -244,6 +245,8 @@ int main(void){
 }
 
 int captureRecordingAndGraphTime() {
+    point graph_region = {15, 90};
+    clearRegion(graph_region, 295, 155);
     int max_sample_amplitude = 0;
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
     int const MAX_AMPLITUDE = 0x6FFFFFFF;
@@ -292,9 +295,9 @@ void playbackRecording(){
     pixel_buffer_start = *pixel_ctrl_ptr; //set single buffer
 
     //make current graph white
-    for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH - 2*axes_offset; x += 2){
-        drawLine((point){x + axes_offset, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
-                    (point){x + axes_offset, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+    for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
+        drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
                     LINE_COLOR, false);
     }
 
@@ -305,8 +308,8 @@ void playbackRecording(){
             audio_ptr->ldata = recording[i];
             audio_ptr->rdata = recording[i];
             if (i % samples_per_pixel == samples_per_pixel - 1){
-                drawLine((point){x + axes_offset, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
-                    (point){x + axes_offset, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
                     GRAPH_COLOR, false);
                 x += 2;
             }

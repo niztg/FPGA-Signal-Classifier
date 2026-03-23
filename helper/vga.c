@@ -465,11 +465,11 @@ void drawSpectrogramLabel(
     int bar_top    = ((top_left.y + 8) / TEXT_CELL_H) * TEXT_CELL_H;
     int bar_bottom = ((top_left.y + graph_height - 8) / TEXT_CELL_H) * TEXT_CELL_H;
     int bar_height = bar_bottom - bar_top;
-    int bar_width  = 15;
+    int bar_width  = 16;
 
     // text lands exactly on grid rows that match bar top and bottom
-    vga_text(bar_x / TEXT_CELL_W, bar_top / TEXT_CELL_H,    "HIGH");
-    vga_text(bar_x / TEXT_CELL_W, bar_bottom / TEXT_CELL_H, "LOW");
+    vga_text(bar_x / TEXT_CELL_W, (bar_top - 6) / TEXT_CELL_H,    "HIGH");
+    vga_text((bar_x + 3) / TEXT_CELL_W, (bar_bottom + 6) / TEXT_CELL_H, "LOW");
 
     // draw the gradient bar
     for (int i = 0; i <= bar_height; i++){

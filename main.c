@@ -129,30 +129,12 @@ int main(void){
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
 
         if (prev_sw1 != cur_sw1) {
-            point graph_region = {0, 95};
-
-            // clear both buffers
-            clearRegion(graph_region, 320, 160);
-            waitForVsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-            clearRegion(graph_region, 320, 160);
-            waitForVsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-            // draw box and labels only into back buffer, swap so user sees it
-            if (cur_sw1 != SW1_TIMEPLOT) {
-                point tl = {25, 100};
-                drawGraphBoundingBox(tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH-40);
-                drawXAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH-40, 0xFFFF, 5.0, "s");
-                drawYAxisLabels(5, tl, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH-40, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
-                waitForVsync();
-                pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-            }
-
-            // now draw fully into both buffers
+            clearRegion((point){0, 95}, 320, 145);
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            clearRegion((point){0, 95}, 320, 145);
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
@@ -174,8 +156,14 @@ int main(void){
 
             free(cfg);
             compute_average_fft(fft_array, average_fft);
-            displayCorrectGraph();
 
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
@@ -327,34 +315,9 @@ void displaySpectrogram(){
 }
 
 void displayCorrectGraph(){
-    // Clear only the region the graph occupies rather than the full 320x240 screen.
-    // Both plot types fit within this rectangle.
-
-    // Niz: expanded this to catch the spectrogram's y labels
-    point graph_region = {0, 95};  
-    clearRegion(graph_region, 320, 160); 
-
-    const char* button1 = "Time";
-    const char* button2 = "Spectrum";
-    const char* button3 =  "Spectrogram"; 
-
-    // Draw buttons into back buffer
-    createGraphButton(button1, (point){25, 80});
-    createGraphButton(button2, (point){55, 80});
-    createGraphButton(button3, (point){100, 80});
-
-    // Swap, then draw into the other buffer too
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-    createGraphButton(button1, (point){25, 80});
-    createGraphButton(button2, (point){55, 80});
-    createGraphButton(button3, (point){100, 80});
-
     if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();
     } else {
-        // displayBode();
         displaySpectrogram();
     }
 }

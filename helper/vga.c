@@ -376,36 +376,35 @@ void plotMagnitudeSpectrum(
 }
 
 short int magnitude_to_color(float v) {
-    // clamp
     if (v < 0.0f) v = 0.0f;
     if (v > 1.0f) v = 1.0f;
 
     int r, g, b;
 
     if (v < 0.25f) {
-        // black → blue
+        // black → dark purple
         float t = v / 0.25f;
-        r = 0;
-        g = 0;
-        b = (int)(t * 31);
+        r = (int)(t * 4);
+        g = (int)(t * 2);
+        b = (int)(t * 12);
     } else if (v < 0.5f) {
-        // blue → cyan
+        // dark purple → deep magenta/red
         float t = (v - 0.25f) / 0.25f;
-        r = 0;
-        g = (int)(t * 63);
-        b = 31;
+        r = 4 + (int)(t * 16);    // 4 → 20
+        g = 2 + (int)(t * 2);     // 2 → 4
+        b = 12 - (int)(t * 4);    // 12 → 8
     } else if (v < 0.75f) {
-        // cyan → yellow
+        // deep magenta → orange
         float t = (v - 0.5f) / 0.25f;
-        r = (int)(t * 31);
-        g = 63;
-        b = (int)((1.0f - t) * 31);
+        r = 20 + (int)(t * 11);   // 20 → 31
+        g = 4 + (int)(t * 24);    // 4 → 28
+        b = 8 - (int)(t * 8);     // 8 → 0
     } else {
-        // yellow → white
+        // orange → yellow/white
         float t = (v - 0.75f) / 0.25f;
         r = 31;
-        g = 63;
-        b = (int)(t * 31);
+        g = 28 + (int)(t * 35);   // 28 → 63
+        b = (int)(t * 12);        // 0 → 12
     }
 
     return (short int)((r << 11) | (g << 5) | b);
@@ -418,14 +417,14 @@ void plotSpectrogram(
     int graph_width
 ){
     /*
-    COLOR MAPPING (inspired by MATLAB's `jet` color scheme):
+    COLOR MAPPING ("Magma" Color scheme, most commonly used in audio):
     Normalized Magnitude of FFT at given frequency   |  Color
     –––––––––––––––––––––––––––––––––––––––––––––––– | –––––––
     0.00                                             |   Black
-    0.25                                             |   Blue
-    0.50                                             |   Cyan
-    0.75                                             |   Yellow
-    1.00                                             |   Red
+    0.25                                             |   Dark Purple
+    0.50                                             |   Red
+    0.75                                             |   Orange
+    1.00                                             |   Yellow/White
     */
 
     // Finds the max cellular value of the FFT array; this value will be used to normalize the remainder of the array

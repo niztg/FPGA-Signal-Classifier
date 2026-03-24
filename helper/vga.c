@@ -426,32 +426,32 @@ void plotSpectrogram(
     0.75                                             |   Orange
     1.00                                             |   Yellow/White
     */
-
-    // Finds the max cellular value of the FFT array; this value will be used to normalize the remainder of the array
+    // Precompute max once
     float running_max_value = get_max_value(fft_array[0], NO_FREQ_BINS);
     for (int f = 1; f < FRAMES_PER_RECORDING; f++){
         float max_f = get_max_value(fft_array[f], NO_FREQ_BINS);
-        if (max_f > running_max_value){
-            running_max_value = max_f;
-        }
+        if (max_f > running_max_value) running_max_value = max_f;
     }
 
-    // Clamps the colored pixels to be strictly within the spectrogram's bounding box
+    if (running_max_value <= 0.0f) return;
+
+    float inv_max = 1.0f / running_max_value;  // multiply instead of divide per pixel
+
     int x_min = top_left.x + 1;
     int x_max = top_left.x + graph_width  - 2;
     int y_min = top_left.y + 1;
     int y_max = top_left.y + graph_height - 2;
 
+    int x_range = x_max - x_min + 1;
+    int y_range = y_max - y_min + 1;
+
     for (int px = x_min; px <= x_max; px++) {
-        int f = (px - x_min) * FRAMES_PER_RECORDING / (x_max - x_min + 1);
+        int f = (px - x_min) * FRAMES_PER_RECORDING / x_range;
         for (int py = y_min; py <= y_max; py++) {
-            int k = (y_max - py) * NO_FREQ_BINS / (y_max - y_min + 1);
-            plotPixel((point){px, py}, magnitude_to_color(
-                fft_array[f][k] / running_max_value
-            ));
+            int k = (y_max - py) * NO_FREQ_BINS / y_range;
+            plotPixel((point){px, py}, magnitude_to_color(fft_array[f][k] * inv_max));
         }
     }
-
 }
 
 void drawSpectrogramLabel(

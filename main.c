@@ -40,9 +40,6 @@ March 2026
 
 #define KEY_A               0x1C
 #define KEY_B               0x32
-// #define KEY_1               0x16
-// #define KEY_2               0x1E
-// #define KEY_3               0x26
 #define KEY_LEFT            0x6B
 #define KEY_RIGHT           0x74
 
@@ -74,9 +71,9 @@ volatile int * character_ctrl_ptr = (int *)CHARACTER_BASE;
 
 /*
 DISPLAY GRAPH LEGEND
-1-Time Domain
-2-Magnitude Spectrum
-3-Spectrogram
+0-Time Domain
+1-Magnitude Spectrum
+2-Spectrogram
 */
 int DISPLAY_GRAPH = 0;
 int PREV_DISPLAY_GRAPH = 0;
@@ -107,6 +104,23 @@ void displayCorrectGraph();
 
 static inline bool ps2_read(unsigned char *out);
 
+// ---------------------------------------------------------------------------
+// Helper: draw buttons + graph into the CURRENT back buffer, then swap.
+// Call this twice (once per buffer) whenever the display content changes.
+// ---------------------------------------------------------------------------
+static void drawFullFrame(
+    const char* button1, const char* button2, const char* button3,
+    bool time_fill, bool spectrum_fill, bool spectrogram_fill
+){
+    clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
+    displayCorrectGraph();
+    createGraphButton(button1, (point){25, 80},  time_fill,        GRAPH_COLOR);
+    createGraphButton(button2, (point){55, 80},  spectrum_fill,    GRAPH_COLOR);
+    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+    waitForVsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+}
+
 int main(void){
     character_buffer_start = (volatile char*) *character_ctrl_ptr;
 
@@ -124,7 +138,7 @@ int main(void){
 
     const char* button1 = "Time";
     const char* button2 = "Spectrum";
-    const char* button3 =  "Spectrogram";
+    const char* button3 = "Spectrogram";
 
     // Draw buttons into back buffer
     createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
@@ -139,7 +153,7 @@ int main(void){
     createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
-    // Inital graph draw
+    // Initial graph draw (both buffers)
     clearRegion((point){0, 95}, 320, 145);
     displayCorrectGraph();
     waitForVsync();
@@ -155,7 +169,7 @@ int main(void){
 
     // PS/2 Keyboard Polling Loop
     while (1){
-        unsigned char byte; // char because its 8bit
+        unsigned char byte;
 
         while (ps2_read(&byte)){
             if (byte == 0xF0){
@@ -181,36 +195,28 @@ int main(void){
             }
         }
 
+        // ---------------------------------------------------------------
+        // GRAPH TRANSITION — fixed version
+        // ---------------------------------------------------------------
         if (DISPLAY_GRAPH != PREV_DISPLAY_GRAPH){
-            if (PREV_DISPLAY_GRAPH == 3){
+
+            // FIX #1: was == 3, which is unreachable (valid range 0-2)
+            if (PREV_DISPLAY_GRAPH == 2){
                 point spectrogram_top_left = {25, 100};
                 clearSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
             }
-            clearRegion((point){0, 95}, 320, 145);
-            displayCorrectGraph();
-            waitForVsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-            clearRegion((point){0, 95}, 320, 145);
-            displayCorrectGraph();
-            waitForVsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            // FIX #2: compute button fill state BEFORE any drawing,
+            //         so buttons and graph are always in sync
+            fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill);
 
-            fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill); // update which button is colored
-            clearRegion((point){25, 80}, 320, 12); // clear the buttons out
-            
-            // Draw buttons into back buffer
-            createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
-            createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
-            createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
-
-            // Swap, then draw into the other buffer too
-            waitForVsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-            createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
-            createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
-            createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+            // FIX #3: use drawFullFrame for both buffers — each call
+            //         clears the entire buttons+graph region, redraws
+            //         everything, then swaps.  No stale fill residue.
+            drawFullFrame(button1, button2, button3,
+                          time_fill, spectrum_fill, spectrogram_fill);
+            drawFullFrame(button1, button2, button3,
+                          time_fill, spectrum_fill, spectrogram_fill);
 
             PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
         }
@@ -231,15 +237,12 @@ int main(void){
             free(cfg);
             compute_average_fft(fft_array, average_fft);
 
-            clearRegion((point){0, 95}, 320, 145);
-            displayCorrectGraph();
-            waitForVsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            // Redraw both buffers with new data
+            drawFullFrame(button1, button2, button3,
+                          time_fill, spectrum_fill, spectrogram_fill);
+            drawFullFrame(button1, button2, button3,
+                          time_fill, spectrum_fill, spectrogram_fill);
 
-            clearRegion((point){0, 95}, 320, 145);
-            displayCorrectGraph();
-            waitForVsync();
-            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
             *led_ptr = 0;
         }
 
@@ -270,10 +273,8 @@ int captureRecording(){
 
 static inline bool ps2_read(unsigned char *out) {
     int val = *keyboard_ptr;
-    if (val & 0x8000) { // bit 15 of the status register is the RVALID bit: if this is low,
-                        // the FIFO is empty.
-        *out = (unsigned char)(val & 0xFF); // masks the bottom 8 bits, which is the data.
-                                            // the top 4 bits of the data encodes whether the keyboard detected a release (0xF0)
+    if (val & 0x8000) {
+        *out = (unsigned char)(val & 0xFF);
         return true;
     }
     return false;
@@ -340,9 +341,6 @@ void displayCorrectGraph(){
         *led_ptr |= 0x10;
         displaySpectrogram();
     } else {
-        // if it doesn't know which graph to display, always display the time domain plot.
         displayTime();
     }
-
-    return;
 }

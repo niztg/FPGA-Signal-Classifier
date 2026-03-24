@@ -506,7 +506,17 @@ void createGraphButton(
                 false
             );
         }
-    }
+    } else {
+        // explicitly clear the interior to background
+        for (int x = top_left.x + 1; x < top_left.x + button_width; x++){
+            drawLine(
+                (point){x, top_left.y + 1},
+                (point){x, top_left.y + button_height - 1},
+                BACKGROUND_COLOR,
+                false
+            );
+        }
+    }  
 
     vga_text((top_left.x + 4) / 4, (top_left.y + 8) / 4, label);
 }

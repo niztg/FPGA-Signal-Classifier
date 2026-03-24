@@ -111,7 +111,15 @@ int main(void){
     const char* button2 = "Spectarum";
     const char* button3 =  "Spectrogram";
 
-    clearRegion((point){25, 90}, 25, 320);
+    // Draw buttons into back buffer
+    createGraphButton(button1, (point){25, 80});
+    createGraphButton(button2, (point){55, 80});
+    createGraphButton(button3, (point){100, 80});
+
+    // Swap, then draw into the other buffer too
+    waitForVsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
     createGraphButton(button1, (point){25, 80});
     createGraphButton(button2, (point){55, 80});
     createGraphButton(button3, (point){100, 80});
@@ -121,7 +129,7 @@ int main(void){
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
 
         if (prev_sw1 != cur_sw1) {
-            point graph_region = {0, 85};
+            point graph_region = {0, 95};
 
             // clear both buffers
             clearRegion(graph_region, 320, 160);

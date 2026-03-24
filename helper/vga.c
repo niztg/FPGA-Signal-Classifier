@@ -495,3 +495,13 @@ void createGraphButton(
 
     vga_text((top_left.x + 4) / 4, (top_left.y + 8) / 4, label);
 }
+
+// Need this because the character buffer is only single-buffered, causing flickering effects 
+void clearSpectrogramLabel(point top_left, int graph_height, int graph_width){
+    int bar_x      = ((top_left.x + graph_width + 8) / TEXT_CELL_W) * TEXT_CELL_W;
+    int bar_top    = ((top_left.y + 8) / TEXT_CELL_H) * TEXT_CELL_H;
+    int bar_bottom = ((top_left.y + graph_height - 8) / TEXT_CELL_H) * TEXT_CELL_H;
+
+    vga_text(bar_x / TEXT_CELL_W, (bar_top - 6) / TEXT_CELL_H,    "    ");
+    vga_text((bar_x + 3) / TEXT_CELL_W, (bar_bottom + 6) / TEXT_CELL_H, "   ");
+}

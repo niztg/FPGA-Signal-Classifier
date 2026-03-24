@@ -92,5 +92,6 @@ void createGraphButton(
     const char* label,
     point top_left;
 );
+void clearSpectrogramLabel(point top_left, int graph_height, int graph_width);
 
 #endif

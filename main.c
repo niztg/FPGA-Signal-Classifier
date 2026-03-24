@@ -170,6 +170,10 @@ int main(void){
         }
 
         if (DISPLAY_GRAPH != PREV_DISPLAY_GRAPH){
+            if (PREV_DISPLAY_GRAPH == 3){
+                point spectrogram_top_left = {25, 100};
+                clearSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
+            }
             clearRegion((point){0, 95}, 320, 145);
             displayCorrectGraph();
             waitForVsync();

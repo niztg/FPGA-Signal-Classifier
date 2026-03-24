@@ -173,7 +173,7 @@ int main(void){
                 if (byte == KEY_A) record = true;
                 if (byte == KEY_B) playback = true;
 
-                if (is_extended && byte == KEY_LEFT) DISPLAY_GRAPH = (DISPLAY_GRAPH - 1) % 3;
+                if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 3) % 3;
                 if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 3;
             }
         }

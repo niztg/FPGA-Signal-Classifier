@@ -78,8 +78,8 @@ DISPLAY GRAPH LEGEND
 2-Magnitude Spectrum
 3-Spectrogram
 */
-int DISPLAY_GRAPH = 1;
-int PREV_DISPLAY_GRAPH = 1;
+int DISPLAY_GRAPH = 0;
+int PREV_DISPLAY_GRAPH = 0;
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
 // Changed from double to float — soft-float emulation of 32-bit ops is

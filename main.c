@@ -95,7 +95,7 @@ bool redraw = false;
 int captureRecording();
 
 void playbackRecording();
-void displayBode();
+void displayMagnitudeSpectrum();
 void displayTime();
 void displaySpectrogram();
 void displayCorrectGraph();
@@ -148,7 +148,7 @@ int main(void){
     // PS/2 Keyboard Polling Loop
     while (1){
         unsigned char byte; // char because its 8bit
-        static bool ps2_break_pending = false;
+        bool ps2_break_pending = false;
 
         while (ps2_read(&byte)){
             if (byte == 0xF0){
@@ -183,6 +183,8 @@ int main(void){
         }
 
         if (record){
+            record = false;
+            *led_ptr = 0x1;
             max_sample_amplitude = captureRecording();
 
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
@@ -204,10 +206,14 @@ int main(void){
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            *led_ptr = 0;
         }
 
         if (playback){
+            playback = false;
+            *led_ptr = 0x2;
             playbackRecording();
+            *led_ptr = 0;
         }
 
     }
@@ -229,7 +235,7 @@ int captureRecording(){
 }
 
 static inline bool ps2_read(unsigned char *out) {
-    int val = *ps2_ptr;
+    int val = *keyboard_ptr;
     if (val & 0x8000) { // bit 15 of the status register is the RVALID bit: if this is low,
                         // the FIFO is empty.
         *out = (unsigned char)(val & 0xFF); // masks the bottom 8 bits, which is the data.
@@ -251,7 +257,7 @@ void playbackRecording(){
     *led_ptr = 0;
 }
 
-void displayBode(){
+void displayMagnitudeSpectrum(){
     point bode_plot_top_left = {25, 100};
 
     const char* x_axis_units = "Hz";
@@ -295,10 +301,13 @@ void displaySpectrogram(){
 
 void displayCorrectGraph(){
     if (DISPLAY_GRAPH == 1){
+        *led_ptr |= 0x4;
         displayTime();
     } else if (DISPLAY_GRAPH == 2){
-        displayBode();
+        displayMagnitudeSpectrum();
+        *led_ptr |= 0x8;
     } else if (DISPLAY_GRAPH == 3){
+        *led_ptr |= 0x10;
         displaySpectrogram();
     } else {
         // if it doesn't know which graph to display, always display the time domain plot.

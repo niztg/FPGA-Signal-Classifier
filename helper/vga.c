@@ -482,7 +482,7 @@ void drawSpectrogramLabel(
 
 void createGraphButton(
     const char* label,
-    point top_left;
+    point top_left
 ){
     size_t length = strlen(label);
     int button_width = 8 + (length * 8); // 4px of padding on either side

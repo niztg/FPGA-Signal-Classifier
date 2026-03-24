@@ -1,4 +1,4 @@
-#include "classifier1.h"
+#include "model1.h"
 
 const float L1_SCALER_MEAN[20]  = {0.134265f, 960.479893f, 0.673159f, 0.187556f, 23.152509f, 8.988975f, 4.771051f, -1.471710f, -1.393815f, 1.567366f, -0.556590f, 1.493426f, 10.297718f, 7.838543f, 5.710862f, 4.865112f, 4.202677f, 3.753389f, 3.355265f, 3.001176f};
 const float L1_SCALER_SCALE[20] = {0.066204f, 251.402996f, 0.096936f, 0.079421f, 8.104977f, 6.057268f, 4.527447f, 4.006417f, 3.304097f, 2.560005f, 2.228225f, 1.992868f, 4.848446f, 3.556786f, 2.500223f, 1.919015f, 1.485629f, 1.234371f, 1.132974f, 0.849640f};
@@ -63,27 +63,10 @@ const float L1_W1[32][16] = {
 };
 const float L1_B1[16] = {-0.224430f, 0.340561f, 0.131964f, -0.347717f, -0.131281f, 0.164599f, -0.253831f, 0.022117f, -0.025409f, 0.133036f, -0.286287f, 0.254104f, 0.337520f, 0.360354f, 0.211157f, -0.295377f};
 
-const float L1_W2[16][2] = {
-    {0.371693f},
-    {-0.613746f},
-    {-0.563087f},
-    {-0.166558f},
-    {0.034924f},
-    {0.320282f},
-    {0.280053f},
-    {-0.028878f},
-    {-0.355976f},
-    {0.656324f},
-    {-0.150432f},
-    {-0.073370f},
-    {-0.432335f},
-    {0.372679f},
-    {0.266200f},
-    {-0.305696f},
-};
-const float L1_B2[2] = {-0.468933f};
+const float L1_W2[16] = {0.371693f, -0.613746f, -0.563087f, -0.166558f, 0.034924f, 0.320282f, 0.280053f, -0.028878f, -0.355976f, 0.656324f, -0.150432f, -0.073370f, -0.432335f, 0.372679f, 0.266200f, -0.305696f};
+const float L1_B2 = -0.468933f;
 
-int classify1(const float fv[20]) {
+int model1(const float fv[20]) {
     float x[20];
     for (int i = 0; i < 20; i++)
         x[i] = (fv[i] - L1_SCALER_MEAN[i]) / L1_SCALER_SCALE[i];
@@ -106,13 +89,11 @@ int classify1(const float fv[20]) {
         h1[j] = sum > 0.0f ? sum : 0.0f;
     }
 
-    // Output layer (16 -> 2)
-    float scores[2];
-    for (int c = 0; c < 2; c++) {
-        scores[c] = L1_B2[c];
-        for (int j = 0; j < 16; j++)
-            scores[c] += h1[j] * L1_W2[j][c];
-    }
+    // Output layer (16 -> 1) - binary classification, single neuron
+    float score = L1_B2;
+    for (int j = 0; j < 16; j++)
+        score += h1[j] * L1_W2[j];
 
-    return scores[1] > scores[0] ? 1 : 0;  // 0=non-target, 1=target
+    // sigmoid threshold at 0.5 - equivalent to score > 0
+    return score > 0.0f ? 1 : 0;  // 0=non-target, 1=target
 }

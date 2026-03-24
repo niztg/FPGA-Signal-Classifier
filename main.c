@@ -40,9 +40,11 @@ March 2026
 
 #define KEY_A               0x1C
 #define KEY_B               0x32
-#define KEY_1               0x16
-#define KEY_2               0x1E
-#define KEY_3               0x26
+// #define KEY_1               0x16
+// #define KEY_2               0x1E
+// #define KEY_3               0x26
+#define KEY_LEFT            0x6B
+#define KEY_RIGHT           0x74
 
 typedef struct {
     volatile unsigned int control;
@@ -146,6 +148,7 @@ int main(void){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
     static bool ps2_break_pending = false;
+    static bool ps2_extend_pending = false;
 
     // PS/2 Keyboard Polling Loop
     while (1){
@@ -155,17 +158,23 @@ int main(void){
             if (byte == 0xF0){
                 ps2_break_pending = true;
                 continue;
+            } else if (byte == 0xE0){
+                ps2_extend_pending = true;
+                continue;
             }
 
             bool is_break = ps2_break_pending;
+            bool is_extended = ps2_extend_pending;
+
             ps2_break_pending = false;
+            ps2_extend_pending = false;
 
             if (!is_break){
                 if (byte == KEY_A) record = true;
                 if (byte == KEY_B) playback = true;
-                if (byte == KEY_1) DISPLAY_GRAPH = 1;
-                if (byte == KEY_2) DISPLAY_GRAPH = 2;
-                if (byte == KEY_3) DISPLAY_GRAPH = 3;
+
+                if (is_extended && byte == KEY_LEFT) DISPLAY_GRAPH = (DISPLAY_GRAPH - 1) % 3;
+                if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 3;
             }
         }
 
@@ -302,13 +311,13 @@ void displaySpectrogram(){
 }
 
 void displayCorrectGraph(){
-    if (DISPLAY_GRAPH == 1){
+    if (DISPLAY_GRAPH == 0){
         *led_ptr |= 0x4;
         displayTime();
-    } else if (DISPLAY_GRAPH == 2){
+    } else if (DISPLAY_GRAPH == 1){
         displayMagnitudeSpectrum();
         *led_ptr |= 0x8;
-    } else if (DISPLAY_GRAPH == 3){
+    } else if (DISPLAY_GRAPH == 2){
         *led_ptr |= 0x10;
         displaySpectrogram();
     } else {

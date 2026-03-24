@@ -494,5 +494,5 @@ void createGraphButton(
 
     drawGraphBoundingBox(top_left, button_height, button_width);
 
-    vga_text((top_left.x + pad_x) / 4, (top_left.y + pad_y) / 4, label);
+    vga_text((top_left.x + 4) / 4, (top_left.y + 8) / 4, label);
 }

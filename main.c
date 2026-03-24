@@ -77,6 +77,7 @@ DISPLAY GRAPH LEGEND
 3-Spectrogram
 */
 int DISPLAY_GRAPH = 1;
+int PREV_DISPLAY_GRAPH = 1;
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
 // Changed from double to float — soft-float emulation of 32-bit ops is
@@ -89,6 +90,7 @@ float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 int max_sample_amplitude = 1;
 bool record = false;
 bool playback = false;
+bool redraw = false;
 
 int captureRecording();
 
@@ -115,10 +117,6 @@ int main(void){
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
-    // Before the while(1) loop, after compute_mel_filterbank:
-    cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
-    prev_sw1 = !cur_sw1;   // force first-iteration mismatch → guaranteed initial draw
-
     const char* button1 = "Time";
     const char* button2 = "Spectrum";
     const char* button3 =  "Spectrogram";
@@ -136,8 +134,18 @@ int main(void){
     createGraphButton(button2, (point){55, 80});
     createGraphButton(button3, (point){100, 80});
 
-    // PS/2 Keyboard Polling Loop
+    // Inital graph draw
+    clearRegion((point){0, 95}, 320, 145);
+    displayCorrectGraph();
+    waitForVsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
+    clearRegion((point){0, 95}, 320, 145);
+    displayCorrectGraph();
+    waitForVsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+    // PS/2 Keyboard Polling Loop
     while (1){
         unsigned char byte; // char because its 8bit
         static bool ps2_break_pending = false;
@@ -159,56 +167,50 @@ int main(void){
                 if (byte == KEY_3) DISPLAY_GRAPH = 3;
             }
         }
-    }
 
+        if (DISPLAY_GRAPH != PREV_DISPLAY_GRAPH){
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-    // while (1){
-    //     prev_sw1 = cur_sw1;
-    //     cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-    //     if (prev_sw1 != cur_sw1) {
-    //         clearRegion((point){0, 95}, 320, 145);
-    //         displayCorrectGraph();
-    //         waitForVsync();
-    //         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
+        }
 
-    //         clearRegion((point){0, 95}, 320, 145);
-    //         displayCorrectGraph();
-    //         waitForVsync();
-    //         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-    //     }
+        if (record){
+            max_sample_amplitude = captureRecording();
 
-
-    //     if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
-    //         max_sample_amplitude = captureRecording();
-
-    //         kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
-    //         unzip_recording_into_frames(frame_array, recording);
+            kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
+            unzip_recording_into_frames(frame_array, recording);
             
-    //         for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
-    //             compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-    //         }
+            for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
+                compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+            }
 
-    //         free(cfg);
-    //         compute_average_fft(fft_array, average_fft);
+            free(cfg);
+            compute_average_fft(fft_array, average_fft);
 
-    //         clearRegion((point){0, 95}, 320, 145);
-    //         displayCorrectGraph();
-    //         waitForVsync();
-    //         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-    //         clearRegion((point){0, 95}, 320, 145);
-    //         displayCorrectGraph();
-    //         waitForVsync();
-    //         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        }
 
-    //     }
+        if (playback){
+            playbackRecording();
+        }
 
-    //     else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
-    //         *led_ptr = 2;
-    //         playbackRecording();
-    //     }
-    // }
+    }
 }
 
 int captureRecording(){

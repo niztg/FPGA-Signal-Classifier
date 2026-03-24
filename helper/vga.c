@@ -479,3 +479,15 @@ void drawSpectrogramLabel(
         }
     }
 }
+
+void createGraphButton(
+    const char* label,
+    point top_left;
+){
+    size_t length = strlen(label);
+    int button_width = 8 + (length * 8); // 4px of padding on either side
+    int button_height = 16; // all letters are 8px tall, with 4px of padding on the top and bottom
+
+    drawGraphBoundingBox(top_left, button_width, button_height);
+    vga_text(top_left.x, top_left.y, label); // not right
+}

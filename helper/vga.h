@@ -88,5 +88,9 @@ void plotSpectrogram(
     int graph_width
 );
 void drawSpectrogramLabel(point top_left, int graph_height, int graph_width);
+void createGraphButton(
+    const char* label,
+    point top_left;
+);
 
 #endif

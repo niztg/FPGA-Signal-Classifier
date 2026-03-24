@@ -107,6 +107,9 @@ int main(void){
     cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
     prev_sw1 = !cur_sw1;   // force first-iteration mismatch → guaranteed initial draw
 
+    const char* button1 = "Time Domain";
+    createGraphButton(button1, (point){20, 10});
+
     while (1){
         prev_sw1 = cur_sw1;
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;

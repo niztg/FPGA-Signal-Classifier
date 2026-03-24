@@ -145,10 +145,11 @@ int main(void){
     waitForVsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
+    static bool ps2_break_pending = false;
+
     // PS/2 Keyboard Polling Loop
     while (1){
         unsigned char byte; // char because its 8bit
-        bool ps2_break_pending = false;
 
         while (ps2_read(&byte)){
             if (byte == 0xF0){
@@ -187,6 +188,7 @@ int main(void){
             *led_ptr = 0x1;
             max_sample_amplitude = captureRecording();
 
+            *led_ptr = 0x20;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
             

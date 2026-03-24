@@ -92,7 +92,10 @@ float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 int max_sample_amplitude = 1;
 bool record = false;
 bool playback = false;
-bool redraw = false;
+
+bool time_fill = true;
+bool spectrum_fill = false;
+bool spectrogram_fill = false;
 
 int captureRecording();
 
@@ -124,17 +127,17 @@ int main(void){
     const char* button3 =  "Spectrogram";
 
     // Draw buttons into back buffer
-    createGraphButton(button1, (point){25, 80});
-    createGraphButton(button2, (point){55, 80});
-    createGraphButton(button3, (point){100, 80});
+    createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
+    createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
+    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
     // Swap, then draw into the other buffer too
     waitForVsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-    createGraphButton(button1, (point){25, 80});
-    createGraphButton(button2, (point){55, 80});
-    createGraphButton(button3, (point){100, 80});
+    createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
+    createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
+    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
     // Inital graph draw
     clearRegion((point){0, 95}, 320, 145);
@@ -192,6 +195,22 @@ int main(void){
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill); // update which button is colored
+            clearRegion((point){25, 80}, 320, 12); // clear the buttons out
+            
+            // Draw buttons into back buffer
+            createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
+            createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
+            createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+
+            // Swap, then draw into the other buffer too
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
+            createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
+            createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
             PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
         }

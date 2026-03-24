@@ -481,7 +481,9 @@ void drawSpectrogramLabel(
 
 void createGraphButton(
     const char* label,
-    point top_left
+    point top_left,
+    bool fill,
+    short int fill_color
 ){
     size_t length = strlen(label);
 
@@ -493,7 +495,41 @@ void createGraphButton(
 
     drawGraphBoundingBox(top_left, button_height, button_width);
 
+    if (fill){
+        for (int x = top_left.x + 1; x < top_left.x + button_width; x++){
+            int y_coord_top = top_left.y + 1;
+            int y_coord_bottom = top_left.y + button_height - 1;
+            drawLine(
+                (point){x, y_coord_top},
+                (point){x, y_coord_bottom},
+                fill_color,
+                false
+            );
+        }
+    }
+
     vga_text((top_left.x + 4) / 4, (top_left.y + 8) / 4, label);
+}
+
+void fillComparator(
+    int DISPLAY_GRAPH,
+    bool* time_fill,
+    bool* spectrum_fill,
+    bool* spectrogram_fill
+){
+    if (DISPLAY_GRAPH == 0){
+        *time_fill = true;
+        *spectrum_fill = false;
+        *spectrogram_fill = false;
+    } else if (DISPLAY_GRAPH == 1){
+        *time_fill = false;
+        *spectrum_fill = true;
+        *spectrogram_fill = false;
+    } else if (DISPLAY_GRAPH == 2){
+        *time_fill = false;
+        *spectrum_fill = false;
+        *spectrogram_fill = true;
+    }
 }
 
 // Need this because the character buffer is only single-buffered, causing flickering effects 

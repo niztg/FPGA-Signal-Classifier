@@ -108,7 +108,7 @@ int main(void){
     prev_sw1 = !cur_sw1;   // force first-iteration mismatch → guaranteed initial draw
 
     const char* button1 = "Time";
-    const char* button2 = "Spectarum";
+    const char* button2 = "Spectrum";
     const char* button3 =  "Spectrogram";
 
     // Draw buttons into back buffer
@@ -331,8 +331,25 @@ void displayCorrectGraph(){
     // Both plot types fit within this rectangle.
 
     // Niz: expanded this to catch the spectrogram's y labels
-    point graph_region = {0, 85};  
-    clearRegion(graph_region, 320, 160);  
+    point graph_region = {0, 95};  
+    clearRegion(graph_region, 320, 160); 
+
+    const char* button1 = "Time";
+    const char* button2 = "Spectrum";
+    const char* button3 =  "Spectrogram"; 
+
+    // Draw buttons into back buffer
+    createGraphButton(button1, (point){25, 80});
+    createGraphButton(button2, (point){55, 80});
+    createGraphButton(button3, (point){100, 80});
+
+    // Swap, then draw into the other buffer too
+    waitForVsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+    createGraphButton(button1, (point){25, 80});
+    createGraphButton(button2, (point){55, 80});
+    createGraphButton(button3, (point){100, 80});
 
     if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();

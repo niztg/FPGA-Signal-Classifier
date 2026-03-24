@@ -485,9 +485,14 @@ void createGraphButton(
     point top_left
 ){
     size_t length = strlen(label);
-    int button_width = 8 + (length * 8); // 4px of padding on either side
-    int button_height = 16; // all letters are 8px tall, with 4px of padding on the top and bottom
 
-    drawGraphBoundingBox(top_left, button_width, button_height);
-    vga_text(top_left.x, top_left.y, label); // not right
+    int pad_x = 4;  // one cell of padding per side
+    int pad_y = 4;
+
+    int button_width  = 2 * pad_x + (length * 4);  // = 8 + length * 4
+    int button_height = 2 * pad_y + 4;              // = 12
+
+    drawGraphBoundingBox(top_left, button_height, button_width);
+
+    vga_text((top_left.x + pad_x) / 4, (top_left.y + pad_y) / 4, label);
 }

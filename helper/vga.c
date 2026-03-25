@@ -305,7 +305,7 @@ void drawYAxisLabels(
 }
 
 void plotTimeDomain(point reference, int width, int height,
-    int number_of_samples, int max_sample_amplitude){
+    int number_of_samples){
 
     // draw axes
     drawLine((point){reference.x, reference.y + (height/2) - axes_offset},

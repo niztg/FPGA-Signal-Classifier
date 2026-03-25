@@ -91,7 +91,6 @@ float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
-int max_sample_amplitude = 1;
 bool record = false;
 bool playback = false;
 
@@ -109,10 +108,8 @@ void displayCorrectGraph();
 
 static inline bool ps2_read(unsigned char *out);
 
-// ---------------------------------------------------------------------------
 // Helper: draw buttons + graph into the CURRENT back buffer, then swap.
 // Call this twice (once per buffer) whenever the display content changes.
-// ---------------------------------------------------------------------------
 static void drawFullFrame(
     const char* button1, const char* button2, const char* button3,
     bool time_fill, bool spectrum_fill, bool spectrogram_fill
@@ -200,19 +197,15 @@ int main(void){
             }
         }
 
-        // ---------------------------------------------------------------
-        // GRAPH TRANSITION — fixed version
-        // ---------------------------------------------------------------
         if (DISPLAY_GRAPH != PREV_DISPLAY_GRAPH){
 
-            // FIX #1: was == 3, which is unreachable (valid range 0-2)
             if (PREV_DISPLAY_GRAPH == 2){
                 point spectrogram_top_left = {25, 100};
                 clearSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
             }
 
-            // FIX #2: compute button fill state BEFORE any drawing,
-            //         so buttons and graph are always in sync
+            //compute button fill state BEFORE any drawing,
+            //so buttons and graph are always in sync
             fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill);
 
             // FIX #3: use drawFullFrame for both buffers — each call
@@ -229,7 +222,7 @@ int main(void){
         if (record){
             record = false;
             *led_ptr = 0x1;
-            max_sample_amplitude = captureRecordingAndGraphTime();
+            captureRecordingAndGraphTime();
 
             *led_ptr = 0x20;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
@@ -264,7 +257,6 @@ int main(void){
 int captureRecordingAndGraphTime() {
     point graph_region = {15, 90};
     clearRegion(graph_region, 295, 155);
-    int max_sample_amplitude = 0;
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
     int const MAX_AMPLITUDE = 0x6FFFFFFF;
     int x = time_plot_mid_left.x;
@@ -285,7 +277,6 @@ int captureRecordingAndGraphTime() {
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             recording[i] = audio_ptr->ldata;
             int absval = abs(recording[i]);
-            if (absval > max_sample_amplitude) max_sample_amplitude = absval;
             if (absval > col_peak) col_peak = absval;
 
             if (i % samples_per_pixel == samples_per_pixel - 1) {
@@ -369,8 +360,7 @@ void displayTime(){
     plotTimeDomain(time_plot_mid_left,
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
-        RECORDING_LENGTH,
-        max_sample_amplitude
+        RECORDING_LENGTH
     );
 }
 

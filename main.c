@@ -7,7 +7,7 @@ March 2026
 #include "helper/signal_analysis.h"
 #include "helper/vga.h"
 #include "fft_helper/kiss_fftr.h"
-#include "model1.h"
+#include "model/model1.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -244,15 +244,6 @@ int main(void){
 
             *led_ptr = 0;
 
-            free(cfg);
-            compute_average_fft(fft_array, average_fft);
-
-            // Redraw both buffers with new data
-            drawFullFrame(button1, button2, button3,
-                        time_fill, spectrum_fill, spectrogram_fill);
-            drawFullFrame(button1, button2, button3,
-                        time_fill, spectrum_fill, spectrogram_fill);
-
             // Neural network: classify each 0.5 s chunk, light its LED 
             FeatureVector1 fv1;
             float feature_vec[FEATURES_1];
@@ -348,8 +339,6 @@ void playbackRecording(){
                     (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
                     LINE_COLOR, false);
     }
-
-
 
     int x = time_plot_mid_left.x;
 

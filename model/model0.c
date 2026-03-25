@@ -1,4 +1,4 @@
-#include "classifier0.h"
+#include "model0.h"
 
 const float SCALER_MEAN[6]  = {0.162735f, 1022.322308f, 946.126619f, 417.182574f, 0.637315f, 0.205239f};
 const float SCALER_SCALE[6] = {0.142931f, 460.565917f, 224.275884f, 675.495564f, 0.208364f, 0.171967f};
@@ -33,7 +33,7 @@ const float MLP_W1[16][3] = {
 };
 const float MLP_B1[3] = {-0.558567f, 0.030036f, 0.355530f};
 
-int classify0(const float fv[6]) {
+int model0(const float fv[6]) {
     float x[6];
     for (int i = 0; i < 6; i++)
         x[i] = (fv[i] - SCALER_MEAN[i]) / SCALER_SCALE[i];

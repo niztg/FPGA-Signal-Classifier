@@ -8,6 +8,8 @@
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
+extern int time_plot_line_heights[];
+
 void vga_text(int x, int y, char * text_ptr) {
     int offset;
     offset = (y << 7) + x;
@@ -302,37 +304,34 @@ void drawYAxisLabels(
     }
 }
 
+
 void plotTimeDomain(point reference, int width, int height,
     int number_of_samples, int max_sample_amplitude){
 
-    int const axes_offset = 2;
-    drawLine((point){reference.x + axes_offset, reference.y + (height/2) - axes_offset},
-             (point){reference.x + axes_offset, reference.y - (height/2) + axes_offset},
+    // draw axes
+    drawLine((point){reference.x, reference.y + (height/2) - axes_offset},
+             (point){reference.x, reference.y - (height/2) + axes_offset},
              LINE_COLOR, false);
-    drawLine((point){reference.x + axes_offset, reference.y},
-             (point){reference.x + width - axes_offset, reference.y},
+    drawLine((point){reference.x, reference.y},
+             (point){reference.x + width, reference.y},
              LINE_COLOR, false);
 
-    int sample_per_pixel = number_of_samples / (width - 2*axes_offset);
-    int final_x = reference.x + width - axes_offset;
-    int sample_index = 0;
+    int const usable_height = height - 2 * axes_offset;
+    int x = reference.x;
 
-    for (int x = reference.x + axes_offset; x < final_x; x += 2){
-        int final_sample = sample_index + sample_per_pixel;
-        int peak = 0;
+    for (int x = reference.x; x < reference.x + width; x += 2) {
+        int line_height = time_plot_line_heights[(x - reference.x) / 2];
 
-        for (; sample_index < final_sample; sample_index++){
-            int abs_sample = abs(recording[sample_index]);   // was fabs — unnecessary float promotion
-            if (abs_sample > peak) peak = abs_sample;
-        }
-
-        int line_height = (int)(((float)peak / (float)max_sample_amplitude)
-                          * (height - 2*axes_offset));
-
-        drawLine((point){x, reference.y + (line_height/2)},
-                 (point){x, reference.y - (line_height/2)},
+        drawLine((point){x, reference.y + (line_height / 2)},
+                 (point){x, reference.y - (line_height / 2)},
                  GRAPH_COLOR, false);
     }
+    drawLine((point){reference.x, reference.y + (height/2) - axes_offset},
+             (point){reference.x, reference.y - (height/2) + axes_offset},
+             LINE_COLOR, false);
+    drawLine((point){reference.x, reference.y},
+             (point){reference.x + width, reference.y},
+             LINE_COLOR, false);
 }
 
 void plotMagnitudeSpectrum(
@@ -426,32 +425,32 @@ void plotSpectrogram(
     0.75                                             |   Orange
     1.00                                             |   Yellow/White
     */
-    // Precompute max once
+
+    // Finds the max cellular value of the FFT array; this value will be used to normalize the remainder of the array
     float running_max_value = get_max_value(fft_array[0], NO_FREQ_BINS);
     for (int f = 1; f < FRAMES_PER_RECORDING; f++){
         float max_f = get_max_value(fft_array[f], NO_FREQ_BINS);
-        if (max_f > running_max_value) running_max_value = max_f;
+        if (max_f > running_max_value){
+            running_max_value = max_f;
+        }
     }
 
-    if (running_max_value <= 0.0f) return;
-
-    float inv_max = 1.0f / running_max_value;  // multiply instead of divide per pixel
-
+    // Clamps the colored pixels to be strictly within the spectrogram's bounding box
     int x_min = top_left.x + 1;
     int x_max = top_left.x + graph_width  - 2;
     int y_min = top_left.y + 1;
     int y_max = top_left.y + graph_height - 2;
 
-    int x_range = x_max - x_min + 1;
-    int y_range = y_max - y_min + 1;
-
     for (int px = x_min; px <= x_max; px++) {
-        int f = (px - x_min) * FRAMES_PER_RECORDING / x_range;
+        int f = (px - x_min) * FRAMES_PER_RECORDING / (x_max - x_min + 1);
         for (int py = y_min; py <= y_max; py++) {
-            int k = (y_max - py) * NO_FREQ_BINS / y_range;
-            plotPixel((point){px, py}, magnitude_to_color(fft_array[f][k] * inv_max));
+            int k = (y_max - py) * NO_FREQ_BINS / (y_max - y_min + 1);
+            plotPixel((point){px, py}, magnitude_to_color(
+                fft_array[f][k] / running_max_value
+            ));
         }
     }
+
 }
 
 void drawSpectrogramLabel(
@@ -481,9 +480,7 @@ void drawSpectrogramLabel(
 
 void createGraphButton(
     const char* label,
-    point top_left,
-    bool fill,
-    short int fill_color
+    point top_left
 ){
     size_t length = strlen(label);
 
@@ -495,59 +492,5 @@ void createGraphButton(
 
     drawGraphBoundingBox(top_left, button_height, button_width);
 
-    if (fill){
-        for (int x = top_left.x + 1; x < top_left.x + button_width; x++){
-            int y_coord_top = top_left.y + 1;
-            int y_coord_bottom = top_left.y + button_height - 1;
-            drawLine(
-                (point){x, y_coord_top},
-                (point){x, y_coord_bottom},
-                fill_color,
-                false
-            );
-        }
-    } else {
-        // explicitly clear the interior to background
-        for (int x = top_left.x + 1; x < top_left.x + button_width; x++){
-            drawLine(
-                (point){x, top_left.y + 1},
-                (point){x, top_left.y + button_height - 1},
-                BACKGROUND_COLOR,
-                false
-            );
-        }
-    }  
-
     vga_text((top_left.x + 4) / 4, (top_left.y + 8) / 4, label);
-}
-
-void fillComparator(
-    int DISPLAY_GRAPH,
-    bool* time_fill,
-    bool* spectrum_fill,
-    bool* spectrogram_fill
-){
-    if (DISPLAY_GRAPH == 0){
-        *time_fill = true;
-        *spectrum_fill = false;
-        *spectrogram_fill = false;
-    } else if (DISPLAY_GRAPH == 1){
-        *time_fill = false;
-        *spectrum_fill = true;
-        *spectrogram_fill = false;
-    } else if (DISPLAY_GRAPH == 2){
-        *time_fill = false;
-        *spectrum_fill = false;
-        *spectrogram_fill = true;
-    }
-}
-
-// Need this because the character buffer is only single-buffered, causing flickering effects 
-void clearSpectrogramLabel(point top_left, int graph_height, int graph_width){
-    int bar_x      = ((top_left.x + graph_width + 8) / TEXT_CELL_W) * TEXT_CELL_W;
-    int bar_top    = ((top_left.y + 8) / TEXT_CELL_H) * TEXT_CELL_H;
-    int bar_bottom = ((top_left.y + graph_height - 8) / TEXT_CELL_H) * TEXT_CELL_H;
-
-    vga_text(bar_x / TEXT_CELL_W, (bar_top - 6) / TEXT_CELL_H,    "    ");
-    vga_text((bar_x + 3) / TEXT_CELL_W, (bar_bottom + 6) / TEXT_CELL_H, "   ");
 }

@@ -45,7 +45,7 @@ b0, b1 = model.intercepts_
 mu = scaler.mean_
 sc = scaler.scale_
 with open("./model0.c", "w") as f:
-    f.write('#include "classifier0.h"\n\n')
+    f.write('#include "model0.h"\n\n')
     
     # Scaler
     f.write(f"const float SCALER_MEAN[6]  = {{{', '.join(f'{v:.6f}f' for v in mu)}}};\n")
@@ -66,7 +66,7 @@ with open("./model0.c", "w") as f:
     f.write(f"const float MLP_B1[3] = {{{', '.join(f'{v:.6f}f' for v in b1)}}};\n\n")
     
     # Inference function
-    f.write("""int classify0(const float fv[6]) {
+    f.write("""int model0(const float fv[6]) {
     float x[6];
     for (int i = 0; i < 6; i++)
         x[i] = (fv[i] - SCALER_MEAN[i]) / SCALER_SCALE[i];

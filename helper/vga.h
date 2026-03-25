@@ -96,7 +96,9 @@ void plotSpectrogram(
 void drawSpectrogramLabel(point top_left, int graph_height, int graph_width);
 void createGraphButton(
     const char* label,
-    point top_left;
+    point top_left,
+    bool fill,
+    short int fill_color
 );
 void fillComparator(
     int DISPLAY_GRAPH,

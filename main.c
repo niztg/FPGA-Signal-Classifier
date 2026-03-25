@@ -99,7 +99,7 @@ bool time_fill = true;
 bool spectrum_fill = false;
 bool spectrogram_fill = false;
 
-int captureRecording();
+int captureRecordingAndGraphTime();
 
 void playbackRecording();
 void displayMagnitudeSpectrum();

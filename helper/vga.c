@@ -231,7 +231,7 @@ void drawXAxisLabels(
 ){
     if (no_vertical_partitions <= 0) return;
 
-    int left_x   = top_left.x + 1;
+    int left_x = top_left.x;
     int bottom_y = top_left.y + graph_height - 1;
     int tick_length = 4;
     int label_pixel_y = bottom_y + tick_length + 6;
@@ -293,7 +293,7 @@ void drawYAxisLabels(
 
         char label[32];
         if (scaled_units && scaled_units[0] != '\0'){
-            snprintf(label, sizeof(label), "%.3g %s", scaled_y_value, scaled_units);
+            snprintf(label, sizeof(label), "%.3g%s", scaled_y_value, scaled_units);
         } else {
             snprintf(label, sizeof(label), "%.3g", scaled_y_value);
         }
@@ -372,4 +372,125 @@ void plotMagnitudeSpectrum(
 
         prev_point = graph_point;
     }
+}
+
+short int magnitude_to_color(float v) {
+    if (v < 0.0f) v = 0.0f;
+    if (v > 1.0f) v = 1.0f;
+
+    int r, g, b;
+
+    if (v < 0.25f) {
+        // black → dark purple
+        float t = v / 0.25f;
+        r = (int)(t * 4);
+        g = (int)(t * 2);
+        b = (int)(t * 12);
+    } else if (v < 0.5f) {
+        // dark purple → deep magenta/red
+        float t = (v - 0.25f) / 0.25f;
+        r = 4 + (int)(t * 16);    // 4 → 20
+        g = 2 + (int)(t * 2);     // 2 → 4
+        b = 12 - (int)(t * 4);    // 12 → 8
+    } else if (v < 0.75f) {
+        // deep magenta → orange
+        float t = (v - 0.5f) / 0.25f;
+        r = 20 + (int)(t * 11);   // 20 → 31
+        g = 4 + (int)(t * 24);    // 4 → 28
+        b = 8 - (int)(t * 8);     // 8 → 0
+    } else {
+        // orange → yellow/white
+        float t = (v - 0.75f) / 0.25f;
+        r = 31;
+        g = 28 + (int)(t * 35);   // 28 → 63
+        b = (int)(t * 12);        // 0 → 12
+    }
+
+    return (short int)((r << 11) | (g << 5) | b);
+}
+
+void plotSpectrogram(
+    float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+    point top_left,
+    int graph_height,
+    int graph_width
+){
+    /*
+    COLOR MAPPING ("Magma" Color scheme, most commonly used in audio):
+    Normalized Magnitude of FFT at given frequency   |  Color
+    –––––––––––––––––––––––––––––––––––––––––––––––– | –––––––
+    0.00                                             |   Black
+    0.25                                             |   Dark Purple
+    0.50                                             |   Red
+    0.75                                             |   Orange
+    1.00                                             |   Yellow/White
+    */
+
+    // Finds the max cellular value of the FFT array; this value will be used to normalize the remainder of the array
+    float running_max_value = get_max_value(fft_array[0], NO_FREQ_BINS);
+    for (int f = 1; f < FRAMES_PER_RECORDING; f++){
+        float max_f = get_max_value(fft_array[f], NO_FREQ_BINS);
+        if (max_f > running_max_value){
+            running_max_value = max_f;
+        }
+    }
+
+    // Clamps the colored pixels to be strictly within the spectrogram's bounding box
+    int x_min = top_left.x + 1;
+    int x_max = top_left.x + graph_width  - 2;
+    int y_min = top_left.y + 1;
+    int y_max = top_left.y + graph_height - 2;
+
+    for (int px = x_min; px <= x_max; px++) {
+        int f = (px - x_min) * FRAMES_PER_RECORDING / (x_max - x_min + 1);
+        for (int py = y_min; py <= y_max; py++) {
+            int k = (y_max - py) * NO_FREQ_BINS / (y_max - y_min + 1);
+            plotPixel((point){px, py}, magnitude_to_color(
+                fft_array[f][k] / running_max_value
+            ));
+        }
+    }
+
+}
+
+void drawSpectrogramLabel(
+    point top_left,
+    int graph_height,
+    int graph_width
+){
+    // snap all positions to the 4x4 character grid
+    int bar_x      = ((top_left.x + graph_width + 8) / TEXT_CELL_W) * TEXT_CELL_W;
+    int bar_top    = ((top_left.y + 8) / TEXT_CELL_H) * TEXT_CELL_H;
+    int bar_bottom = ((top_left.y + graph_height - 8) / TEXT_CELL_H) * TEXT_CELL_H;
+    int bar_height = bar_bottom - bar_top;
+    int bar_width  = 16;
+
+    // text lands exactly on grid rows that match bar top and bottom
+    vga_text(bar_x / TEXT_CELL_W, (bar_top - 6) / TEXT_CELL_H,    "HIGH");
+    vga_text((bar_x + 3) / TEXT_CELL_W, (bar_bottom + 6) / TEXT_CELL_H, "LOW");
+
+    // draw the gradient bar
+    for (int i = 0; i <= bar_height; i++){
+        short int color = magnitude_to_color(1.0f - (float) ((float)i / (float)bar_height));
+        for (int j = 0; j < bar_width; j++){
+            plotPixel((point){bar_x + j, bar_top + i}, color);
+        }
+    }
+}
+
+void createGraphButton(
+    const char* label,
+    point top_left
+){
+    size_t length = strlen(label);
+
+    int pad_x = 4;  // one cell of padding per side
+    int pad_y = 4;
+
+    int button_width  = 2 * pad_x + (length * 4);  // = 8 + length * 4
+    int button_height = 2 * pad_y + 4;              // = 12
+
+    drawGraphBoundingBox(top_left, button_height, button_width);
+
+    vga_text((top_left.x + 4) / 4, (top_left.y + 8) / 4, label);
 }

@@ -87,6 +87,7 @@ int captureRecordingAndGraphTime();
 void playbackRecording();
 void displayBode();
 void displayTime();
+void displaySpectrogram();
 void displayCorrectGraph();
 
 //static void handler(void) __attribute__ ((interrupt ("machine")));
@@ -109,33 +110,38 @@ int main(void){
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
-    //audio_ptr -> control |= 0b1100;
-    /*
-    HANDLE INTERRUPTS
-    */
-    // int mstatus_value, mtvec_value, mie_value;
-    // mstatus_value = 0b1000; // interrupt bit mask
-    // // disable interrupts
-    // __asm__ volatile ("csrc mstatus, %0" :: "r"(mstatus_value));
-    // mtvec_value = (int) &handler; // set trap address
-    // __asm__ volatile ("csrw mtvec, %0" :: "r"(mtvec_value));
-    // // disable all interrupts that are currently enabled
-    // __asm__ volatile ("csrr %0, mie" : "=r"(mie_value));
-    // __asm__ volatile ("csrc mie, %0" :: "r"(mie_value));
-    // mie_value = (1 << 21);
-    // // set interrupt enables
-    // //__asm__ volatile ("csrs mie, %0" :: "r"(mie_value));
-    // // enable Nios V interrupts
-    // __asm__ volatile ("csrs mstatus, %0" :: "r"(mstatus_value));
+    // Before the while(1) loop, after compute_mel_filterbank:
+    cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
+    prev_sw1 = !cur_sw1;   // force first-iteration mismatch → guaranteed initial draw
 
-    // *(key_ptr + 2) = 0xf;
-    // audio_ptr->control |= 1;
+    const char* button1 = "Time";
+    const char* button2 = "Spectrum";
+    const char* button3 =  "Spectrogram";
+
+    // Draw buttons into back buffer
+    createGraphButton(button1, (point){25, 80});
+    createGraphButton(button2, (point){55, 80});
+    createGraphButton(button3, (point){100, 80});
+
+    // Swap, then draw into the other buffer too
+    waitForVsync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+    createGraphButton(button1, (point){25, 80});
+    createGraphButton(button2, (point){55, 80});
+    createGraphButton(button3, (point){100, 80});
 
     while (1){
         prev_sw1 = cur_sw1;
         cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
 
         if (prev_sw1 != cur_sw1) {
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            clearRegion((point){0, 95}, 320, 145);
             displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
@@ -158,8 +164,14 @@ int main(void){
 
             free(cfg);
             compute_average_fft(fft_array, average_fft);
-            displayCorrectGraph();
 
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
             waitForVsync();
             pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
@@ -198,11 +210,7 @@ int main(void){
             // } else {
             //     // combined — speech only, so level 0 label is always 2
             //     // SW8: 0 = unauthorized, 1 = authorized (level 1 label)
-            //     int label1 = (*sw_ptr >> 8) & 0b11;
-            //     // 00 = unauthorized (0)
-            //     // 01 = authorized speaker A (1)
-            //     // 10 = authorized speaker B (2)
-            //     // 11 = unused
+            //     int label1 = (*sw_ptr >> 8) & 0b1;
             //     *led_ptr |= 0b100;
 
             //     // level 0 per-frame rows, label hardcoded to 2 (speech)
@@ -231,6 +239,7 @@ int main(void){
 
             //     *led_ptr &= ~0b100;
             // }
+
         }
 
         else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
@@ -329,7 +338,7 @@ void displayBode(){
 
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
-    drawXAxisLabels(7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], x_axis_units);
+    drawXAxisLabels(5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], x_axis_units);
     plotMagnitudeSpectrum(
         average_fft,
         bode_plot_top_left,
@@ -351,24 +360,23 @@ void displayTime(){
     );
 }
 
-void displayCorrectGraph(){
-    // Clear only the region the graph occupies rather than the full 320x240 screen.
-    // Both plot types fit within this rectangle.
-    point graph_region = {15, 90};
-    clearRegion(graph_region, 295, 155);
+void displaySpectrogram(){
+    point spectrogram_top_left = {25, 100};
+    const char* x_axis_units = "s";
+    const char* y_axis_units = "Hz";
 
+    // The spectrogram is less wide than the other graphs (230px) to make room for the legend
+    drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
+    drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 5.0, x_axis_units);
+    drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);
+    plotSpectrogram(fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);
+    drawSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
+}
+
+void displayCorrectGraph(){
     if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();
     } else {
-        displayBode();
+        displaySpectrogram();
     }
 }
-
-// void handler (void){
-//     int mcause_value;
-//     __asm__ volatile ("csrr %0, mcause" : "=r"(mcause_value));
-//     mcause_value &= 0x7FFFFFFF;
-//     if (mcause_value == 21){
-//         *led_ptr = (1 << 5);
-//    } 
-// }

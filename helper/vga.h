@@ -8,10 +8,16 @@
 #define LINE_COLOR       0xFFFF
 #define GRAPH_COLOR      0xFDE0
 
+#define STANDARD_GRAPH_HEIGHT   120
+#define STANDARD_GRAPH_WIDTH    270
+
 typedef struct {
     int x;
     int y;
 } point;
+
+extern int const samples_per_pixel;
+extern int const axes_offset;
 
 extern volatile char* character_buffer_start;
 extern volatile int * character_ctrl_ptr;

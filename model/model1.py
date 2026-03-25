@@ -68,7 +68,7 @@ h0 = W0.shape[1]  # 32
 h1 = W1.shape[1]  # 16
 
 with open("./model1.c", "w") as f:
-    f.write('#include "classifier1.h"\n\n')
+    f.write('#include "model1.h"\n\n')
 
     f.write(f"const float L1_SCALER_MEAN[20]  = {{{', '.join(f'{v:.6f}f' for v in mu)}}};\n")
     f.write(f"const float L1_SCALER_SCALE[20] = {{{', '.join(f'{v:.6f}f' for v in sc)}}};\n\n")
@@ -85,13 +85,10 @@ with open("./model1.c", "w") as f:
     f.write("};\n")
     f.write(f"const float L1_B1[{h1}] = {{{', '.join(f'{v:.6f}f' for v in b1)}}};\n\n")
 
-    f.write(f"const float L1_W2[{h1}][2] = {{\n")
-    for row in W2:
-        f.write(f"    {{{', '.join(f'{v:.6f}f' for v in row)}}},\n")
-    f.write("};\n")
-    f.write(f"const float L1_B2[2] = {{{', '.join(f'{v:.6f}f' for v in b2)}}};\n\n")
+    f.write(f"const float L1_W2[{h1}] = {{{', '.join(f'{v:.6f}f' for v in W2.flatten())}}};\n")
+    f.write(f"const float L1_B2 = {b2[0]:.6f}f;\n\n")
 
-    f.write(f"""int classify1(const float fv[20]) {{
+    f.write(f"""int model1(const float fv[20]) {{
     float x[20];
     for (int i = 0; i < 20; i++)
         x[i] = (fv[i] - L1_SCALER_MEAN[i]) / L1_SCALER_SCALE[i];
@@ -114,15 +111,13 @@ with open("./model1.c", "w") as f:
         h1[j] = sum > 0.0f ? sum : 0.0f;
     }}
 
-    // Output layer ({h1} -> 2)
-    float scores[2];
-    for (int c = 0; c < 2; c++) {{
-        scores[c] = L1_B2[c];
-        for (int j = 0; j < {h1}; j++)
-            scores[c] += h1[j] * L1_W2[j][c];
-    }}
+    // Output layer ({h1} -> 1) - binary classification, single neuron
+    float score = L1_B2;
+    for (int j = 0; j < {h1}; j++)
+        score += h1[j] * L1_W2[j];
 
-    return scores[1] > scores[0] ? 1 : 0;  // 0=non-target, 1=target
+    // sigmoid threshold at 0.5 - equivalent to score > 0
+    return score > 0.0f ? 1 : 0;  // 0=non-target, 1=target
 }}
 """)
 

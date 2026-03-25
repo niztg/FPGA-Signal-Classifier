@@ -8,6 +8,8 @@
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
+extern int time_plot_line_heights[];
+
 void vga_text(int x, int y, char * text_ptr) {
     int offset;
     offset = (y << 7) + x;

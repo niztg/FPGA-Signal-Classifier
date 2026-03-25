@@ -19,7 +19,6 @@ March 2026
 #define VGA_BASE            0xFF203020
 #define CHARACTER_BASE      0xFF203030
 #define SWITCH_BASE         0xFF200040
-#define KEYBOARD_BASE       0xFF200100
 
 #define RECORDING_LENGTH   40000
 #define FRAME_LENGTH       256
@@ -38,10 +37,12 @@ March 2026
 #define PLAYBACK_KEY        0b0010
 #define CLEAR_KEY           0b1111
 
-#define KEY_A               0x1C
-#define KEY_B               0x32
-#define KEY_LEFT            0x6B
-#define KEY_RIGHT           0x74
+#define SW1_TIMEPLOT        1
+
+int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
+int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
+point const time_plot_mid_left = {25, 160};
+int const axes_offset = 2;
 
 typedef struct {
     volatile unsigned int control;
@@ -59,7 +60,6 @@ int recording[RECORDING_LENGTH] = {0};
 volatile int* key_ptr   = (int*) KEY_BASE;
 volatile int* led_ptr   = (int*) LED_BASE;
 volatile int* sw_ptr    = (int*) SWITCH_BASE;
-volatile int* keyboard_ptr = (int*) KEYBOARD_BASE;
 
 volatile int pixel_buffer_start;
 short int Buffer1[240][512];
@@ -69,14 +69,6 @@ volatile int * pixel_ctrl_ptr = (int *)VGA_BASE;
 volatile char* character_buffer_start;
 volatile int * character_ctrl_ptr = (int *)CHARACTER_BASE;
 
-/*
-DISPLAY GRAPH LEGEND
-0-Time Domain
-1-Magnitude Spectrum
-2-Spectrogram
-*/
-int DISPLAY_GRAPH = 0;
-int PREV_DISPLAY_GRAPH = 0;
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
 // Changed from double to float — soft-float emulation of 32-bit ops is
@@ -87,41 +79,23 @@ float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
 int max_sample_amplitude = 1;
-bool record = false;
-bool playback = false;
 
-bool time_fill = true;
-bool spectrum_fill = false;
-bool spectrogram_fill = false;
+bool cur_sw1 = true;
+bool prev_sw1;
 
-int captureRecording();
-
+int captureRecordingAndGraphTime();
 void playbackRecording();
-void displayMagnitudeSpectrum();
+void displayBode();
 void displayTime();
 void displaySpectrogram();
 void displayCorrectGraph();
 
-static inline bool ps2_read(unsigned char *out);
-
-// ---------------------------------------------------------------------------
-// Helper: draw buttons + graph into the CURRENT back buffer, then swap.
-// Call this twice (once per buffer) whenever the display content changes.
-// ---------------------------------------------------------------------------
-static void drawFullFrame(
-    const char* button1, const char* button2, const char* button3,
-    bool time_fill, bool spectrum_fill, bool spectrogram_fill
-){
-    clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
-    displayCorrectGraph();
-    createGraphButton(button1, (point){25, 80},  time_fill,        GRAPH_COLOR);
-    createGraphButton(button2, (point){55, 80},  spectrum_fill,    GRAPH_COLOR);
-    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-}
+//static void handler(void) __attribute__ ((interrupt ("machine")));
 
 int main(void){
+    *led_ptr = 0;
+    *(key_ptr+3) = CLEAR_KEY;
+
     character_buffer_start = (volatile char*) *character_ctrl_ptr;
 
     // Initialise double buffer — no explicit clearScreen needed,
@@ -136,97 +110,51 @@ int main(void){
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
+    // Before the while(1) loop, after compute_mel_filterbank:
+    cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
+    prev_sw1 = !cur_sw1;   // force first-iteration mismatch → guaranteed initial draw
+
     const char* button1 = "Time";
     const char* button2 = "Spectrum";
-    const char* button3 = "Spectrogram";
+    const char* button3 =  "Spectrogram";
 
     // Draw buttons into back buffer
-    createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
-    createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
-    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 80});
+    createGraphButton(button2, (point){55, 80});
+    createGraphButton(button3, (point){100, 80});
 
     // Swap, then draw into the other buffer too
     waitForVsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-    createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
-    createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
-    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 80});
+    createGraphButton(button2, (point){55, 80});
+    createGraphButton(button3, (point){100, 80});
 
-    // Initial graph draw (both buffers)
-    clearRegion((point){0, 95}, 320, 145);
-    displayCorrectGraph();
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-    clearRegion((point){0, 95}, 320, 145);
-    displayCorrectGraph();
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-    static bool ps2_break_pending = false;
-    static bool ps2_extend_pending = false;
-
-    // PS/2 Keyboard Polling Loop
     while (1){
-        unsigned char byte;
+        prev_sw1 = cur_sw1;
+        cur_sw1 = (*sw_ptr & SW1_TIMEPLOT) == SW1_TIMEPLOT;
 
-        while (ps2_read(&byte)){
-            if (byte == 0xF0){
-                ps2_break_pending = true;
-                continue;
-            } else if (byte == 0xE0){
-                ps2_extend_pending = true;
-                continue;
-            }
+        if (prev_sw1 != cur_sw1) {
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-            bool is_break = ps2_break_pending;
-            bool is_extended = ps2_extend_pending;
-
-            ps2_break_pending = false;
-            ps2_extend_pending = false;
-
-            if (!is_break){
-                if (byte == KEY_A) record = true;
-                if (byte == KEY_B) playback = true;
-
-                if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 3) % 3;
-                if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 3;
-            }
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+            displayCorrectGraph();
         }
 
-        // ---------------------------------------------------------------
-        // GRAPH TRANSITION — fixed version
-        // ---------------------------------------------------------------
-        if (DISPLAY_GRAPH != PREV_DISPLAY_GRAPH){
+        int edge_reg = *(key_ptr+3);
 
-            // FIX #1: was == 3, which is unreachable (valid range 0-2)
-            if (PREV_DISPLAY_GRAPH == 2){
-                point spectrogram_top_left = {25, 100};
-                clearSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
-            }
+        if ((edge_reg & RECORD_KEY) == RECORD_KEY) {
+            *led_ptr = 1;
+            max_sample_amplitude = captureRecordingAndGraphTime();
 
-            // FIX #2: compute button fill state BEFORE any drawing,
-            //         so buttons and graph are always in sync
-            fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill);
-
-            // FIX #3: use drawFullFrame for both buffers — each call
-            //         clears the entire buttons+graph region, redraws
-            //         everything, then swaps.  No stale fill residue.
-            drawFullFrame(button1, button2, button3,
-                          time_fill, spectrum_fill, spectrogram_fill);
-            drawFullFrame(button1, button2, button3,
-                          time_fill, spectrum_fill, spectrogram_fill);
-
-            PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
-        }
-
-        if (record){
-            record = false;
-            *led_ptr = 0x1;
-            max_sample_amplitude = captureRecording();
-
-            *led_ptr = 0x20;
+            *led_ptr = 0b1000000000;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
             
@@ -237,62 +165,174 @@ int main(void){
             free(cfg);
             compute_average_fft(fft_array, average_fft);
 
-            // Redraw both buffers with new data
-            drawFullFrame(button1, button2, button3,
-                          time_fill, spectrum_fill, spectrogram_fill);
-            drawFullFrame(button1, button2, button3,
-                          time_fill, spectrum_fill, spectrogram_fill);
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
-            *led_ptr = 0;
+            clearRegion((point){0, 95}, 320, 145);
+            displayCorrectGraph();
+            waitForVsync();
+            pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
+            /*
+            COLLECT TRAINING DATA
+            LEGEND (LEVEL 0)
+            TONE: 0
+            NOISE: 1
+            SPEECH: 2
+
+            PRINT FEATURE VECTOR FOR EACH FRAME, ALONG WITH DESIGNATION OF SIGNAL TYPE
+            PRINTF THIS INFORMATION OUT, WILL BE POOLED INTO THE DATA.CSV FILE
+            SEND THIS PRINTED DATA TO AN EXTERNAL MACHINE FOR TRAINING.
+
+            ORDER FOR LEVEL0:
+            (ZCR, Spectral Centroid, Spectral Bandwidth, Dominant Frequency, LBPR, HBPR, *designation*)
+            */
+            // SW7 selects collection mode: 0 = level 0, 1 = level 1
+            // int collect_mode = (*sw_ptr >> 7) & 0b1;  // 0 = level 0 only, 1 = combined
+
+            // if (!collect_mode) {
+            //     // level 0 only — original behaviour, SW8-9 selects label
+            //     int label0 = (*sw_ptr >> 8) & 0b11;
+            //     *led_ptr |= 0b100;
+            //     for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
+            //         if (i % 4 != 0) continue;
+            //         FeatureVector0 fv;
+            //         double feature_vector[FEATURES_0];
+            //         create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
+            //         flatten_feature_vector(&fv, feature_vector);
+            //         for (int j = 0; j < FEATURES_0; j++) printf("%.4f,", feature_vector[j]);
+            //         printf("%d\n", label0);
+            //     }
+            //     *led_ptr &= ~0b100;
+
+            // } else {
+            //     // combined — speech only, so level 0 label is always 2
+            //     // SW8: 0 = unauthorized, 1 = authorized (level 1 label)
+            //     int label1 = (*sw_ptr >> 8) & 0b1;
+            //     *led_ptr |= 0b100;
+
+            //     // level 0 per-frame rows, label hardcoded to 2 (speech)
+            //     for (int i = 0; i < FRAMES_PER_RECORDING; i++) {
+            //         if (i % 4 != 0) continue;
+            //         FeatureVector0 fv;
+            //         double feature_vector[FEATURES_0];
+            //         create_feature_vector0(&fv, frame_array[i], fft_array[i], frequency_bins);
+            //         flatten_feature_vector(&fv, feature_vector);
+            //         for (int j = 0; j < FEATURES_0; j++) printf("%.3f,", feature_vector[j]);
+            //         printf("%d\n", 2);  // always speech
+            //     }
+
+            //     // level 1 single row
+            //     // level 1: one row per chunk
+            //     for (int chunk = 0; chunk < CHUNKS_PER_RECORDING; chunk++) {
+            //         int start = chunk * FRAMES_PER_CHUNK;
+            //         int end   = start + FRAMES_PER_CHUNK;
+            //         FeatureVector1 fv1;
+            //         float fv1_flat[FEATURES_1];
+            //         create_feature_vector1_chunk(&fv1, frame_array, fft_array, frequency_bins, filterbank, start, end);
+            //         flatten_feature_vector1(&fv1, fv1_flat);
+            //         for (int j = 0; j < FEATURES_1; j++) printf("%.4f,", fv1_flat[j]);
+            //         printf("%d\n", label1);
+            //     }
+
+            //     *led_ptr &= ~0b100;
+            // }
+
         }
 
-        if (playback){
-            playback = false;
-            *led_ptr = 0x2;
+        else if ((edge_reg & PLAYBACK_KEY) == PLAYBACK_KEY) {
+            *led_ptr = 2;
             playbackRecording();
-            *led_ptr = 0;
         }
 
+        //when done
+        *led_ptr = 0;
+        *(key_ptr+3) = CLEAR_KEY;
     }
 }
 
-int captureRecording(){
-    *led_ptr = 1;
+int captureRecordingAndGraphTime() {
+    point graph_region = {15, 90};
+    clearRegion(graph_region, 295, 155);
     int max_sample_amplitude = 0;
-    for (int i = 0; i < RECORDING_LENGTH; i++){
-        if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0){
+    int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
+    int const MAX_AMPLITUDE = 0x6FFFFFFF;
+    int x = time_plot_mid_left.x;
+    int col_peak = 0;  // tracks peak within current pixel column
+    
+    // Draw directly to the front (currently displayed) buffer — no vsync stalls
+    pixel_buffer_start = *pixel_ctrl_ptr;
+    clearRegion(graph_region, 295, 155);
+
+    drawLine((point){x, time_plot_mid_left.y + (STANDARD_GRAPH_HEIGHT/2) - axes_offset},
+             (point){x, time_plot_mid_left.y - (STANDARD_GRAPH_HEIGHT/2) + axes_offset},
+             LINE_COLOR, false);
+    drawLine((point){x, time_plot_mid_left.y},
+             (point){x + STANDARD_GRAPH_WIDTH, time_plot_mid_left.y},
+             LINE_COLOR, false);
+
+    for (int i = 0; i < RECORDING_LENGTH; i++) {
+        if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             recording[i] = audio_ptr->ldata;
-            int abs_val = abs(recording[i]);
-            max_sample_amplitude = abs_val > max_sample_amplitude ? abs_val : max_sample_amplitude;
+            int absval = abs(recording[i]);
+            if (absval > max_sample_amplitude) max_sample_amplitude = absval;
+            if (absval > col_peak) col_peak = absval;
+
+            if (i % samples_per_pixel == samples_per_pixel - 1) {
+                int line_height = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * usable_height);
+                time_plot_line_heights[(x - time_plot_mid_left.x) / 2] = line_height;
+                
+                drawLine((point){x, time_plot_mid_left.y + line_height / 2},
+                         (point){x, time_plot_mid_left.y - line_height / 2},
+                         GRAPH_COLOR, false);
+                x += 2;
+                col_peak = 0;  // reset for next column
+            }
+        } else {
+            i--;
         }
-        else i--;
     }
-    *led_ptr = 0;
+
+    // Restore back buffer for normal double-buffered rendering after recording
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+
     return max_sample_amplitude;
 }
 
-static inline bool ps2_read(unsigned char *out) {
-    int val = *keyboard_ptr;
-    if (val & 0x8000) {
-        *out = (unsigned char)(val & 0xFF);
-        return true;
-    }
-    return false;
-}
-
 void playbackRecording(){
-    *led_ptr = 2;
+    pixel_buffer_start = *pixel_ctrl_ptr; //set single buffer
+
+    //make current graph white
+    for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
+        drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    LINE_COLOR, false);
+    }
+
+    int x = time_plot_mid_left.x;
+
     for (int i = 0; i < RECORDING_LENGTH; i++){
         if (audio_ptr->wsrc > 0 && audio_ptr->wslc > 0){
             audio_ptr->ldata = recording[i];
             audio_ptr->rdata = recording[i];
+            if (i % samples_per_pixel == samples_per_pixel - 1){
+                drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    GRAPH_COLOR, false);
+                x += 2;
+            }
         }
         else i--;
     }
-    *led_ptr = 0;
+
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); //restore to double buffering
 }
 
-void displayMagnitudeSpectrum(){
+void displayBode(){
+    *led_ptr = 0b01000000000;
+
     point bode_plot_top_left = {25, 100};
 
     const char* x_axis_units = "Hz";
@@ -311,7 +351,7 @@ void displayMagnitudeSpectrum(){
 }
 
 void displayTime(){
-    point time_plot_mid_left = {25, 160};
+    *led_ptr = 0b0010000000;
 
     plotTimeDomain(time_plot_mid_left,
         STANDARD_GRAPH_WIDTH,
@@ -323,24 +363,21 @@ void displayTime(){
 
 void displaySpectrogram(){
     point spectrogram_top_left = {25, 100};
+    const char* x_axis_units = "s";
+    const char* y_axis_units = "Hz";
+
+    // The spectrogram is less wide than the other graphs (230px) to make room for the legend
     drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
-    drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 5.0, "s");
-    drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
-    drawSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
+    drawXAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 5.0, x_axis_units);
+    drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], y_axis_units);
     plotSpectrogram(fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);
+    drawSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
 }
 
 void displayCorrectGraph(){
-    if (DISPLAY_GRAPH == 0){
-        *led_ptr |= 0x4;
+    if (cur_sw1 == SW1_TIMEPLOT){
         displayTime();
-    } else if (DISPLAY_GRAPH == 1){
-        displayMagnitudeSpectrum();
-        *led_ptr |= 0x8;
-    } else if (DISPLAY_GRAPH == 2){
-        *led_ptr |= 0x10;
-        displaySpectrogram();
     } else {
-        displayTime();
+        displaySpectrogram();
     }
 }

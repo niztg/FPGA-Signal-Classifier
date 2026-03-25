@@ -43,6 +43,11 @@ March 2026
 #define KEY_LEFT            0x6B
 #define KEY_RIGHT           0x74
 
+int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
+int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
+point const time_plot_mid_left = {25, 160};
+int const axes_offset = 2;
+
 typedef struct {
     volatile unsigned int control;
     volatile unsigned char rarc;
@@ -224,7 +229,7 @@ int main(void){
         if (record){
             record = false;
             *led_ptr = 0x1;
-            max_sample_amplitude = captureRecording();
+            max_sample_amplitude = captureRecordingAndGraphTime();
 
             *led_ptr = 0x20;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
@@ -256,19 +261,48 @@ int main(void){
     }
 }
 
-int captureRecording(){
-    *led_ptr = 1;
+int captureRecordingAndGraphTime() {
+    point graph_region = {15, 90};
+    clearRegion(graph_region, 295, 155);
     int max_sample_amplitude = 0;
-    for (int i = 0; i < RECORDING_LENGTH; i++){
-        if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0){
+    int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
+    int const MAX_AMPLITUDE = 0x6FFFFFFF;
+    int x = time_plot_mid_left.x;
+    int col_peak = 0;  // tracks peak within current pixel column
+    
+    // Draw directly to the front (currently displayed) buffer — no vsync stalls
+    pixel_buffer_start = *pixel_ctrl_ptr;
+    clearRegion(graph_region, 295, 155);
+
+    drawLine((point){x, time_plot_mid_left.y + (STANDARD_GRAPH_HEIGHT/2) - axes_offset},
+             (point){x, time_plot_mid_left.y - (STANDARD_GRAPH_HEIGHT/2) + axes_offset},
+             LINE_COLOR, false);
+    drawLine((point){x, time_plot_mid_left.y},
+             (point){x + STANDARD_GRAPH_WIDTH, time_plot_mid_left.y},
+             LINE_COLOR, false);
+
+    for (int i = 0; i < RECORDING_LENGTH; i++) {
+        if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             recording[i] = audio_ptr->ldata;
-            int abs_val = abs(recording[i]);
-            max_sample_amplitude = abs_val > max_sample_amplitude ? abs_val : max_sample_amplitude;
+            int absval = abs(recording[i]);
+            if (absval > max_sample_amplitude) max_sample_amplitude = absval;
+            if (absval > col_peak) col_peak = absval;
+
+            if (i % samples_per_pixel == samples_per_pixel - 1) {
+                int line_height = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * usable_height);
+                time_plot_line_heights[(x - time_plot_mid_left.x) / 2] = line_height;
+                
+                drawLine((point){x, time_plot_mid_left.y + line_height / 2},
+                         (point){x, time_plot_mid_left.y - line_height / 2},
+                         GRAPH_COLOR, false);
+                x += 2;
+                col_peak = 0;  // reset for next column
+            }
+        } else {
+            i--;
         }
-        else i--;
+
     }
-    *led_ptr = 0;
-    return max_sample_amplitude;
 }
 
 static inline bool ps2_read(unsigned char *out) {
@@ -281,15 +315,34 @@ static inline bool ps2_read(unsigned char *out) {
 }
 
 void playbackRecording(){
-    *led_ptr = 2;
+    pixel_buffer_start = *pixel_ctrl_ptr; //set single buffer
+
+    //make current graph white
+    for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
+        drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    LINE_COLOR, false);
+    }
+
+
+
+    int x = time_plot_mid_left.x;
+
     for (int i = 0; i < RECORDING_LENGTH; i++){
         if (audio_ptr->wsrc > 0 && audio_ptr->wslc > 0){
             audio_ptr->ldata = recording[i];
             audio_ptr->rdata = recording[i];
+            if (i % samples_per_pixel == samples_per_pixel - 1){
+                drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
+                    GRAPH_COLOR, false);
+                x += 2;
+            }
         }
         else i--;
     }
-    *led_ptr = 0;
+
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); //restore to double buffering
 }
 
 void displayMagnitudeSpectrum(){

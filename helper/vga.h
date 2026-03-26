@@ -78,7 +78,7 @@ void drawYAxisLabels(
 );
 
 void plotTimeDomain(point reference, int width, int height,
-    int number_of_samples, int max_sample_amplitude
+    int number_of_samples
 );
 void plotMagnitudeSpectrum(
     float average_fft[NO_FREQ_BINS],

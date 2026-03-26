@@ -213,8 +213,8 @@ if (record){
     clearRegion((point){0,0}, 320, 20);
     drawGraphBoundingBox(
         (point){25, 58},
-        150,
-        12
+        12,
+        150
     );
 
     for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
@@ -249,7 +249,7 @@ if (record){
             vga_text(6, 10, hbpr_text);
 
             int result = model1(feature_vec);
-            short int box_color = 0x07E0 ? result : 0xF800;
+            short int box_color = result ? 0x07E0 : 0xF800;
 
             drawResultBox(
                 (point){25, 58},

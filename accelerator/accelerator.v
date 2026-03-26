@@ -32,7 +32,7 @@ The number format is Q4.12. This is a 16 bit two's-complement (programmer's choi
 It is found by multiplying the original number by 2^12=4096 and then interpreting the bits as described. Q4.12 numbers range from -8.0 to +7.997, with the top bit
 representing the negative sign.
 
-Multiplying two Q4.12 numbers returns a Q8.24 number. (RIP Kobe) Converting a Q8.24 to Q4.12 involves shifting the Q8.24 to the right by 12. This loses precision, but the number is still the same.
+Multiplying two Q4.12 numbers returns a Q8.24 number. (RIP Kobe) Converting a Q8.24 to Q4.12 involves shifting the Q8.24 to the right by 12. This loses precision, but the number is still the same (not obviously).
 
 Comparing the respective software paths, we can estimate the Verilog-based approach of computation as being approximately 1 000 to 1 500 times faster than performing computations serially in C. This turns calculations empirically
 measured to take approximately 15 seconds, to under ~20ms.
@@ -125,7 +125,7 @@ module accelerator(
 	// Adder circuit
 	// This can not all be done in one statement because you can only add numbers two at a time in Verilog
 	// In each clock, we handle a chunk of a neuron (16 components on the first cycle, the remaining 4 on the following cycle with the additional 12 going unused)
-	// 16 components = 16 additions. We group these into pairs and compute
+	// 16 components = 16 additions. We split these into pairs and compute
 	// Loop 1: 16 pairs -> 8
 	// Loop 2: 8 pairs -> 4
 	// Loop 3: 4 pairs -> 2
@@ -164,7 +164,20 @@ module accelerator(
 	MAIN
 	*/
 	
+	// Memory Mapped write
+	always @(posedge clk) begin
+		if (avs_write && state == S_IDLE) begin
+			if (avs_address < 5'd20) begin
+				input_reg[avs_address] <= avs_writedata[15:0];
+			end
+		end
+	end
 	
+	// GO bit from Control Register
+	wire go_trigger = avs_write && (avs_address == 5'd20) && avs_writedata[0] && (state == S_IDLE);
 	
+	// to-do: massive FSM
+
+endmodule
 	
 	

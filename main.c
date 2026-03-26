@@ -143,7 +143,7 @@ int main(void){
     createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
-    clearRegion((point){0, 93}, 320, 145);
+    clearRegion((point){0, 0}, 320, 240);
     displayCorrectGraph();
 
     static bool ps2_break_pending = false;

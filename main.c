@@ -255,7 +255,7 @@ int captureRecordingAndGraphTime() {
         fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill);
         drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
     }
-    point graph_region = {15, 95};
+    point graph_region = {15, 93};
     clearRegion(graph_region, 295, 155);
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
     int const MAX_AMPLITUDE = 0x6FFFFFFF;

@@ -140,17 +140,6 @@ int main(void){
     clearRegion((point){0, 95}, 320, 145);
     displayCorrectGraph();
 
-    // Initial graph draw (both buffers)
-    clearRegion((point){0, 95}, 320, 145);
-    displayCorrectGraph();
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-    clearRegion((point){0, 95}, 320, 145);
-    displayCorrectGraph();
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
     static bool ps2_break_pending = false;
     static bool ps2_extend_pending = false;
 

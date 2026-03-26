@@ -553,7 +553,7 @@ void drawResultBox(
     for (int x = start_x; x < start_x + box_width; x++){
         drawLine(
             (point){x, y_coord},
-            (point){x, y_coord + box_height},
+            (point){x, y_coord + box_height - 1},
             fill_color,
             false
         );

@@ -256,9 +256,6 @@ if (record){
             int result = model1(feature_vec);
             short int box_color = result ? 0x07E0 : 0xF800;
 
-            *led_ptr |= result << chunk_idx;
-            chunk_idx++;
-
             drawResultBox(
                 (point){25, 58},
                 chunk_idx,
@@ -266,6 +263,9 @@ if (record){
                 13,
                 12
             );
+
+            *led_ptr |= result << chunk_idx;
+            chunk_idx++;
         }
     }
 

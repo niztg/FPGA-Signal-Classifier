@@ -93,8 +93,6 @@ float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
-int result_bank[CHUNKS_PER_RECORDING];
-
 bool record = false;
 bool playback = false;
 
@@ -214,6 +212,11 @@ if (record){
     char hbpr_text[40];
 
     clearRegion((point){0,0}, 320, 20);
+    drawGraphBoundingBox(
+        (point){25, 58},
+        150,
+        12
+    );
 
     for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
 
@@ -231,6 +234,9 @@ if (record){
                                          frequency_bins, filterbank, start, end);
             flatten_feature_vector1(&fv, feature_vec);
 
+            // Draws the 150x12 result buffer.
+            // Each cell is 15px wide
+
             sprintf(classification_text, "Analyzing Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
             sprintf(zcr_text,  "ZCR:  %.4f", feature_vec[0]);
             sprintf(sc_text,   "SC:   %.4f", feature_vec[1]);
@@ -244,6 +250,16 @@ if (record){
             vga_text(6, 10, hbpr_text);
 
             int result = model1(feature_vec);
+            short int box_color = 0x07E0 ? result : 0xF800;
+
+            drawResultBox(
+                (point){25, 58},
+                chunk_idx,
+                box_color,
+                15,
+                12,
+                150
+            );
 
             *led_ptr |= result << chunk_idx;
             chunk_idx++;

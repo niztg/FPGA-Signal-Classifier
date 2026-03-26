@@ -539,3 +539,14 @@ void fillComparator(
         *spectrogram_fill = true;
     }
 }
+
+void drawResultBox(
+    point top_left,
+    int draw_index,
+    short int fill_color,
+    int box_width,
+    int box_height,
+    int bar_width
+){
+
+}

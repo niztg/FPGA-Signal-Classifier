@@ -138,12 +138,13 @@ int main(void){
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
+    clearRegion((point){0, 0}, 320, 240);
+
     vga_text(170 / 4, 86 / 4, instructions);
     createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
     createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
-    clearRegion((point){0, 0}, 320, 240);
     displayCorrectGraph();
 
     static bool ps2_break_pending = false;

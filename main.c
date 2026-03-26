@@ -115,10 +115,10 @@ static void drawFullFrame(
     bool time_fill, bool spectrum_fill, bool spectrogram_fill
 ){
     clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
-    displayCorrectGraph();
     createGraphButton(button1, (point){25, 80},  time_fill,        GRAPH_COLOR);
     createGraphButton(button2, (point){55, 80},  spectrum_fill,    GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+    displayCorrectGraph();
 }
 
 int main(void){
@@ -243,7 +243,7 @@ int main(void){
 }
 
 int captureRecordingAndGraphTime() {
-    point graph_region = {15, 90};
+    point graph_region = {15, 95};
     clearRegion(graph_region, 295, 155);
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
     int const MAX_AMPLITUDE = 0x6FFFFFFF;

@@ -202,41 +202,77 @@ int main(void){
             *led_ptr = 0x20;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
+
+            int chunk_idx = 0;
             
-            for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
+            for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
+            for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++){
+
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+                for (int j = 0; j < NO_FREQ_BINS; j++) average_fft[j] += fft_array[frame_idx][j];
+
+                if ((frame_idx + 1) % FRAMES_PER_CHUNK == 0){
+                    // run inference on the current chunk
+                    int start = chunk_idx * FRAMES_PER_CHUNK;
+                    int end = start + FRAMES_PER_CHUNK;
+
+                    FeatureVector1 fv;
+                    float feature_vec[FEATURES_1];
+                    create_feature_vector1_chunk(
+                        &fv,
+                        frame_array,
+                        fft_array,
+                        frequency_bins,
+                        filterbank,
+                        start, end
+                    );
+                    flatten_feature_vector1(&fv, feature_vec);
+
+                    int result = model1(feature_vec);
+                    *led_ptr |= result << chunk_idx;
+                    chunk_idx++;
+                }
+    
             }
 
-            free(cfg);
-            compute_average_fft(fft_array, average_fft);
+            for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;
             drawFullFrame(button1, button2, button3,
                           time_fill, spectrum_fill, spectrogram_fill);
 
-            *led_ptr = 0;
+            // for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
+            //     compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+            // }
 
-            // Neural network: classify each 0.5 s chunk, light its LED 
-            FeatureVector1 fv1;
-            float feature_vec[FEATURES_1];
-            int led_result = 0;
+            // free(cfg);
+            // compute_average_fft(fft_array, average_fft);
+            // drawFullFrame(button1, button2, button3,
+            //               time_fill, spectrum_fill, spectrogram_fill);
 
-            for (int chunk = 0; chunk < CHUNKS_PER_RECORDING; chunk++) {
-                int start = chunk * FRAMES_PER_CHUNK;
-                int end   = start + FRAMES_PER_CHUNK;
+            // *led_ptr = 0;
 
-                create_feature_vector1_chunk(&fv1,
-                                            frame_array,
-                                            fft_array,
-                                            frequency_bins,
-                                            filterbank,
-                                            start, end);
-                flatten_feature_vector1(&fv1, feature_vec);
+            // // Neural network: classify each 0.5 s chunk, light its LED 
+            // FeatureVector1 fv1;
+            // float feature_vec[FEATURES_1];
+            // int led_result = 0;
 
-                int result = model1(feature_vec);
-                if (result == 1)
-                    led_result |= (1 << chunk);   // bit N = chunk N = LED N
-            }
+            // for (int chunk = 0; chunk < CHUNKS_PER_RECORDING; chunk++) {
+            //     int start = chunk * FRAMES_PER_CHUNK;
+            //     int end   = start + FRAMES_PER_CHUNK;
 
-            *led_ptr = led_result;   // all 10 LEDs set in one write
+            //     create_feature_vector1_chunk(&fv1,
+            //                                 frame_array,
+            //                                 fft_array,
+            //                                 frequency_bins,
+            //                                 filterbank,
+            //                                 start, end);
+            //     flatten_feature_vector1(&fv1, feature_vec);
+
+            //     int result = model1(feature_vec);
+            //     if (result == 1)
+            //         led_result |= (1 << chunk);   // bit N = chunk N = LED N
+            // }
+
+            // *led_ptr = led_result;   // all 10 LEDs set in one write
         }
 
         if (playback){

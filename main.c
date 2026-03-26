@@ -106,6 +106,10 @@ void displayTime();
 void displaySpectrogram();
 void displayCorrectGraph();
 
+const char* button1 = "Time";
+const char* button2 = "Spectrum";
+const char* button3 = "Spectrogram";
+
 static inline bool ps2_read(unsigned char *out);
 
 // Helper: draw buttons + graph into the CURRENT back buffer, then swap.
@@ -127,10 +131,6 @@ int main(void){
 
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
-
-    const char* button1 = "Time";
-    const char* button2 = "Spectrum";
-    const char* button3 = "Spectrogram";
 
     createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
     createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
@@ -243,6 +243,10 @@ int main(void){
 }
 
 int captureRecordingAndGraphTime() {
+    if (DISPLAY_GRAPH != 0){
+        DISPLAY_GRAPH = 0;
+        drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
+    }
     point graph_region = {15, 95};
     clearRegion(graph_region, 295, 155);
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;

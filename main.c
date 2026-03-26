@@ -305,6 +305,11 @@ static inline bool ps2_read(unsigned char *out) {
 }
 
 void playbackRecording(){
+    if (DISPLAY_GRAPH != 0){
+        DISPLAY_GRAPH = 0;
+        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill);
+        drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
+    }
     //make current graph white
     for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
         drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},

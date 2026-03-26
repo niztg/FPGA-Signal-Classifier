@@ -108,5 +108,12 @@ void fillComparator(
     bool* spectrum_fill,
     bool* spectrogram_fill
 );
+void drawResultBox(
+    point top_left,
+    int draw_index,
+    short int fill_color,
+    int box_width,
+    int box_height
+);
 
 #endif

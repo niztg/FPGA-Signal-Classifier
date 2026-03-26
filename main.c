@@ -264,10 +264,8 @@ if (record){
                 chunk_idx,
                 box_color,
                 13,
-                12,
-                150
+                12
             );
-
         }
     }
 

@@ -545,8 +545,17 @@ void drawResultBox(
     int draw_index,
     short int fill_color,
     int box_width,
-    int box_height,
-    int bar_width
+    int box_height
 ){
+    int start_x = (top_left.x + 1) + draw_index * box_width;
+    int y_coord = (top_left.y +1);
 
+    for (int x = start_x; x < start_x + box_width; x++){
+        drawLine(
+            (point){x, y_coord},
+            (point){x, y_coord + box_height},
+            fill_color,
+            false;
+        );
+    }
 }

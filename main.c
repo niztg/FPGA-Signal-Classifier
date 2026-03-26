@@ -143,11 +143,13 @@ int main(void){
     createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
-    clearRegion((point){0, 95}, 320, 145);
+    clearRegion((point){0, 93}, 320, 145);
     displayCorrectGraph();
 
     static bool ps2_break_pending = false;
     static bool ps2_extend_pending = false;
+
+    *led_ptr = 0; // clear from previous execute
 
     // PS/2 Keyboard Polling Loop
     while (1){
@@ -196,10 +198,9 @@ int main(void){
 
         if (record){
             record = false;
-            *led_ptr = 0x1;
+            *led_ptr = 0;
             captureRecordingAndGraphTime();
 
-            *led_ptr = 0x20;
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
 
@@ -238,41 +239,6 @@ int main(void){
             for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;
             drawFullFrame(button1, button2, button3,
                           time_fill, spectrum_fill, spectrogram_fill);
-
-            // for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
-            //     compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-            // }
-
-            // free(cfg);
-            // compute_average_fft(fft_array, average_fft);
-            // drawFullFrame(button1, button2, button3,
-            //               time_fill, spectrum_fill, spectrogram_fill);
-
-            // *led_ptr = 0;
-
-            // // Neural network: classify each 0.5 s chunk, light its LED 
-            // FeatureVector1 fv1;
-            // float feature_vec[FEATURES_1];
-            // int led_result = 0;
-
-            // for (int chunk = 0; chunk < CHUNKS_PER_RECORDING; chunk++) {
-            //     int start = chunk * FRAMES_PER_CHUNK;
-            //     int end   = start + FRAMES_PER_CHUNK;
-
-            //     create_feature_vector1_chunk(&fv1,
-            //                                 frame_array,
-            //                                 fft_array,
-            //                                 frequency_bins,
-            //                                 filterbank,
-            //                                 start, end);
-            //     flatten_feature_vector1(&fv1, feature_vec);
-
-            //     int result = model1(feature_vec);
-            //     if (result == 1)
-            //         led_result |= (1 << chunk);   // bit N = chunk N = LED N
-            // }
-
-            // *led_ptr = led_result;   // all 10 LEDs set in one write
         }
 
         if (playback){
@@ -409,13 +375,10 @@ void displaySpectrogram(){
 
 void displayCorrectGraph(){
     if (DISPLAY_GRAPH == 0){
-        *led_ptr |= 0x4;
         displayTime();
     } else if (DISPLAY_GRAPH == 1){
         displayMagnitudeSpectrum();
-        *led_ptr |= 0x8;
     } else if (DISPLAY_GRAPH == 2){
-        *led_ptr |= 0x10;
         displaySpectrogram();
     } else {
         displayTime();

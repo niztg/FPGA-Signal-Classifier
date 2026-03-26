@@ -184,7 +184,6 @@ int main(void){
 
             if (PREV_DISPLAY_GRAPH == 2){
                 point spectrogram_top_left = {25, 100};
-                clearSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
             }
 
             //compute button fill state BEFORE any drawing,

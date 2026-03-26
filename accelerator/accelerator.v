@@ -5,7 +5,11 @@ This file contains the code for the Verilog-based accelerator that allows multip
 serialized nature of C.
 
 NEURAL NET ARCHITECTURE:
-FEATURE VECTOR[0:19] ---> LAYER 1 - 20 NEURONS (ReLU) ---> LAYER 2 - 12 NEURONS (ReLU) ---> PREDICTION[0]
+FEATURE VECTOR[0:19] ---> LAYER 1 - 32 NEURONS (ReLU) ---> LAYER 2 - 16 NEURONS (ReLU) ---> PREDICTION[0]
+
+ --------------------
+| ReLU(x) = max(x, 0) |
+ --------------------
 
 MEMORY-MAPPED REGISTER ARCHITECTURE
 Base Address: 0xFF210000
@@ -30,6 +34,9 @@ representing the negative sign.
 
 Multiplying two Q4.12 numbers returns a Q8.24 number. (RIP Kobe)
 
+Comparing the respective software paths, we can estimate the Verilog-based approach of computation as being approximately 1 000 to 1 500 times faster than performing computations serially in C. This turns calculations empirically
+measured to take approximately 15 seconds, to under ~20ms.
+
 */
 
 module accelerator(
@@ -53,6 +60,18 @@ module accelerator(
 	localparam L1_IN = 32;
 	localparam L1_OUT = 16;
 	localparam L2_IN = 16;
-	localparam L2_OUT = 1;
+	localparam L2_OUT = 1; 
+	
+	localparam neurons_per_pass = 4; // one neuron = ReLU(dot_product_i + bias_i)
+												// the accelerator works on 4 neurons at a time, compared to the limit of 1 in C
+												// the neuron calculation is also significantly simpler in Verilog (2 clock cycles) compared to in C (~3000 cycles)
+												
+	localparam multiplies_per_clock = 16; // 16 of (input feature * weight) per clock
+													  // when 20 of these are completed (2 clock cycles as mentioned above), the bias and ReLU are added and the neuron is complete.
+	reg signed [15:0] input_reg [0:L0_IN-1]; // 20, 16 bit (Q4.12) numbers
+	reg signed [31:0] layer0_out [0:L0_OUT-1]; // 20, 32 bit (Q8.24) numbers
+	reg signed [31:0] layer1_out [0:L1_OUT-1];
+	reg signed [31:0] final_result; // one Q8.24 number
+	
 	
 	

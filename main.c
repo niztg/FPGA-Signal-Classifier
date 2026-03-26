@@ -122,9 +122,8 @@ static void drawFullFrame(
 }
 
 int main(void){
-    character_buffer_start = (volatile char*) *character_ctrl_ptr;
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
+    pixel_buffer_start = *pixel_ctrl_ptr;
 
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);

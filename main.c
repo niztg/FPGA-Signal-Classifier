@@ -126,6 +126,7 @@ static void drawFullFrame(
 }
 
 int main(void){
+    character_buffer_start = (volatile char*) *character_ctrl_ptr;  // add this back
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
     pixel_buffer_start = *pixel_ctrl_ptr;
 
@@ -245,6 +246,7 @@ int main(void){
 int captureRecordingAndGraphTime() {
     if (DISPLAY_GRAPH != 0){
         DISPLAY_GRAPH = 0;
+        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill);
         drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
     }
     point graph_region = {15, 95};

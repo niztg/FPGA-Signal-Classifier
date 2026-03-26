@@ -69,7 +69,6 @@ volatile int* keyboard_ptr = (int*) KEYBOARD_BASE;
 
 volatile int pixel_buffer_start;
 short int Buffer1[240][512];
-short int Buffer2[240][512];
 volatile int * pixel_ctrl_ptr = (int *)VGA_BASE;
 
 volatile char* character_buffer_start;
@@ -120,19 +119,10 @@ static void drawFullFrame(
     createGraphButton(button1, (point){25, 80},  time_fill,        GRAPH_COLOR);
     createGraphButton(button2, (point){55, 80},  spectrum_fill,    GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 }
 
 int main(void){
     character_buffer_start = (volatile char*) *character_ctrl_ptr;
-
-    // Initialise double buffer — no explicit clearScreen needed,
-    // the pixel buffers are zeroed by the hardware on reset
-    *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
-    waitForVsync();
-    pixel_buffer_start = *pixel_ctrl_ptr;
-
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 
@@ -143,18 +133,12 @@ int main(void){
     const char* button2 = "Spectrum";
     const char* button3 = "Spectrogram";
 
-    // Draw buttons into back buffer
     createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
     createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
 
-    // Swap, then draw into the other buffer too
-    waitForVsync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-
-    createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
-    createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
-    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+    clearRegion((point){0, 95}, 320, 145);
+    displayCorrectGraph();
 
     // Initial graph draw (both buffers)
     clearRegion((point){0, 95}, 320, 145);
@@ -209,13 +193,8 @@ int main(void){
             //so buttons and graph are always in sync
             fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill);
 
-            // FIX #3: use drawFullFrame for both buffers — each call
-            //         clears the entire buttons+graph region, redraws
-            //         everything, then swaps.  No stale fill residue.
             drawFullFrame(button1, button2, button3,
-                          time_fill, spectrum_fill, spectrogram_fill);
-            drawFullFrame(button1, button2, button3,
-                          time_fill, spectrum_fill, spectrogram_fill);
+                        time_fill, spectrum_fill, spectrogram_fill);
 
             PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
         }
@@ -235,10 +214,6 @@ int main(void){
 
             free(cfg);
             compute_average_fft(fft_array, average_fft);
-
-            // Redraw both buffers with new data
-            drawFullFrame(button1, button2, button3,
-                          time_fill, spectrum_fill, spectrogram_fill);
             drawFullFrame(button1, button2, button3,
                           time_fill, spectrum_fill, spectrogram_fill);
 
@@ -288,7 +263,6 @@ int captureRecordingAndGraphTime() {
     int col_peak = 0;  // tracks peak within current pixel column
     
     // Draw directly to the front (currently displayed) buffer — no vsync stalls
-    pixel_buffer_start = *pixel_ctrl_ptr;
     clearRegion(graph_region, 295, 155);
 
     drawLine((point){x, time_plot_mid_left.y + (STANDARD_GRAPH_HEIGHT/2) - axes_offset},
@@ -331,8 +305,6 @@ static inline bool ps2_read(unsigned char *out) {
 }
 
 void playbackRecording(){
-    pixel_buffer_start = *pixel_ctrl_ptr; //set single buffer
-
     //make current graph white
     for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
         drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
@@ -355,8 +327,6 @@ void playbackRecording(){
         }
         else i--;
     }
-
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); //restore to double buffering
 }
 
 void displayMagnitudeSpectrum(){

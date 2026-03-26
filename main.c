@@ -211,11 +211,7 @@ if (record){
     char hbpr_text[40];
 
     clearRegion((point){0,0}, 320, 20);
-    drawGraphBoundingBox(
-        (point){25, 58},
-        12,
-        150
-    );
+    bool box_drawn = false;
 
     for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
 
@@ -242,26 +238,36 @@ if (record){
             sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
             sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
 
-            vga_text(6, 6, classification_text);
-            vga_text(6, 7, zcr_text);
-            vga_text(6, 8, sc_text);
-            vga_text(6, 9, lbpr_text);
-            vga_text(6, 10, hbpr_text);
+            vga_text(6, 7, classification_text);
+            vga_text(6, 8, zcr_text);
+            vga_text(6, 9, sc_text);
+            vga_text(6, 10, lbpr_text);
+            vga_text(6, 11, hbpr_text);
+
+            if (!box_drawn){
+                drawGraphBoundingBox(
+                    (point){25, 58},
+                    12,
+                    130
+                );
+                box_drawn = true;
+            }
 
             int result = model1(feature_vec);
             short int box_color = result ? 0x07E0 : 0xF800;
+
+            *led_ptr |= result << chunk_idx;
+            chunk_idx++;
 
             drawResultBox(
                 (point){25, 58},
                 chunk_idx,
                 box_color,
-                15,
+                13,
                 12,
                 150
             );
 
-            *led_ptr |= result << chunk_idx;
-            chunk_idx++;
         }
     }
 

@@ -123,7 +123,7 @@ static void drawFullFrame(
     bool time_fill, bool spectrum_fill, bool spectrogram_fill
 ){
     clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
-    vga_text(200 / 4, 80 / 4, instructions);
+    vga_text(170 / 4, 86 / 4, instructions);
     createGraphButton(button1, (point){25, 80},  time_fill,        GRAPH_COLOR);
     createGraphButton(button2, (point){55, 80},  spectrum_fill,    GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
@@ -138,7 +138,7 @@ int main(void){
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
 
-    vga_text(200 / 4, 80 / 4, instructions);
+    vga_text(170 / 4, 86 / 4, instructions);
     createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
     createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
     createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);

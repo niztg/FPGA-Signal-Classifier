@@ -25,6 +25,8 @@ extern volatile int pixel_buffer_start;
 extern volatile int* pixel_ctrl_ptr;
 extern int recording[];
 
+
+
 #define RECORDING_LENGTH   40000
 #define FRAME_LENGTH       256
 #define HOP_SIZE           128
@@ -76,7 +78,7 @@ void drawYAxisLabels(
 );
 
 void plotTimeDomain(point reference, int width, int height,
-    int number_of_samples
+    int number_of_samples, int max_sample_amplitude
 );
 void plotMagnitudeSpectrum(
     float average_fft[NO_FREQ_BINS],
@@ -106,6 +108,5 @@ void fillComparator(
     bool* spectrum_fill,
     bool* spectrogram_fill
 );
-void clearSpectrogramLabel(point top_left, int graph_height, int graph_width);
 
 #endif

@@ -93,6 +93,8 @@ float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
+int result_bank[CHUNKS_PER_RECORDING];
+
 bool record = false;
 bool playback = false;
 
@@ -210,7 +212,6 @@ if (record){
     char sc_text[40];
     char lbpr_text[40];
     char hbpr_text[40];
-    char result_text[40];
 
     clearRegion((point){0,0}, 320, 20);
 
@@ -236,15 +237,13 @@ if (record){
             sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
             sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
 
-            vga_text(6, 11, classification_text);
-            vga_text(6, 12, zcr_text);
-            vga_text(6, 13, sc_text);
-            vga_text(6, 14, lbpr_text);
-            vga_text(6, 15, hbpr_text);
+            vga_text(6, 6, classification_text);
+            vga_text(6, 7, zcr_text);
+            vga_text(6, 8, sc_text);
+            vga_text(6, 9, lbpr_text);
+            vga_text(6, 10, hbpr_text);
 
             int result = model1(feature_vec);
-            sprintf(result_text, "Result: %d", result);
-            vga_text(6, 16, result_text);
 
             *led_ptr |= result << chunk_idx;
             chunk_idx++;

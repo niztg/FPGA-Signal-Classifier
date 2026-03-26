@@ -112,7 +112,7 @@ const char* button1 = "Time";
 const char* button2 = "Spectrum";
 const char* button3 = "Spectrogram";
 
-const char* instructions = "R to record. P to playback."
+const char* instructions = "R to record. P to playback.";
 
 static inline bool ps2_read(unsigned char *out);
 

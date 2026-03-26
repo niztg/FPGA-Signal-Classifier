@@ -555,7 +555,7 @@ void drawResultBox(
             (point){x, y_coord},
             (point){x, y_coord + box_height},
             fill_color,
-            false;
+            false
         );
     }
 }

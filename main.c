@@ -209,6 +209,9 @@ if (record){
     char sc_text[40];
     char lbpr_text[40];
     char hbpr_text[40];
+    char result_text[40];
+
+    clearRegion((point){0,0}, 320, 20)
 
     for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
 
@@ -226,19 +229,22 @@ if (record){
                                          frequency_bins, filterbank, start, end);
             flatten_feature_vector1(&fv, feature_vec);
 
-            sprintf(classification_text, "Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
+            sprintf(classification_text, "Analyzing Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
             sprintf(zcr_text,  "ZCR:  %.4f", feature_vec[0]);
             sprintf(sc_text,   "SC:   %.4f", feature_vec[1]);
             sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
             sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
 
-            vga_text(6, 2, classification_text);
-            vga_text(6, 3, zcr_text);
-            vga_text(6, 4, sc_text);
-            vga_text(6, 5, lbpr_text);
-            vga_text(6, 6, hbpr_text);
+            vga_text(6, 11, classification_text);
+            vga_text(6, 12, zcr_text);
+            vga_text(6, 13, sc_text);
+            vga_text(6, 14, lbpr_text);
+            vga_text(6, 15, hbpr_text);
 
             int result = model1(feature_vec);
+            sprintf(result_text, "Result: %d", result)
+            vga_text(6, 16, result_text);
+
             *led_ptr |= result << chunk_idx;
             chunk_idx++;
         }

@@ -2,7 +2,7 @@
 FPGA SIGNAL CLASSIFIER
 March 2026
 
-Code from this commit is MILESTONE #2 READY!
+Code from this commit is MILESTONE #2 READY! 
 */
 
 #include "helper/data_processing.h"
@@ -41,8 +41,8 @@ Code from this commit is MILESTONE #2 READY!
 #define PLAYBACK_KEY        0b0010
 #define CLEAR_KEY           0b1111
 
-#define KEY_A               0x1C
-#define KEY_B               0x32
+#define KEY_R               0x2D
+#define KEY_P               0x4D
 #define KEY_LEFT            0x6B
 #define KEY_RIGHT           0x74
 
@@ -165,8 +165,8 @@ int main(void){
             ps2_extend_pending = false;
 
             if (!is_break){
-                if (byte == KEY_A) record = true;
-                if (byte == KEY_B) playback = true;
+                if (byte == KEY_R) record = true;
+                if (byte == KEY_P) playback = true;
 
                 if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 3) % 3;
                 if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 3;

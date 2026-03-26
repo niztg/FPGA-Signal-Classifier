@@ -32,7 +32,7 @@ The number format is Q4.12. This is a 16 bit two's-complement (programmer's choi
 It is found by multiplying the original number by 2^12=4096 and then interpreting the bits as described. Q4.12 numbers range from -8.0 to +7.997, with the top bit
 representing the negative sign.
 
-Multiplying two Q4.12 numbers returns a Q8.24 number. (RIP Kobe) Converting a Q8.24 to Q4.12 involves shifting the Q8.24 to the right by 12. This loses precision, but the number is still the same (not obviously).
+Multiplying two Q4.12 numbers returns a Q8.24 number. (RIP Kobe) Converting a Q8.24 to Q4.12 involves shifting the Q8.24 to the right by 12. This loses precision, but the number is still the same.
 
 Comparing the respective software paths, we can estimate the Verilog-based approach of computation as being approximately 1 000 to 1 500 times faster than performing computations serially in C. This turns calculations empirically
 measured to take approximately 15 seconds, to under ~20ms.

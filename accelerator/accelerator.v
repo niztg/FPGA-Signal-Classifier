@@ -125,7 +125,7 @@ module accelerator(
 	// Adder circuit
 	// This can not all be done in one statement because you can only add numbers two at a time in Verilog
 	// In each clock, we handle a chunk of a neuron (16 components on the first cycle, the remaining 4 on the following cycle with the additional 12 going unused)
-	// 16 components = 16 additions. We split these into pairs and compute
+	// 16 components = 16 additions. We group these into pairs and compute
 	// Loop 1: 16 pairs -> 8
 	// Loop 2: 8 pairs -> 4
 	// Loop 3: 4 pairs -> 2

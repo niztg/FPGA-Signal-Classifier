@@ -211,7 +211,7 @@ if (record){
     char hbpr_text[40];
     char result_text[40];
 
-    clearRegion((point){0,0}, 320, 20)
+    clearRegion((point){0,0}, 320, 20);
 
     for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
 
@@ -242,7 +242,7 @@ if (record){
             vga_text(6, 15, hbpr_text);
 
             int result = model1(feature_vec);
-            sprintf(result_text, "Result: %d", result)
+            sprintf(result_text, "Result: %d", result);
             vga_text(6, 16, result_text);
 
             *led_ptr |= result << chunk_idx;

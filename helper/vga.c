@@ -549,7 +549,10 @@ void drawResultBox(
 ){
     int start_x = (top_left.x + 1) + draw_index * box_width;
     int y_coord = (top_left.y + 1);
-    for (int x = start_x; x < start_x + box_width; x++){
+    int end_x = (draw_index == CHUNKS_PER_RECORDING - 1)
+                ? start_x + box_width - 1
+                : start_x + box_width;
+    for (int x = start_x; x < end_x; x++){
         drawLine(
             (point){x, y_coord},
             (point){x, y_coord + box_height - 2},

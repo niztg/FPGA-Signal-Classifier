@@ -461,7 +461,7 @@ void displayMFCCRadar(){
 
     char chunk_label[48];
     if (has_been_run){
-        const char* verdict = chunk_results[DISPLAY_CHUNK] ? "AUTHORIZED" : "NOT AUTHORIZED";
+        const char* verdict = result_buffer[DISPLAY_CHUNK] ? "AUTHORIZED" : "NOT AUTHORIZED";
         sprintf(chunk_label, "Chunk %d: %s", DISPLAY_CHUNK + 1, verdict);
     } else {
         sprintf(chunk_label, "No recording yet.");

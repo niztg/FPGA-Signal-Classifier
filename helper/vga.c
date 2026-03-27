@@ -624,114 +624,80 @@ void plotMFCCRadar(
     short int mean_color,
     short int std_color
 ){
-    // find the maximum value of the mean
     float max_mean = 1.0f;
-    float max_std = 1.0f;
+    float max_std  = 1.0f;
     for (int i = 0; i < NUM_MFCC; i++){
-        float mean_i = fabsf(mfcc_mean[i]);
-        if (mean_i > max_mean) max_mean = mean_i;
+        float v = fabsf(mfcc_mean[i]);
+        if (v > max_mean) max_mean = v;
+    }
+    for (int i = 0; i < NUM_MFCC; i++){
+        if (mfcc_std[i] > max_std) max_std = mfcc_std[i];
     }
 
-    for (int i = 0; i < NUM_MFCC; i++){
-        float std_i = fabsf(mfcc_std[i]);
-        if (std_i > max_std) max_std = std_i;
-    }
-
-    // add four dotted rings at 25%, 50%, 75% and 100% of the radius 
+    // Rings at 25%, 50%, 75%, 100%
     for (int ring = 1; ring <= 4; ring++){
-        // ring 1 = 0.25R
-        // ring 2 = 0.5R
-        // etc
         float r = 0.25f * ring * radius;
         for (int i = 0; i < NUM_MFCC; i++){
-            float cos_angle = RADAR_COS[i];
-            float sin_angle = RADAR_SIN[i];
-
-            float cos_next_angle = RADAR_COS[i % NUM_MFCC];
-            float sin_next_angle = RADAR_SIN[i % NUM_MFCC];
-            
+            int j = (i + 1) % NUM_MFCC;
             point A = {
-                centre.x + r * cos_angle,
-                centre.y + r * sin_angle
+                centre.x + (int)(r * RADAR_COS[i]),
+                centre.y + (int)(r * RADAR_SIN[i])
             };
             point B = {
-                centre.x + r * cos_next_angle,
-                centre.y + r * sin_next_angle
+                centre.x + (int)(r * RADAR_COS[j]),
+                centre.y + (int)(r * RADAR_SIN[j])
             };
-
-            drawLine(
-                A, B,
-                LINE_COLOR,
-                true // dotted
-            );
+            drawLine(A, B, LINE_COLOR, true);
         }
     }
 
-    // axes at each 2πk/8
+    // Axes
     for (int k = 0; k < NUM_MFCC; k++){
         point tip = {
-            centre.x + radius * RADAR_COS[k],
-            centre.y + radius * RADAR_SIN[k]
+            centre.x + (int)(radius * RADAR_COS[k]),
+            centre.y + (int)(radius * RADAR_SIN[k])
         };
-        drawLine(
-            centre, tip,
-            LINE_COLOR,
-            true // also dotted
-        );
+        drawLine(centre, tip, LINE_COLOR, true);
     }
 
-    // plot the standard deviations first
+    // Std polygon
     for (int k = 0; k < NUM_MFCC; k++){
-        int next = k % NUM_MFCC;
-        float std_radius_current = radius * (mfcc_std[k] / max_std);
-        float std_radius_next = radius * (mfcc_std[next] / max_std);
-
+        int next = (k + 1) % NUM_MFCC;
+        float r_cur  = radius * (mfcc_std[k]    / max_std);
+        float r_next = radius * (mfcc_std[next]  / max_std);
         point current = {
-            centre.x + std_radius_current * RADAR_COS[k],
-            centre.y + std_radius_current * RADAR_SIN[k]
+            centre.x + (int)(r_cur  * RADAR_COS[k]),
+            centre.y + (int)(r_cur  * RADAR_SIN[k])
         };
-
         point next_point = {
-            centre.x + std_radius_next * RADAR_COS[next],
-            centre.y + std_radius_next * RADAR_SIN[next]
+            centre.x + (int)(r_next * RADAR_COS[next]),
+            centre.y + (int)(r_next * RADAR_SIN[next])
         };
-
-        drawLine(
-            current, next_point,
-            std_color,
-            false
-        );
-
+        drawLine(current, next_point, std_color, false);
     }
 
-    // now plot the means
+    // Mean polygon
     for (int k = 0; k < NUM_MFCC; k++){
-        int next = k % NUM_MFCC;
-        float mean_radius_current = radius * (mfcc_mean[k] / max_std);
-        float mean_radius_next = radius * (mfcc_mean[next] / max_std);
-
+        int next = (k + 1) % NUM_MFCC;
+        float norm_cur  = (mfcc_mean[k]    + max_mean) / (2.0f * max_mean);
+        float norm_next = (mfcc_mean[next]  + max_mean) / (2.0f * max_mean);
+        float r_cur  = radius * norm_cur;
+        float r_next = radius * norm_next;
         point current = {
-            centre.x + mean_radius_current * RADAR_COS[k],
-            centre.y + mean_radius_next * RADAR_SIN[k]
+            centre.x + (int)(r_cur  * RADAR_COS[k]),
+            centre.y + (int)(r_cur  * RADAR_SIN[k])
         };
-
         point next_point = {
-            centre.x + mean_radius_current * RADAR_COS[next],
-            centre.y + mean_radius_next * RADAR_SIN[next]
+            centre.x + (int)(r_next * RADAR_COS[next]),
+            centre.y + (int)(r_next * RADAR_SIN[next])
         };
-
-        drawLine(
-            current, next_point,
-            mean_color,
-            false
-        );
-
+        drawLine(current, next_point, mean_color, false);
     }
 
     // Labels
     char label[3] = {'C', '0', '\0'};
-    int label_r = radius + 6;
-    for (int i = 0; i < NUM_MFCC; i++) {
+    int label_r = (int)radius + 6;
+    for (int i = 0; i < NUM_MFCC; i++){
         label[1] = '1' + i;
         int lx = centre.x + (int)(label_r * RADAR_COS[i]);
         int ly = centre.y + (int)(label_r * RADAR_SIN[i]);

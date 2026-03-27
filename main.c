@@ -241,17 +241,12 @@ int main(void){
                                                 frequency_bins, filterbank, start, end);
                     flatten_feature_vector1(&fv, feature_vec);
 
-                    sprintf(classification_text, "Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
+                    sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, CHUNKS_PER_RECORDING);
+                    vga_text(6, 6, classification_text);
+
                     float bar_values[4] = { feature_vec[0], feature_vec[1], feature_vec[2], feature_vec[3] };
                     const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
-                    drawFeatureBars((point){6 * TEXT_CELL_W, 7 * TEXT_CELL_H}, 200, 4 * TEXT_CELL_H + 8,
-                                    bar_values, bar_labels);
-
-                    vga_text(6, 6, classification_text);
-                    vga_text(6, 7, zcr_text);
-                    vga_text(6, 8, sc_text);
-                    vga_text(6, 9, lbpr_text);
-                    vga_text(6, 10, hbpr_text);
+                    drawFeatureBars((point){24, 28}, 200, 16, bar_values, bar_labels);
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;
@@ -259,7 +254,7 @@ int main(void){
                     if (result){
                         drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
                         no_greens++;
-                    } else{
+                    } else {
                         drawResultBox((point){25, 58}, 9 - no_reds, box_color, 13, 12);
                         no_reds++;
                     }

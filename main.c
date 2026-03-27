@@ -87,6 +87,9 @@ DISPLAY GRAPH LEGEND
 */
 int DISPLAY_GRAPH = 0;
 int PREV_DISPLAY_GRAPH = 0;
+
+int MFCC_OPTION = 0;
+
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
 // Changed from double to float — soft-float emulation of 32-bit ops is
@@ -95,6 +98,8 @@ float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
 float average_fft[NO_FREQ_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
+
+FeatureVector1 feature_vector_array[CHUNKS_PER_RECORDING];
 
 bool record = false;
 bool playback = false;
@@ -235,6 +240,8 @@ int main(void){
                     create_feature_vector1_chunk(&fv, frame_array, fft_array,
                                                 frequency_bins, filterbank, start, end);
                     flatten_feature_vector1(&fv, feature_vec);
+
+                    feature_vector_array[chunk_idx] = fv;
 
                     sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, CHUNKS_PER_RECORDING);
                     vga_text(6, 4, classification_text);
@@ -409,13 +416,27 @@ void displaySpectrogram(){
     plotSpectrogram(fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);
 }
 
+void displayMFCCRadar(){
+    point centre = {160, 160};
+    float radius = 52.0f;
+    plotMFCCRadar(
+        feature_vector_array[MFCC_OPTION].mfcc_mean,
+        feature_vector_array[MFCC_OPTION].mfcc_std,
+        centre,
+        radius,
+        GRAPH_COLOR,
+        0xFD00
+    );
+}
+
 void displayCorrectGraph(){
     if (DISPLAY_GRAPH == 0){
         displayTime();
     } else if (DISPLAY_GRAPH == 1){
         displayMagnitudeSpectrum();
     } else if (DISPLAY_GRAPH == 2){
-        displaySpectrogram();
+        // displaySpectrogram();
+        displayMFCCRadar();
     } else {
         displayTime();
     }

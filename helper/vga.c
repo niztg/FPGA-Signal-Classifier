@@ -10,6 +10,16 @@
 
 extern int time_plot_line_heights[];
 
+// Hard-coded sin/cos of all angles 2πk/8
+static const float RADAR_COS[8] = {
+     1.0000f,  0.7071f,  0.0000f, -0.7071f,
+    -1.0000f, -0.7071f,  0.0000f,  0.7071f
+};
+static const float RADAR_SIN[8] = {
+     0.0000f, -0.7071f, -1.0000f, -0.7071f,
+     0.0000f,  0.7071f,  1.0000f,  0.7071f
+};
+
 void vga_text(int x, int y, char * text_ptr) {
     int offset;
     offset = (y << 7) + x;
@@ -603,5 +613,128 @@ void drawFeatureBars(point top_left, int width, int height,
                 sprintf(val_buf, "%-9.4f", values[i]);
             vga_text(value_text_col, text_row, val_buf);
         }
+    }
+}
+
+void plotMFCCRadar(
+    float mfcc_mean[NUM_MFCC],
+    float mfcc_std[NUM_MFCC],
+    point centre,
+    float radius,
+    short int mean_color,
+    short int std_color
+){
+    // find the maximum value of the mean
+    float max_mean = 1.0f;
+    float max_std = 1.0f;
+    for (int i = 0; i < NUM_MFCC; i++){
+        float mean_i = fabsf(mfcc_mean[i]);
+        if (mean_i > max_mean) max_mean = mean_i;
+    }
+
+    for (int i = 0; i < NUM_MFCC; i++){
+        float std_i = fabsf(mfcc_std[i]);
+        if (std_i > max_std) max_std = std_i;
+    }
+
+    // add four dotted rings at 25%, 50%, 75% and 100% of the radius 
+    for (int ring = 1; ring <= 4; ring++){
+        // ring 1 = 0.25R
+        // ring 2 = 0.5R
+        // etc
+        float r = 0.25f * ring * radius;
+        for (int i = 0; i < NUM_MFCC; i++){
+            float cos_angle = RADAR_COS[i];
+            float sin_angle = RADAR_SIN[i];
+
+            float cos_next_angle = RADAR_COS[i % NUM_MFCC];
+            float sin_next_angle = RADAR_SIN[i % NUM_MFCC];
+            
+            point A = {
+                centre.x + r * cos_angle,
+                centre.y + r * sin_angle
+            };
+            point B = {
+                centre.x + r * cos_next_angle,
+                centre.y + r * sin_next_angle
+            }
+
+            drawLine(
+                A, B,
+                LINE_COLOR,
+                true // dotted
+            );
+        }
+    }
+
+    // axes at each 2πk/8
+    for (int k = 0; k < NUM_MFCC; k++){
+        point tip = {
+            centre.x + radius * RADAR_COS[k];
+            centre.y + radius * RADAR_SIN[k];
+        }
+        drawLine(
+            centre, tip,
+            LINE_COLOR,
+            true // also dotted
+        );
+    }
+
+    // plot the standard deviations first
+    for (int k = 0; k < NUM_MFCC){
+        index next = k % NUM_MFCC;
+        float std_radius_current = radius * (mfcc_std[k] / max_std);
+        float std_radius_next = radius * (mfcc_std[next] / max_std);
+
+        point current = {
+            centre.x + std_radius_current * RADAR_COS[k],
+            centre.y + std_radius_current * RADAR_SIN[k]
+        };
+
+        point next = {
+            centre.x + std_radius_next * RADAR_COS[next],
+            centre.y + std_radius_next * RADAR_SIN[next]
+        };
+
+        drawLine(
+            current, next,
+            std_color,
+            false
+        );
+
+    }
+
+    // now plot the means
+    for (int k = 0; k < NUM_MFCC){
+        index next = k % NUM_MFCC;
+        float mean_radius_current = radius * (mfcc_mean[k] / max_std);
+        float mean_radius_next = radius * (mfcc_mean[next] / max_std);
+
+        point current = {
+            centre.x + mean_radius_current * RADAR_COS[k],
+            centre.y + mean_radius_next * RADAR_SIN[k]
+        };
+
+        point next = {
+            centre.x + mean_radius_current * RADAR_COS[next],
+            centre.y + mean_radius_next * RADAR_SIN[next]
+        };
+
+        drawLine(
+            current, next,
+            mean_color,
+            false
+        );
+
+    }
+
+    // Labels
+    char label[3] = {'C', '0', '\0'};
+    int label_r = radius + 6;
+    for (int i = 0; i < NUM_MFCC; i++) {
+        label[1] = '1' + i;
+        int lx = centre.x + (int)(label_r * RADAR_COS[i]);
+        int ly = centre.y + (int)(label_r * RADAR_SIN[i]);
+        vga_text(pixelToTextX(lx), pixelToTextY(ly), label);
     }
 }

@@ -117,5 +117,13 @@ void drawResultBox(
 );
 void drawFeatureBars(point top_left, int width, int height,
                      float values[4], const char* labels[4]);
+void plotMFCCRadar(
+    float mfcc_mean[NUM_MFCC],
+    float mfcc_std[NUM_MFCC],
+    point centre,
+    float radius,
+    short int mean_color,
+    short int std_color
+);
 
 #endif

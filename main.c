@@ -267,13 +267,13 @@ int main(void){
                 }
             }
             
-            float percent = no_greens / 10;
+            float percent = (float) no_greens / 10;
             char prediction_text[40];
 
             if (percent > 0.5f){
-                sprintf(prediction_text, "Prediction: SPEAKER AUTHORIZED. CONFIDENCE: %.2f %", percent*100);
+                sprintf(prediction_text, "Prediction: SPEAKER AUTHORIZED. CONFIDENCE: %.2f\%%", percent*100);
             } else {
-                sprintf(prediction_text, "Prediction: SPEAKER NOT AUTHORIZED. CONFIDENCE: %.2f %", (1-percent)*100);
+                sprintf(prediction_text, "Prediction: SPEAKER NOT AUTHORIZED. CONFIDENCE: %.2f\%%", (1-percent)*100);
             }
 
             vga_text(6, 12, prediction_text);

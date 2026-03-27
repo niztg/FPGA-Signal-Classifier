@@ -209,23 +209,19 @@ int main(void){
 
             int chunk_idx = 0;
             char classification_text[32];
-            char zcr_text[40];
-            char sc_text[40];
-            char lbpr_text[40];
-            char hbpr_text[40];
-
-            drawGraphBoundingBox((point){25, 58}, 12, 130);
-
-            vga_text(6, 6, "Chunk 0 / 10     ");
             float bar_values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
             const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
-            drawFeatureBars((point){24, 32}, 200, 20, bar_values, bar_labels);
+
+            drawGraphBoundingBox((point){25, 58}, 12, 130);
+            vga_text(6, 6, "Chunk 0 / 10     ");
+            drawFeatureBars((point){24, 28}, 200, 20, bar_values, bar_labels);
             vga_text(6, 14, "Prediction: --                  ");
 
             int no_reds = 0;
             int no_greens = 0;
 
             for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
+
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++){
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
                 for (int j = 0; j < NO_FREQ_BINS; j++) average_fft[j] += fft_array[frame_idx][j];
@@ -243,9 +239,11 @@ int main(void){
                     sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, CHUNKS_PER_RECORDING);
                     vga_text(6, 6, classification_text);
 
-                    float bar_values[4] = { feature_vec[0], feature_vec[1], feature_vec[2], feature_vec[3] };
-                    const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
-                    drawFeatureBars((point){24, 32}, 200, 20, bar_values, bar_labels);
+                    bar_values[0] = feature_vec[0];
+                    bar_values[1] = feature_vec[1];
+                    bar_values[2] = feature_vec[2];
+                    bar_values[3] = feature_vec[3];
+                    drawFeatureBars((point){24, 28}, 200, 20, bar_values, bar_labels);
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;
@@ -262,17 +260,17 @@ int main(void){
                     chunk_idx++;
                 }
             }
-            
+
             float percent = (float) no_greens / 10;
             char prediction_text[40];
 
             if (percent > 0.5f){
-                sprintf(prediction_text, "Prediction: SPEAKER AUTHORIZED. CONFIDENCE: %.2f\%%", percent*100);
+                sprintf(prediction_text, "Prediction: AUTHORIZED. CONFIDENCE: %.2f%%", percent * 100);
             } else {
-                sprintf(prediction_text, "Prediction: SPEAKER NOT AUTHORIZED. CONFIDENCE: %.2f\%%", (1-percent)*100);
+                sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%", (1 - percent) * 100);
             }
 
-            vga_text(6, 12, prediction_text);
+            vga_text(6, 14, prediction_text);
 
             free(cfg);
             for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;

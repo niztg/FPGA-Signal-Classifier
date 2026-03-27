@@ -124,9 +124,9 @@ static void drawFullFrame(
 ){
     clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
     vga_text(170 / 4, 86 / 4, instructions);
-    createGraphButton(button1, (point){25, 80},  time_fill,        GRAPH_COLOR);
-    createGraphButton(button2, (point){55, 80},  spectrum_fill,    GRAPH_COLOR);
-    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 78},  time_fill,        GRAPH_COLOR);
+    createGraphButton(button2, (point){56, 78},  spectrum_fill,    GRAPH_COLOR);
+    createGraphButton(button3, (point){101, 80}, spectrogram_fill, GRAPH_COLOR);
     displayCorrectGraph();
 }
 
@@ -141,9 +141,9 @@ int main(void){
     clearRegion((point){0, 0}, 320, 240);
 
     vga_text(170 / 4, 86 / 4, instructions);
-    createGraphButton(button1, (point){25, 80}, time_fill, GRAPH_COLOR);
-    createGraphButton(button2, (point){55, 80}, spectrum_fill, GRAPH_COLOR);
-    createGraphButton(button3, (point){100, 80}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 78}, time_fill, GRAPH_COLOR);
+    createGraphButton(button2, (point){56, 78}, spectrum_fill, GRAPH_COLOR);
+    createGraphButton(button3, (point){101, 78}, spectrogram_fill, GRAPH_COLOR);
 
     displayCorrectGraph();
 
@@ -213,7 +213,7 @@ int main(void){
 
             drawGraphBoundingBox((point){25, 58}, 12, 130);
 
-            vga_text(6, 7, "Analyzing Chunk 0 / 10     ");
+            vga_text(6, 7, "Chunk 0 / 10     ");
             vga_text(6, 8, "ZCR:  --                   ");
             vga_text(6, 9, "SC:   --                   ");
             vga_text(6, 10, "LBPR: --                   ");
@@ -234,7 +234,7 @@ int main(void){
                                                 frequency_bins, filterbank, start, end);
                     flatten_feature_vector1(&fv, feature_vec);
 
-                    sprintf(classification_text, "Analyzing Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
+                    sprintf(classification_text, "Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
                     sprintf(zcr_text,  "ZCR:  %.4f", feature_vec[0]);
                     sprintf(sc_text,   "SC:   %.4f", feature_vec[1]);
                     sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);

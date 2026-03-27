@@ -197,6 +197,7 @@ int main(void){
         }
 
         if (record){
+            clearRegion((point){0,0}, 320, 75);
             record = false;
             *led_ptr = 0;
             captureRecordingAndGraphTime();
@@ -210,7 +211,6 @@ int main(void){
             char lbpr_text[40];
             char hbpr_text[40];
 
-            clearRegion((point){0,0}, 320, 20);
             drawGraphBoundingBox((point){25, 58}, 12, 130);
 
             vga_text(6, 7, "Analyzing Chunk 0 / 10     ");

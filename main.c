@@ -219,6 +219,9 @@ int main(void){
             vga_text(6, 10, "LBPR: --                   ");
             vga_text(6, 11, "HBPR: --                   ");
 
+            int no_reds = 0;
+            int no_greens = 0;
+
             for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++){
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
@@ -248,7 +251,14 @@ int main(void){
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x07E0 : 0xF800;
-                    drawResultBox((point){25, 58}, chunk_idx, box_color, 13, 12);
+                    
+                    if (result){
+                        drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
+                        no_greens++;
+                    } else{
+                        drawResultBox((point){25, 58}, 9 - no_reds, box_color, 13, 12);
+                        no_reds++;
+                    }
 
                     *led_ptr |= result << chunk_idx;
                     chunk_idx++;

@@ -126,7 +126,7 @@ static void drawFullFrame(
     vga_text(170 / 4, 86 / 4, instructions);
     createGraphButton(button1, (point){25, 78},  time_fill,        GRAPH_COLOR);
     createGraphButton(button2, (point){56, 78},  spectrum_fill,    GRAPH_COLOR);
-    createGraphButton(button3, (point){101, 80}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button3, (point){102, 78}, spectrogram_fill, GRAPH_COLOR);
     displayCorrectGraph();
 }
 
@@ -143,7 +143,7 @@ int main(void){
     vga_text(170 / 4, 86 / 4, instructions);
     createGraphButton(button1, (point){25, 78}, time_fill, GRAPH_COLOR);
     createGraphButton(button2, (point){56, 78}, spectrum_fill, GRAPH_COLOR);
-    createGraphButton(button3, (point){101, 78}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button3, (point){102, 78}, spectrogram_fill, GRAPH_COLOR);
 
     displayCorrectGraph();
 

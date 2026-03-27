@@ -634,8 +634,11 @@ void plotMFCCRadar(
         if (mfcc_std[i] > max_std) max_std = mfcc_std[i];
     }
 
-    // Rings at 25%, 50%, 75%, 100%
+    // add four dotted rings at 25%, 50%, 75% and 100% of the radius
     for (int ring = 1; ring <= 4; ring++){
+        // ring 1 = 0.25R
+        // ring 2 = 0.5R
+        // etc
         float r = 0.25f * ring * radius;
         for (int i = 0; i < NUM_MFCC; i++){
             int j = (i + 1) % NUM_MFCC;
@@ -651,7 +654,7 @@ void plotMFCCRadar(
         }
     }
 
-    // Axes
+    // axes at each 2πk/8
     for (int k = 0; k < NUM_MFCC; k++){
         point tip = {
             centre.x + (int)(radius * RADAR_COS[k]),
@@ -660,11 +663,11 @@ void plotMFCCRadar(
         drawLine(centre, tip, LINE_COLOR, true);
     }
 
-    // Std polygon
+    // plot the standard deviations first
     for (int k = 0; k < NUM_MFCC; k++){
         int next = (k + 1) % NUM_MFCC;
-        float r_cur  = radius * (mfcc_std[k]    / max_std);
-        float r_next = radius * (mfcc_std[next]  / max_std);
+        float r_cur  = radius * (mfcc_std[k]   / max_std);
+        float r_next = radius * (mfcc_std[next] / max_std);
         point current = {
             centre.x + (int)(r_cur  * RADAR_COS[k]),
             centre.y + (int)(r_cur  * RADAR_SIN[k])
@@ -676,7 +679,7 @@ void plotMFCCRadar(
         drawLine(current, next_point, std_color, false);
     }
 
-    // Mean polygon
+    // now plot the means
     for (int k = 0; k < NUM_MFCC; k++){
         int next = (k + 1) % NUM_MFCC;
         float norm_cur  = (mfcc_mean[k]    + max_mean) / (2.0f * max_mean);

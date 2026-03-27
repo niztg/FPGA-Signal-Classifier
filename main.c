@@ -215,7 +215,7 @@ int main(void){
             drawGraphBoundingBox((point){25, 58}, 12, 130);
             vga_text(6, 6, "Chunk 0 / 10     ");
             drawFeatureBars((point){24, 28}, 200, 20, bar_values, bar_labels);
-            vga_text(6, 14, "Prediction: --                  ");
+            vga_text(6, 12, "Prediction: --                  ");
 
             int no_reds = 0;
             int no_greens = 0;
@@ -270,7 +270,7 @@ int main(void){
                 sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%", (1 - percent) * 100);
             }
 
-            vga_text(6, 14, prediction_text);
+            vga_text(6, 12, prediction_text);
 
             free(cfg);
             for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;

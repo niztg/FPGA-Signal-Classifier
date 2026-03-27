@@ -600,6 +600,8 @@ void drawFeatureBars(point top_left, int width, int height,
         else
             sprintf(val_buf, "%-9.4f", values[i]);
 
-        vga_text(pixelToTextX(bar_x + bar_area_px + 2), pixelToTextY(y), val_buf);
+        vga_text(pixelToTextX(top_left.x),
+         pixelToTextY(y + bar_h / 2),
+         (char*)labels[i]);
     }
 }

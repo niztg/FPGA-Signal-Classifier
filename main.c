@@ -250,7 +250,7 @@ int main(void){
                     vga_text(6, 12, hbpr_text);
 
                     int result = model1(feature_vec);
-                    short int box_color = result ? 0x07E0 : 0xF800;
+                    short int box_color = result ? 0x0680 : 0xC000;
 
                     if (result){
                         drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);

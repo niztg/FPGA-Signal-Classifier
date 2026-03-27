@@ -565,28 +565,29 @@ void drawResultBox(
 void drawFeatureBars(point top_left, int width, int height,
                      float values[4], const char* labels[4]) {
 
-    static const float max_vals[4] = { 0.5f, 2500.0f, 1.0f, 0.65f };
+    static const float max_vals[4] = { 0.5f, 2000.0f, 1.0f, 0.65f };
 
-    int label_cols    = 5;
-    int value_cols    = 10;
-    int label_px      = label_cols * TEXT_CELL_W;   // 20px
-    int value_px      = value_cols * TEXT_CELL_W;   // 40px
-    int bar_area_px   = width - label_px - value_px;
-    int row_height    = height / 4;
+    int label_cols     = 5;
+    int value_cols     = 10;
+    int label_px       = label_cols * TEXT_CELL_W;
+    int value_px       = value_cols * TEXT_CELL_W;
+    int bar_area_px    = width - label_px - value_px;
+    int base_text_row  = pixelToTextY(top_left.y);
+    int base_text_col  = pixelToTextX(top_left.x);
+    int value_text_col = base_text_col + label_cols + pixelToTextX(bar_area_px) + 1;
 
     clearRegion(top_left, width, height);
 
     for (int i = 0; i < 4; i++) {
-        int y      = top_left.y + i * row_height;
-        int bar_y  = y + 1;
-        int bar_h  = row_height - 2;
-        int bar_x  = top_left.x + label_px;
+        int text_row = base_text_row + i;
 
-        // label
-        int text_row = pixelToTextY(top_left.y) + i;
-        vga_text(pixelToTextX(top_left.x), text_row, (char*)labels[i]);
+        // lock bar position to the text grid
+        int bar_y = text_row * TEXT_CELL_H + 1;
+        int bar_h = TEXT_CELL_H - 2;
+        int bar_x = top_left.x + label_px;
 
-        // bar
+        vga_text(base_text_col, text_row, (char*)labels[i]);
+
         float normalized = values[i] / max_vals[i];
         if (normalized > 1.0f) normalized = 1.0f;
         int filled = (int)(normalized * bar_area_px);
@@ -594,13 +595,13 @@ void drawFeatureBars(point top_left, int width, int height,
         for (int x = bar_x; x < bar_x + filled; x++)
             drawLine((point){x, bar_y}, (point){x, bar_y + bar_h}, GRAPH_COLOR, false);
 
-        // value
-        char val_buf[12];
-        if (i == 1)
-            sprintf(val_buf, "%-9.1f", values[i]);
-        else
-            sprintf(val_buf, "%-9.4f", values[i]);
-
-        vga_text(pixelToTextX(bar_x + bar_area_px + 2), pixelToTextY(y), val_buf);
+        if (values[i] != 0.0f) {
+            char val_buf[12];
+            if (i == 1)
+                sprintf(val_buf, "%-9.1f", values[i]);
+            else
+                sprintf(val_buf, "%-9.4f", values[i]);
+            vga_text(value_text_col, text_row, val_buf);
+        }
     }
 }

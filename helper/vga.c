@@ -672,7 +672,7 @@ void plotMFCCRadar(
         point tip = {
             centre.x + radius * RADAR_COS[k],
             centre.y + radius * RADAR_SIN[k]
-        }
+        };
         drawLine(
             centre, tip,
             LINE_COLOR,
@@ -681,8 +681,8 @@ void plotMFCCRadar(
     }
 
     // plot the standard deviations first
-    for (int k = 0; k < NUM_MFCC){
-        index next = k % NUM_MFCC;
+    for (int k = 0; k < NUM_MFCC; k++){
+        int next = k % NUM_MFCC;
         float std_radius_current = radius * (mfcc_std[k] / max_std);
         float std_radius_next = radius * (mfcc_std[next] / max_std);
 
@@ -691,13 +691,13 @@ void plotMFCCRadar(
             centre.y + std_radius_current * RADAR_SIN[k]
         };
 
-        point next = {
+        point next_point = {
             centre.x + std_radius_next * RADAR_COS[next],
             centre.y + std_radius_next * RADAR_SIN[next]
         };
 
         drawLine(
-            current, next,
+            current, next_point,
             std_color,
             false
         );
@@ -705,8 +705,8 @@ void plotMFCCRadar(
     }
 
     // now plot the means
-    for (int k = 0; k < NUM_MFCC){
-        index next = k % NUM_MFCC;
+    for (int k = 0; k < NUM_MFCC; k++){
+        int next = k % NUM_MFCC;
         float mean_radius_current = radius * (mfcc_mean[k] / max_std);
         float mean_radius_next = radius * (mfcc_mean[next] / max_std);
 
@@ -715,13 +715,13 @@ void plotMFCCRadar(
             centre.y + mean_radius_next * RADAR_SIN[k]
         };
 
-        point next = {
+        point next_point = {
             centre.x + mean_radius_current * RADAR_COS[next],
             centre.y + mean_radius_next * RADAR_SIN[next]
         };
 
         drawLine(
-            current, next,
+            current, next_point,
             mean_color,
             false
         );

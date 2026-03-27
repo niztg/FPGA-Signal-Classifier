@@ -622,7 +622,8 @@ void plotMFCCRadar(
     point centre,
     float radius,
     short int mean_color,
-    short int std_color
+    short int std_color,
+    short int partition_color
 ){
     float max_mean = 1.0f;
     float max_std  = 1.0f;
@@ -650,7 +651,7 @@ void plotMFCCRadar(
                 centre.x + (int)(r * RADAR_COS[j]),
                 centre.y + (int)(r * RADAR_SIN[j])
             };
-            drawLine(A, B, LINE_COLOR, true);
+            drawLine(A, B, partition_color, true);
         }
     }
 

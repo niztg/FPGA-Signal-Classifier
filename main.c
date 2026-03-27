@@ -264,6 +264,9 @@ int main(void){
                         no_reds++;
                     }
 
+                    const char* running_prediction = (no_greens > no_reds) ? "Prediction: AUTHORIZED        " : "Prediction: NOT AUTHORIZED        ";
+                    vga_text(6, 12, running_prediction);
+
                     *led_ptr |= result << chunk_idx;
                     chunk_idx++;
                 }
@@ -426,7 +429,8 @@ void displayMFCCRadar(){
         centre,
         radius,
         GRAPH_COLOR,
-        0xFD00
+        0xFD00,
+        0x39E7
     );
 }
 

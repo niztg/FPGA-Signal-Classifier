@@ -123,7 +123,8 @@ void plotMFCCRadar(
     point centre,
     float radius,
     short int mean_color,
-    short int std_color
+    short int std_color,
+    short int partition_color
 );
 
 #endif

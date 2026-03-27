@@ -115,5 +115,7 @@ void drawResultBox(
     int box_width,
     int box_height
 );
+void drawFeatureBar(point top_left, int graph_height, int graph_width,
+                    float values[4], const char* labels[4]);
 
 #endif

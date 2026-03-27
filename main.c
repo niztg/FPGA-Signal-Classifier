@@ -214,10 +214,9 @@ int main(void){
             drawGraphBoundingBox((point){25, 58}, 12, 130);
 
             vga_text(6, 6, "Chunk 0 / 10     ");
-            vga_text(6, 7, "ZCR:  --                   ");
-            vga_text(6, 8, "SC:   --                   ");
-            vga_text(6, 9, "LBPR: --                   ");
-            vga_text(6, 10, "HBPR: --                   ");
+            float bar_values[4] = {0,0,0,0};
+            const char* bar_labels[4] = { "ZCR", "SC", "LBPR", "HBPR" };
+            drawFeatureBar((point){170, 20}, 40, 130, bar_values, bar_labels);
 
             vga_text(6, 12, "Prediction: --                  ");
 
@@ -240,10 +239,10 @@ int main(void){
                     flatten_feature_vector1(&fv, feature_vec);
 
                     sprintf(classification_text, "Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
-                    sprintf(zcr_text,  "ZCR:  %.4f", feature_vec[0]);
-                    sprintf(sc_text,   "SC:   %.4f", feature_vec[1]);
-                    sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
-                    sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
+                    float bar_values[4] = { feature_vec[0], feature_vec[1],
+                                            feature_vec[2], feature_vec[3] };
+                    const char* bar_labels[4] = { "ZCR", "SC", "LBPR", "HBPR" };
+                    drawFeatureBar((point){170, 20}, 40, 130, bar_values, bar_labels);
 
                     vga_text(6, 6, classification_text);
                     vga_text(6, 7, zcr_text);

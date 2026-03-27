@@ -561,3 +561,45 @@ void drawResultBox(
         );
     }
 }
+
+void drawFeatureBar(point top_left, int graph_height, int graph_width,
+                    float values[4], const char* labels[4]) {
+
+    static const float max_vals[4] = { 0.5f, 2000.0f, 1.0f, 0.65f };
+
+    int bar_width     = (graph_width - 1) / 4;
+    int usable_height = graph_height - 1;
+
+    drawGraphBoundingBox(top_left, graph_height, graph_width);
+
+    for (int i = 0; i < 4; i++) {
+        float normalized = values[i] / max_vals[i];
+        if (normalized > 1.0f) normalized = 1.0f;
+
+        int bar_height = (int)(normalized * usable_height);
+        int start_x = top_left.x + 1 + i * bar_width;
+        int end_x   = (i == 3) ? (top_left.x + graph_width - 1)
+                                : (start_x + bar_width - 1);
+        int bottom_y = top_left.y + graph_height - 1;
+
+        for (int x = start_x; x < end_x; x++) {
+            drawLine((point){x, bottom_y},
+                     (point){x, bottom_y - bar_height},
+                     GRAPH_COLOR, false);
+        }
+
+        // label below bar
+        int label_x = pixelToTextX(start_x + (end_x - start_x) / 2
+                                   - (int)strlen(labels[i]) * TEXT_CELL_W / 2);
+        int label_y = pixelToTextY(bottom_y + 3);
+        vga_text(label_x, label_y, (char*)labels[i]);
+
+        // value above bar top
+        char val_buf[12];
+        sprintf(val_buf, "%.3f", values[i]);
+        int val_x = pixelToTextX(start_x + (end_x - start_x) / 2
+                                 - (int)strlen(val_buf) * TEXT_CELL_W / 2);
+        int val_y = pixelToTextY(bottom_y - bar_height - TEXT_CELL_H - 1);
+        vga_text(val_x, val_y, val_buf);
+    }
+}

@@ -196,83 +196,69 @@ int main(void){
             PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
         }
 
-if (record){
-    record = false;
-    *led_ptr = 0;
-    captureRecordingAndGraphTime();
-    kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
-    unzip_recording_into_frames(frame_array, recording);
+        if (record){
+            record = false;
+            *led_ptr = 0;
+            captureRecordingAndGraphTime();
+            kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
+            unzip_recording_into_frames(frame_array, recording);
 
-    int chunk_idx = 0;
-    char classification_text[32];
-    char zcr_text[40];
-    char sc_text[40];
-    char lbpr_text[40];
-    char hbpr_text[40];
+            int chunk_idx = 0;
+            char classification_text[32];
+            char zcr_text[40];
+            char sc_text[40];
+            char lbpr_text[40];
+            char hbpr_text[40];
 
-    clearRegion((point){0,0}, 320, 20);
-    bool box_drawn = false;
+            clearRegion((point){0,0}, 320, 20);
+            drawGraphBoundingBox((point){25, 58}, 12, 130);
 
-    for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
+            vga_text(6, 7, "Analyzing Chunk 0 / 10     ");
+            vga_text(6, 8, "ZCR:  --                   ");
+            vga_text(6, 9, "SC:   --                   ");
+            vga_text(6, 10, "LBPR: --                   ");
+            vga_text(6, 11, "HBPR: --                   ");
 
-    for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++){
-        compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-        for (int j = 0; j < NO_FREQ_BINS; j++) average_fft[j] += fft_array[frame_idx][j];
+            for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
+            for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++){
+                compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
+                for (int j = 0; j < NO_FREQ_BINS; j++) average_fft[j] += fft_array[frame_idx][j];
 
-        if ((frame_idx + 1) % FRAMES_PER_CHUNK == 0){
-            int start = chunk_idx * FRAMES_PER_CHUNK;
-            int end   = start + FRAMES_PER_CHUNK;
+                if ((frame_idx + 1) % FRAMES_PER_CHUNK == 0){
+                    int start = chunk_idx * FRAMES_PER_CHUNK;
+                    int end   = start + FRAMES_PER_CHUNK;
 
-            FeatureVector1 fv;
-            float feature_vec[FEATURES_1];
-            create_feature_vector1_chunk(&fv, frame_array, fft_array,
-                                         frequency_bins, filterbank, start, end);
-            flatten_feature_vector1(&fv, feature_vec);
+                    FeatureVector1 fv;
+                    float feature_vec[FEATURES_1];
+                    create_feature_vector1_chunk(&fv, frame_array, fft_array,
+                                                frequency_bins, filterbank, start, end);
+                    flatten_feature_vector1(&fv, feature_vec);
 
-            // Draws the 150x12 result buffer.
-            // Each cell is 15px wide
+                    sprintf(classification_text, "Analyzing Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
+                    sprintf(zcr_text,  "ZCR:  %.4f", feature_vec[0]);
+                    sprintf(sc_text,   "SC:   %.4f", feature_vec[1]);
+                    sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
+                    sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
 
-            sprintf(classification_text, "Analyzing Chunk %d / %d", chunk_idx + 1, CHUNKS_PER_RECORDING);
-            sprintf(zcr_text,  "ZCR:  %.4f", feature_vec[0]);
-            sprintf(sc_text,   "SC:   %.4f", feature_vec[1]);
-            sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
-            sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
+                    vga_text(6, 7, classification_text);
+                    vga_text(6, 8, zcr_text);
+                    vga_text(6, 9, sc_text);
+                    vga_text(6, 10, lbpr_text);
+                    vga_text(6, 11, hbpr_text);
 
-            vga_text(6, 7, classification_text);
-            vga_text(6, 8, zcr_text);
-            vga_text(6, 9, sc_text);
-            vga_text(6, 10, lbpr_text);
-            vga_text(6, 11, hbpr_text);
+                    int result = model1(feature_vec);
+                    short int box_color = result ? 0x07E0 : 0xF800;
+                    drawResultBox((point){25, 58}, chunk_idx, box_color, 13, 12);
 
-            if (!box_drawn){
-                drawGraphBoundingBox(
-                    (point){25, 58},
-                    12,
-                    130
-                );
-                box_drawn = true;
+                    *led_ptr |= result << chunk_idx;
+                    chunk_idx++;
+                }
             }
 
-            int result = model1(feature_vec);
-            short int box_color = result ? 0x07E0 : 0xF800;
-
-            drawResultBox(
-                (point){25, 58},
-                chunk_idx,
-                box_color,
-                13,
-                12
-            );
-
-            *led_ptr |= result << chunk_idx;
-            chunk_idx++;
+            free(cfg);
+            for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;
+            drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
         }
-    }
-
-    free(cfg);
-    for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;
-    drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
-}
 
         if (playback){
             playback = false;

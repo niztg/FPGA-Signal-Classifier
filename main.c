@@ -114,6 +114,7 @@ void playbackRecording();
 void displayMagnitudeSpectrum();
 void displayTime();
 void displaySpectrogram();
+void displayMFCCRadar();
 void displayCorrectGraph();
 
 const char* button1 = "Time";

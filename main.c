@@ -219,9 +219,8 @@ int main(void){
             vga_text(6, 6, "Chunk 0 / 10     ");
             float bar_values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
             const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
-            drawFeatureBars((point){6 * TEXT_CELL_W, 7 * TEXT_CELL_H}, 200, 4 * TEXT_CELL_H + 8, bar_values, bar_labels);
-
-            vga_text(6, 12, "Prediction: --                  ");
+            drawFeatureBars((point){24, 32}, 200, 20, bar_values, bar_labels);
+            vga_text(6, 14, "Prediction: --                  ");
 
             int no_reds = 0;
             int no_greens = 0;
@@ -246,7 +245,7 @@ int main(void){
 
                     float bar_values[4] = { feature_vec[0], feature_vec[1], feature_vec[2], feature_vec[3] };
                     const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
-                    drawFeatureBars((point){24, 28}, 200, 16, bar_values, bar_labels);
+                    drawFeatureBars((point){24, 32}, 200, 20, bar_values, bar_labels);
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;

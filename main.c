@@ -213,11 +213,11 @@ int main(void){
 
             drawGraphBoundingBox((point){25, 58}, 12, 130);
 
-            vga_text(6, 7, "Chunk 0 / 10     ");
-            vga_text(6, 8, "ZCR:  --                   ");
-            vga_text(6, 9, "SC:   --                   ");
-            vga_text(6, 10, "LBPR: --                   ");
-            vga_text(6, 11, "HBPR: --                   ");
+            vga_text(6, 8, "Chunk 0 / 10     ");
+            vga_text(6, 9, "ZCR:  --                   ");
+            vga_text(6, 10, "SC:   --                   ");
+            vga_text(6, 11, "LBPR: --                   ");
+            vga_text(6, 12, "HBPR: --                   ");
 
             int no_reds = 0;
             int no_greens = 0;
@@ -243,15 +243,15 @@ int main(void){
                     sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
                     sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
 
-                    vga_text(6, 7, classification_text);
-                    vga_text(6, 8, zcr_text);
-                    vga_text(6, 9, sc_text);
-                    vga_text(6, 10, lbpr_text);
-                    vga_text(6, 11, hbpr_text);
+                    vga_text(6, 8, classification_text);
+                    vga_text(6, 9, zcr_text);
+                    vga_text(6, 10, sc_text);
+                    vga_text(6, 11, lbpr_text);
+                    vga_text(6, 12, hbpr_text);
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x07E0 : 0xF800;
-                    
+
                     if (result){
                         drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
                         no_greens++;

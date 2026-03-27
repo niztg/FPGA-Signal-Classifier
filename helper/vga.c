@@ -565,36 +565,41 @@ void drawResultBox(
 void drawFeatureBars(point top_left, int width, int height,
                      float values[4], const char* labels[4]) {
 
-    static const float max_vals[4] = { 0.5f, 2000.0f, 1.0f, 0.65f };
+    static const float max_vals[4] = { 0.5f, 2500.0f, 1.0f, 0.65f };
 
-    int bar_height  = (height / 4) - 2;
-    int label_width = 5 * TEXT_CELL_W;  // space reserved for label on left
-    int bar_area    = width - label_width - 40; // 40px right margin for value text
+    int label_cols    = 5;
+    int value_cols    = 10;
+    int label_px      = label_cols * TEXT_CELL_W;   // 20px
+    int value_px      = value_cols * TEXT_CELL_W;   // 40px
+    int bar_area_px   = width - label_px - value_px;
+    int row_height    = height / 4;
 
     clearRegion(top_left, width, height);
 
     for (int i = 0; i < 4; i++) {
-        int y = top_left.y + i * (bar_height + 2);
+        int y      = top_left.y + i * row_height;
+        int bar_y  = y + 1;
+        int bar_h  = row_height - 2;
+        int bar_x  = top_left.x + label_px;
 
-        // label on left
-        vga_text(pixelToTextX(top_left.x),
-                 pixelToTextY(y + bar_height / 2 - TEXT_CELL_H / 2),
-                 (char*)labels[i]);
+        // label
+        vga_text(pixelToTextX(top_left.x), pixelToTextY(y), (char*)labels[i]);
 
         // bar
         float normalized = values[i] / max_vals[i];
         if (normalized > 1.0f) normalized = 1.0f;
-        int filled = (int)(normalized * bar_area);
+        int filled = (int)(normalized * bar_area_px);
 
-        int bar_x = top_left.x + label_width;
         for (int x = bar_x; x < bar_x + filled; x++)
-            drawLine((point){x, y}, (point){x, y + bar_height}, GRAPH_COLOR, false);
+            drawLine((point){x, bar_y}, (point){x, bar_y + bar_h}, GRAPH_COLOR, false);
 
-        // value on right
+        // value
         char val_buf[12];
-        sprintf(val_buf, "%.4f", values[i]);
-        vga_text(pixelToTextX(bar_x + bar_area + 2),
-                 pixelToTextY(y + bar_height / 2 - TEXT_CELL_H / 2),
-                 val_buf);
+        if (i == 1)
+            sprintf(val_buf, "%-9.1f", values[i]);
+        else
+            sprintf(val_buf, "%-9.4f", values[i]);
+
+        vga_text(pixelToTextX(bar_x + bar_area_px + 2), pixelToTextY(y), val_buf);
     }
 }

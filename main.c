@@ -213,13 +213,13 @@ int main(void){
 
             drawGraphBoundingBox((point){25, 58}, 12, 130);
 
-            vga_text(6, 5, "Chunk 0 / 10     ");
-            vga_text(6, 6, "ZCR:  --                   ");
-            vga_text(6, 7, "SC:   --                   ");
-            vga_text(6, 8, "LBPR: --                   ");
-            vga_text(6, 9, "HBPR: --                   ");
+            vga_text(6, 6, "Chunk 0 / 10     ");
+            vga_text(6, 7, "ZCR:  --                   ");
+            vga_text(6, 8, "SC:   --                   ");
+            vga_text(6, 9, "LBPR: --                   ");
+            vga_text(6, 10, "HBPR: --                   ");
 
-            vga_text(6, 11, "Prediction: --                  ");
+            vga_text(6, 12, "Prediction: --                  ");
 
             int no_reds = 0;
             int no_greens = 0;
@@ -245,11 +245,11 @@ int main(void){
                     sprintf(lbpr_text, "LBPR: %.4f", feature_vec[2]);
                     sprintf(hbpr_text, "HBPR: %.4f", feature_vec[3]);
 
-                    vga_text(6, 5, classification_text);
-                    vga_text(6, 6, zcr_text);
-                    vga_text(6, 7, sc_text);
-                    vga_text(6, 8, lbpr_text);
-                    vga_text(6, 9, hbpr_text);
+                    vga_text(6, 6, classification_text);
+                    vga_text(6, 7, zcr_text);
+                    vga_text(6, 8, sc_text);
+                    vga_text(6, 9, lbpr_text);
+                    vga_text(6, 10, hbpr_text);
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;
@@ -270,13 +270,13 @@ int main(void){
             float percent = no_greens / 10;
             char prediction_text[40];
 
-            if (percent > 50.0f){
-                sprintf(prediction_text, "Prediction: SPEAKER AUTHORIZED. CONFIDENCE: %.2f%%", percent*100);
+            if (percent > 0.5f){
+                sprintf(prediction_text, "Prediction: SPEAKER AUTHORIZED. CONFIDENCE: %.2f %", percent*100);
             } else {
-                sprintf(prediction_text, "Prediction: SPEAKER NOT AUTHORIZED. CONFIDENCE: %.2f", (1-percent)*100);
+                sprintf(prediction_text, "Prediction: SPEAKER NOT AUTHORIZED. CONFIDENCE: %.2f %", (1-percent)*100);
             }
 
-            vga_text(6, 11, prediction_text);
+            vga_text(6, 12, prediction_text);
 
             free(cfg);
             for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;

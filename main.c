@@ -46,6 +46,17 @@ Code from this commit is MILESTONE #2 READY!
 #define KEY_LEFT            0x6B
 #define KEY_RIGHT           0x74
 
+#define KEY_1 0x16
+#define KEY_2 0x1E
+#define KEY_3 0x26
+#define KEY_4 0x25
+#define KEY_5 0x2E
+#define KEY_6 0x36
+#define KEY_7 0x3D
+#define KEY_8 0x3E
+#define KEY_9 0x46
+#define KEY_0 0x45
+
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
@@ -88,7 +99,7 @@ DISPLAY GRAPH LEGEND
 int DISPLAY_GRAPH = 0;
 int PREV_DISPLAY_GRAPH = 0;
 
-int MFCC_OPTION = 0;
+int DISPLAY_CHUNK = 0;
 
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
@@ -101,6 +112,7 @@ float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
 FeatureVector1 feature_vector_array[CHUNKS_PER_RECORDING];
 
+bool has_been_run = false;
 bool record = false;
 bool playback = false;
 
@@ -137,6 +149,10 @@ static void drawFullFrame(
     createGraphButton(button2, (point){56, 76},  spectrum_fill,    GRAPH_COLOR);
     createGraphButton(button3, (point){103, 76}, spectrogram_fill, GRAPH_COLOR);
     displayCorrectGraph();
+
+    if (has_been_run){
+        drawChunkData(DISPLAY_CHUNK);
+    }
 }
 
 int main(void){
@@ -186,6 +202,17 @@ int main(void){
 
                 if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 3) % 3;
                 if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 3;
+
+                if (byte == KEY_1) DISPLAY_CHUNK = 0;
+                if (byte == KEY_2) DISPLAY_CHUNK = 1;
+                if (byte == KEY_3) DISPLAY_CHUNK = 2;
+                if (byte == KEY_4) DISPLAY_CHUNK = 3;
+                if (byte == KEY_5) DISPLAY_CHUNK = 4;
+                if (byte == KEY_6) DISPLAY_CHUNK = 5;
+                if (byte == KEY_7) DISPLAY_CHUNK = 6;
+                if (byte == KEY_8) DISPLAY_CHUNK = 7;
+                if (byte == KEY_9) DISPLAY_CHUNK = 8;
+                if (byte == KEY_0) DISPLAY_CHUNK = 9;
             }
         }
 
@@ -198,7 +225,6 @@ int main(void){
             //compute button fill state BEFORE any drawing,
             //so buttons and graph are always in sync
             fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill);
-
             drawFullFrame(button1, button2, button3,
                         time_fill, spectrum_fill, spectrogram_fill);
 
@@ -206,13 +232,16 @@ int main(void){
         }
 
         if (record){
+            has_been_run = true;
             clearRegion((point){0,0}, 320, 75);
+
             record = false;
             *led_ptr = 0;
             captureRecordingAndGraphTime();
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(frame_array, recording);
 
+            // Hard code the exact body of the drawChunkData function once inline
             int chunk_idx = 0;
             char classification_text[32];
             float bar_values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -241,17 +270,9 @@ int main(void){
                     create_feature_vector1_chunk(&fv, frame_array, fft_array,
                                                 frequency_bins, filterbank, start, end);
                     flatten_feature_vector1(&fv, feature_vec);
-
                     feature_vector_array[chunk_idx] = fv;
 
-                    sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, CHUNKS_PER_RECORDING);
-                    vga_text(6, 4, classification_text);
-
-                    bar_values[0] = feature_vec[0];
-                    bar_values[1] = feature_vec[1];
-                    bar_values[2] = feature_vec[2];
-                    bar_values[3] = feature_vec[3];
-                    drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels);
+                    drawChunkData(chunk_idx);
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;
@@ -424,14 +445,34 @@ void displayMFCCRadar(){
     point centre = {160, 160};
     float radius = 52.0f;
     plotMFCCRadar(
-        feature_vector_array[MFCC_OPTION].mfcc_mean,
-        feature_vector_array[MFCC_OPTION].mfcc_std,
+        feature_vector_array[DISPLAY_CHUNK].mfcc_mean,
+        feature_vector_array[DISPLAY_CHUNK].mfcc_std,
         centre,
         radius,
         GRAPH_COLOR,
         0xFD00,
         0x39E7
     );
+}
+
+void drawChunkData(
+    int chunk_idx
+){
+    clearRegion((point){0,0}, 340, 44);
+
+    char classification_text[40];
+    const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
+    float bar_values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, CHUNKS_PER_RECORDING);
+    vga_text(6, 4, classification_text);
+
+    bar_values[0] = feature_vector_array[chunk_idx].zeroCrossingRate;
+    bar_values[1] = feature_vector_array[chunk_idx].spectralCentroid;
+    bar_values[2] = feature_vector_array[chunk_idx].lowBandPowerRatio;
+    bar_values[3] = feature_vector_array[chunk_idx].highBandPowerRatio;
+
+    drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels);
 }
 
 void displayCorrectGraph(){

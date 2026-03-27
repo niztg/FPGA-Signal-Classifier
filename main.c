@@ -129,7 +129,7 @@ void displayMagnitudeSpectrum();
 void displayTime();
 void displaySpectrogram();
 void displayMFCCRadar();
-void drawChunkData()
+void drawChunkData();
 void displayCorrectGraph();
 
 const char* button1 = "Time";

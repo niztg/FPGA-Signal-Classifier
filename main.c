@@ -46,6 +46,9 @@ Code from this commit is MILESTONE #2 READY!
 #define KEY_LEFT            0x6B
 #define KEY_RIGHT           0x74
 
+#define TEXT_CELL_H 4
+#define TEXT_CELL_W 4
+
 int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
 int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
 point const time_plot_mid_left = {25, 160};

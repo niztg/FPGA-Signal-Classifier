@@ -335,7 +335,7 @@ int main(void){
 int captureRecordingAndGraphTime() {
     if (DISPLAY_GRAPH != 0){
         DISPLAY_GRAPH = 0;
-        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill);
+        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
         drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
     }
@@ -391,7 +391,7 @@ static inline bool ps2_read(unsigned char *out) {
 void playbackRecording(){
     if (DISPLAY_GRAPH != 0){
         DISPLAY_GRAPH = 0;
-        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill);
+        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
         drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
     }
@@ -469,7 +469,7 @@ void displayMFCCRadar(){
         sprintf(chunk_label, "Chunk %d: %s", DISPLAY_CHUNK + 1, verdict);
     } else {
         sprintf(chunk_label, "No recording yet.");
-    }wh
+    }
     vga_text(25 / TEXT_CELL_W, 96 / TEXT_CELL_H, chunk_label);
 
     plotMFCCRadar(

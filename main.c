@@ -457,7 +457,7 @@ void displayMFCCRadar(){
     float radius = 52.0f;
 
     // clear the label area first so stale text doesn't persist between chunks
-    clearRegion((point){0, 88}, 320, 12);
+    clearRegion((point){0, 86}, 320, 12);
 
     char chunk_label[48];
     if (has_been_run){
@@ -466,7 +466,7 @@ void displayMFCCRadar(){
     } else {
         sprintf(chunk_label, "No recording yet.");
     }
-    vga_text(170 / TEXT_CELL_W, 92 / TEXT_CELL_H, chunk_label);
+    vga_text(25 / TEXT_CELL_W, 92 / TEXT_CELL_H, chunk_label);
 
     plotMFCCRadar(
         feature_vector_array[DISPLAY_CHUNK].mfcc_mean,

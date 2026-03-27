@@ -657,7 +657,7 @@ void plotMFCCRadar(
             point B = {
                 centre.x + r * cos_next_angle,
                 centre.y + r * sin_next_angle
-            }
+            };
 
             drawLine(
                 A, B,
@@ -670,8 +670,8 @@ void plotMFCCRadar(
     // axes at each 2πk/8
     for (int k = 0; k < NUM_MFCC; k++){
         point tip = {
-            centre.x + radius * RADAR_COS[k];
-            centre.y + radius * RADAR_SIN[k];
+            centre.x + radius * RADAR_COS[k],
+            centre.y + radius * RADAR_SIN[k]
         }
         drawLine(
             centre, tip,

@@ -565,7 +565,7 @@ void drawResultBox(
 void drawFeatureBars(point top_left, int width, int height,
                      float values[4], const char* labels[4]) {
 
-    static const float max_vals[4] = { 0.5f, 2000.0f, 1.0f, 0.65f };
+    static const float max_vals[4] = { 0.5f, 2500.0f, 1.0f, 0.65f };
 
     int label_cols     = 5;
     int value_cols     = 10;

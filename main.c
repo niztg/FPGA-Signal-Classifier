@@ -95,6 +95,7 @@ DISPLAY GRAPH LEGEND
 0-Time Domain
 1-Magnitude Spectrum
 2-Spectrogram
+3-MFCC Radar
 */
 int DISPLAY_GRAPH = 0;
 int PREV_DISPLAY_GRAPH = 0;
@@ -121,6 +122,7 @@ bool playback = false;
 bool time_fill = true;
 bool spectrum_fill = false;
 bool spectrogram_fill = false;
+bool radar_fill = false;
 
 int captureRecordingAndGraphTime();
 
@@ -135,22 +137,21 @@ void displayCorrectGraph();
 const char* button1 = "Time";
 const char* button2 = "Spectrum";
 const char* button3 = "Spectrogram";
-
-const char* instructions = "R to record. P to playback.";
+const char* button4 = "MFCC Radar";
 
 static inline bool ps2_read(unsigned char *out);
 
 // Helper: draw buttons + graph into the CURRENT back buffer, then swap.
 // Call this twice (once per buffer) whenever the display content changes.
 static void drawFullFrame(
-    const char* button1, const char* button2, const char* button3,
-    bool time_fill, bool spectrum_fill, bool spectrogram_fill
+    const char* button1, const char* button2, const char* button3, const char* button4,
+    bool time_fill, bool spectrum_fill, bool spectrogram_fill, bool radar_fill
 ){
     clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
-    vga_text(170 / 4, 86 / 4, instructions);
     createGraphButton(button1, (point){25, 76},  time_fill,        GRAPH_COLOR);
     createGraphButton(button2, (point){56, 76},  spectrum_fill,    GRAPH_COLOR);
     createGraphButton(button3, (point){103, 76}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button4, (point){160, 76}, radar_fill,       GRAPH_COLOR);
     displayCorrectGraph();
 
     if (has_been_run){
@@ -168,10 +169,10 @@ int main(void){
 
     clearRegion((point){0, 0}, 320, 240);
 
-    vga_text(170 / 4, 86 / 4, instructions);
-    createGraphButton(button1, (point){25, 76}, time_fill, GRAPH_COLOR);
-    createGraphButton(button2, (point){56, 76}, spectrum_fill, GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 76}, time_fill,         GRAPH_COLOR);
+    createGraphButton(button2, (point){56, 76}, spectrum_fill,     GRAPH_COLOR);
     createGraphButton(button3, (point){103, 76}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button4, (point){160, 76}, radar_fill,       GRAPH_COLOR);
 
     displayCorrectGraph();
 
@@ -203,8 +204,8 @@ int main(void){
                 if (byte == KEY_R) record = true;
                 if (byte == KEY_P) playback = true;
 
-                if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 3) % 3;
-                if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 3;
+                if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 4) % 4;
+                if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 4;
 
                 if (byte == KEY_1) DISPLAY_CHUNK = 0;
                 if (byte == KEY_2) DISPLAY_CHUNK = 1;
@@ -227,16 +228,16 @@ int main(void){
 
             //compute button fill state BEFORE any drawing,
             //so buttons and graph are always in sync
-            fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill);
-            drawFullFrame(button1, button2, button3,
-                        time_fill, spectrum_fill, spectrogram_fill);
+            fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
+            drawFullFrame(button1, button2, button3, button4,
+                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
 
             PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
         }
 
         if (DISPLAY_CHUNK != PREV_DISPLAY_CHUNK){
-            drawFullFrame(button1, button2, button3,
-                            time_fill, spectrum_fill, spectrogram_fill);
+            drawFullFrame(button1, button2, button3, button4,
+                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
             PREV_DISPLAY_CHUNK = DISPLAY_CHUNK;
         }
 
@@ -317,7 +318,8 @@ int main(void){
 
             free(cfg);
             for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;
-            drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
+            drawFullFrame(button1, button2, button3, button4,
+                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
         }
 
         if (playback){
@@ -334,7 +336,8 @@ int captureRecordingAndGraphTime() {
     if (DISPLAY_GRAPH != 0){
         DISPLAY_GRAPH = 0;
         fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill);
-        drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
+        drawFullFrame(button1, button2, button3, button4,
+                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
     }
     point graph_region = {15, 93};
     clearRegion(graph_region, 295, 155);
@@ -389,7 +392,8 @@ void playbackRecording(){
     if (DISPLAY_GRAPH != 0){
         DISPLAY_GRAPH = 0;
         fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill);
-        drawFullFrame(button1, button2, button3, time_fill, spectrum_fill, spectrogram_fill);
+        drawFullFrame(button1, button2, button3, button4,
+                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
     }
     //make current graph white
     for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
@@ -465,8 +469,8 @@ void displayMFCCRadar(){
         sprintf(chunk_label, "Chunk %d: %s", DISPLAY_CHUNK + 1, verdict);
     } else {
         sprintf(chunk_label, "No recording yet.");
-    }
-    vga_text(25 / TEXT_CELL_W, 92 / TEXT_CELL_H, chunk_label);
+    }wh
+    vga_text(25 / TEXT_CELL_W, 96 / TEXT_CELL_H, chunk_label);
 
     plotMFCCRadar(
         feature_vector_array[DISPLAY_CHUNK].mfcc_mean,
@@ -505,7 +509,8 @@ void displayCorrectGraph(){
     } else if (DISPLAY_GRAPH == 1){
         displayMagnitudeSpectrum();
     } else if (DISPLAY_GRAPH == 2){
-        // displaySpectrogram();
+        displaySpectrogram();
+    } else if (DISPLAY_GRAPH == 3){
         displayMFCCRadar();
     } else {
         displayTime();

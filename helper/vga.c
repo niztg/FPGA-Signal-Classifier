@@ -533,21 +533,13 @@ void fillComparator(
     int DISPLAY_GRAPH,
     bool* time_fill,
     bool* spectrum_fill,
-    bool* spectrogram_fill
+    bool* spectrogram_fill,
+    bool* radar_fill
 ){
-    if (DISPLAY_GRAPH == 0){
-        *time_fill = true;
-        *spectrum_fill = false;
-        *spectrogram_fill = false;
-    } else if (DISPLAY_GRAPH == 1){
-        *time_fill = false;
-        *spectrum_fill = true;
-        *spectrogram_fill = false;
-    } else if (DISPLAY_GRAPH == 2){
-        *time_fill = false;
-        *spectrum_fill = false;
-        *spectrogram_fill = true;
-    }
+    *time_fill = (DISPLAY_GRAPH == 0);
+    *spectrum_fill = (DISPLAY_GRAPH == 1);
+    *spectrogram_fill = (DISPLAY_GRAPH == 2);
+    *radar_fill = (DISPLAY_GRAPH == 3);
 }
 
 void drawResultBox(

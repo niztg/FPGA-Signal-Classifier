@@ -106,7 +106,8 @@ void fillComparator(
     int DISPLAY_GRAPH,
     bool* time_fill,
     bool* spectrum_fill,
-    bool* spectrogram_fill
+    bool* spectrogram_fill,
+    bool* radar_fill
 );
 void drawResultBox(
     point top_left,

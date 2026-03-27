@@ -100,6 +100,7 @@ int DISPLAY_GRAPH = 0;
 int PREV_DISPLAY_GRAPH = 0;
 
 int DISPLAY_CHUNK = 0;
+int PREV_DISPLAY_CHUNK = 0;
 
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
@@ -111,6 +112,7 @@ float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
 FeatureVector1 feature_vector_array[CHUNKS_PER_RECORDING];
+int result_buffer[CHUNKS_PER_RECORDING];
 
 bool has_been_run = false;
 bool record = false;
@@ -127,6 +129,7 @@ void displayMagnitudeSpectrum();
 void displayTime();
 void displaySpectrogram();
 void displayMFCCRadar();
+void drawChunkData()
 void displayCorrectGraph();
 
 const char* button1 = "Time";
@@ -231,6 +234,12 @@ int main(void){
             PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
         }
 
+        if (DISPLAY_CHUNK != PREV_DISPLAY_CHUNK){
+            drawFullFrame(button1, button2, button3,
+                            time_fill, spectrum_fill, spectrogram_fill);
+            PREV_DISPLAY_CHUNK = DISPLAY_CHUNK;
+        }
+
         if (record){
             has_been_run = true;
             clearRegion((point){0,0}, 320, 75);
@@ -276,6 +285,8 @@ int main(void){
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;
+                                        
+                    result_buffer[chunk_idx] = result;
 
                     if (result){
                         drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
@@ -444,6 +455,19 @@ void displaySpectrogram(){
 void displayMFCCRadar(){
     point centre = {160, 160};
     float radius = 52.0f;
+
+    // clear the label area first so stale text doesn't persist between chunks
+    clearRegion((point){0, 88}, 320, 12);
+
+    char chunk_label[48];
+    if (has_been_run){
+        const char* verdict = chunk_results[DISPLAY_CHUNK] ? "AUTHORIZED" : "NOT AUTHORIZED";
+        sprintf(chunk_label, "Chunk %d: %s", DISPLAY_CHUNK + 1, verdict);
+    } else {
+        sprintf(chunk_label, "No recording yet.");
+    }
+    vga_text(170 / TEXT_CELL_W, 92 / TEXT_CELL_H, chunk_label);
+
     plotMFCCRadar(
         feature_vector_array[DISPLAY_CHUNK].mfcc_mean,
         feature_vector_array[DISPLAY_CHUNK].mfcc_std,

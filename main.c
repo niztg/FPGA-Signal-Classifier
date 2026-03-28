@@ -94,8 +94,8 @@ volatile int * character_ctrl_ptr = (int *)CHARACTER_BASE;
 DISPLAY GRAPH LEGEND
 0-Time Domain
 1-Magnitude Spectrum
-2-Spectrogram
-3-MFCC Radar
+2-MFCC Radar
+3-Spectrogram
 */
 int DISPLAY_GRAPH = 0;
 int PREV_DISPLAY_GRAPH = 0;

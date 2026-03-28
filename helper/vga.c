@@ -261,7 +261,7 @@ void drawXAxisLabels(
 
         char label[32];
         if (scaled_units && scaled_units[0] != '\0'){
-            snprintf(label, sizeof(label), "%.3g %s", scaled_x_value, scaled_units);
+            snprintf(label, sizeof(label), "%.3g%s", scaled_x_value, scaled_units);
         } else {
             snprintf(label, sizeof(label), "%.3g", scaled_x_value);
         }

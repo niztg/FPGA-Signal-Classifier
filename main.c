@@ -136,8 +136,8 @@ void displayCorrectGraph();
 
 const char* button1 = "Time";
 const char* button2 = "Spectrum";
-const char* button3 = "Spectrogram";
-const char* button4 = "MFCC Radar";
+const char* button3 = "MFCC Radar";
+const char* button4 = "Spectrogram";
 
 static inline bool ps2_read(unsigned char *out);
 
@@ -150,8 +150,8 @@ static void drawFullFrame(
     clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
     createGraphButton(button1, (point){25, 76},  time_fill,        GRAPH_COLOR);
     createGraphButton(button2, (point){56, 76},  spectrum_fill,    GRAPH_COLOR);
-    createGraphButton(button3, (point){103, 76}, spectrogram_fill, GRAPH_COLOR);
-    createGraphButton(button4, (point){160, 76}, radar_fill,       GRAPH_COLOR);
+    createGraphButton(button3, (point){103, 76}, radar_fill,       GRAPH_COLOR);
+    createGraphButton(button4, (point){150, 76}, spectrogram_fill, GRAPH_COLOR);
     displayCorrectGraph();
 
     if (has_been_run){
@@ -284,7 +284,7 @@ int main(void){
 
                     drawChunkData(chunk_idx);
 
-                    int result = model1(feature_vec);
+                    int result = model1_1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;
                                         
                     result_buffer[chunk_idx] = result;

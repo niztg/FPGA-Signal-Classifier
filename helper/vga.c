@@ -538,8 +538,8 @@ void fillComparator(
 ){
     *time_fill = (DISPLAY_GRAPH == 0);
     *spectrum_fill = (DISPLAY_GRAPH == 1);
-    *spectrogram_fill = (DISPLAY_GRAPH == 2);
-    *radar_fill = (DISPLAY_GRAPH == 3);
+    *spectrogram_fill = (DISPLAY_GRAPH == 3);
+    *radar_fill = (DISPLAY_GRAPH == 2);
 }
 
 void drawResultBox(

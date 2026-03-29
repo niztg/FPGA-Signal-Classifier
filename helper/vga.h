@@ -41,7 +41,7 @@ extern int recording[];
 #define BIN_SPACING        ((float)SAMPLING_RATE / FRAME_LENGTH)
 
 #define MAX_DISPLAY_BINS    NO_FREQ_BINS+(7*20)
-#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(7*20)
+#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(6*20)
 
 void vga_text(int x, int y, char * text_ptr);
 void plotPixel(point p, short int line_color);

@@ -236,6 +236,7 @@ void drawXAxisLabels(
     int graph_height,
     int graph_width,
     short int axis_color,
+    double min_x,
     double max_x,
     const char *x_units
 ){
@@ -252,7 +253,7 @@ void drawXAxisLabels(
 
     for (int i = 0; i <= no_vertical_partitions; i++){
         int x_pixel = left_x + (i * (graph_width - 1)) / no_vertical_partitions;
-        double x_value = (i * max_x) / no_vertical_partitions;
+        double x_value = min_x + (i * (max_x - min_x)) / no_vertical_partitions;
         double scaled_x_value = x_value / scale_factor;
 
         for (int dy = 0; dy < tick_length; dy++){

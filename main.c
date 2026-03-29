@@ -241,8 +241,10 @@ int main(void){
 
                 if (DISPLAY_GRAPH == 1 && is_extended && byte == KEY_DOWN){
                     SPECTRUM_VIEWPORT_START += 10;
-                    if (SPECTRUM_VIEWPORT_START > NO_FREQ_BINS - NO_DISPLAY_BINS)
-                        SPECTRUM_VIEWPORT_START = NO_FREQ_BINS - NO_DISPLAY_BINS;
+                    int max_start = NO_FREQ_BINS - NO_DISPLAY_BINS;
+                    if (max_start < 0) max_start = 0;
+                    if (SPECTRUM_VIEWPORT_START > max_start)
+                        SPECTRUM_VIEWPORT_START = max_start;
                     spectrum_scale_change = true;
                 }
 
@@ -314,7 +316,8 @@ int main(void){
             int no_reds = 0;
             int no_greens = 0;
 
-            for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] = 0.0f;
+            // Zero-pad the full array so bins beyond NO_FREQ_BINS render as flat
+            for (int i = 0; i < MAX_DISPLAY_BINS; i++) average_fft[i] = 0.0f;
 
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++){
                 compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);

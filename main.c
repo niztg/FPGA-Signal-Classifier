@@ -62,8 +62,8 @@ Code from this commit is MILESTONE #2 READY!
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
-#define MAX_DISPLAY_BINS    NO_FREQ_BINS+(8*20)
-#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(8*20)
+#define MAX_DISPLAY_BINS    NO_FREQ_BINS+(7*20)
+#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(7*20)
 
 int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
 int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;

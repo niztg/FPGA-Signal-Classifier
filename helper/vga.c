@@ -350,11 +350,12 @@ void plotMagnitudeSpectrum(
     int graph_height,
     short int color,
     short int fill_color,
-    int no_display_bins
+    int no_display_bins,
+    int viewport_start
 ){
     if (NO_FREQ_BINS < 1 || graph_width <= 1 || graph_height <= 1) return;
 
-    float max_value = get_max_value(average_fft, NO_FREQ_BINS);
+    float max_value = get_max_value(average_fft + viewport_start, no_display_bins);
     if (max_value <= 0.0f) return;
 
     float pixel_step = (float)(graph_width - 1) / (no_display_bins - 1);
@@ -362,24 +363,21 @@ void plotMagnitudeSpectrum(
 
     point prev_point = {
         top_left.x,
-        bottom_y - (int)((average_fft[0] / max_value) * (graph_height - 1))
+        bottom_y - (int)((average_fft[viewport_start] / max_value) * (graph_height - 1))
     };
     drawLine(prev_point, (point){prev_point.x, bottom_y}, fill_color, false);
     plotPixel(prev_point, color);
 
     for (int i = 1; i < no_display_bins; i++) {
-        float percent = average_fft[i] / max_value;
+        float percent = average_fft[viewport_start + i] / max_value;
         point graph_point = {
             top_left.x + (int)(i * pixel_step),
             bottom_y - (int)(percent * (graph_height - 1))
         };
-
         // fill under this bin
         drawLine(graph_point, (point){graph_point.x, bottom_y}, fill_color, false);
-
         // connecting line along the top edge
         drawLine(prev_point, graph_point, color, false);
-
         prev_point = graph_point;
     }
 }

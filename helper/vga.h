@@ -40,6 +40,9 @@ extern int recording[];
 #define NO_FREQ_BINS       ((FRAME_LENGTH / 2) + 1)
 #define BIN_SPACING        ((float)SAMPLING_RATE / FRAME_LENGTH)
 
+#define MAX_DISPLAY_BINS    NO_FREQ_BINS+(5*20)
+#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(5*20)
+
 void vga_text(int x, int y, char * text_ptr);
 void plotPixel(point p, short int line_color);
 void clearRegion(point top_left, int width, int height);
@@ -81,12 +84,13 @@ void plotTimeDomain(point reference, int width, int height,
     int number_of_samples
 );
 void plotMagnitudeSpectrum(
-    float average_fft[NO_FREQ_BINS],
+    float average_fft[MAX_DISPLAY_BINS],
     point top_left,
     int graph_width,
     int graph_height,
     short int color,
-    short int fill_color
+    short int fill_color,
+    int no_display_bins
 );
 short int magnitude_to_color(float v);
 void plotSpectrogram(

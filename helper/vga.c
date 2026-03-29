@@ -344,19 +344,20 @@ void plotTimeDomain(point reference, int width, int height,
 }
 
 void plotMagnitudeSpectrum(
-    float average_fft[NO_FREQ_BINS],
+    float average_fft[MAX_DISPLAY_BINS],
     point top_left,
     int graph_width,
     int graph_height,
     short int color,
-    short int fill_color
+    short int fill_color,
+    int no_display_bins
 ){
     if (NO_FREQ_BINS < 1 || graph_width <= 1 || graph_height <= 1) return;
 
     float max_value = get_max_value(average_fft, NO_FREQ_BINS);
     if (max_value <= 0.0f) return;
 
-    float pixel_step = (float)(graph_width - 1) / (NO_FREQ_BINS - 1);
+    float pixel_step = (float)(graph_width - 1) / (no_display_bins - 1);
     int bottom_y = top_left.y + graph_height - 1;
 
     point prev_point = {
@@ -366,7 +367,7 @@ void plotMagnitudeSpectrum(
     drawLine(prev_point, (point){prev_point.x, bottom_y}, fill_color, false);
     plotPixel(prev_point, color);
 
-    for (int i = 1; i < NO_FREQ_BINS; i++) {
+    for (int i = 1; i < no_display_bins; i++) {
         float percent = average_fft[i] / max_value;
         point graph_point = {
             top_left.x + (int)(i * pixel_step),

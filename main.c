@@ -56,9 +56,14 @@ Code from this commit is MILESTONE #2 READY!
 #define KEY_8 0x3E
 #define KEY_9 0x46
 #define KEY_0 0x45
+#define KEY_MINUS           0x4E
+#define KEY_PLUS            0x55 
 
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
+
+#define MAX_DISPLAY_BINS    NO_FREQ_BINS+(5*20)
+#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(5*20)
 
 int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
 int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
@@ -103,12 +108,14 @@ int PREV_DISPLAY_GRAPH = 0;
 int DISPLAY_CHUNK = 0;
 int PREV_DISPLAY_CHUNK = 0;
 
+int NO_DISPLAY_BINS = NO_FREQ_BINS;
+
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
 // Changed from double to float — soft-float emulation of 32-bit ops is
 // substantially cheaper than 64-bit on the NiosV rv32im target
 float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
-float average_fft[NO_FREQ_BINS];
+float average_fft[MAX_DISPLAY_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
@@ -123,6 +130,8 @@ bool time_fill = true;
 bool spectrum_fill = false;
 bool spectrogram_fill = false;
 bool radar_fill = false;
+
+bool spectrum_scale_change = false;
 
 int captureRecordingAndGraphTime();
 
@@ -204,6 +213,22 @@ int main(void){
                 if (byte == KEY_R) record = true;
                 if (byte == KEY_P) playback = true;
 
+                if (DISPLAY_GRAPH == 1 && byte == KEY_MINUS){
+                    no_display_bins += 20;
+                    if (no_display_bins > MAX_DISPLAY_BINS){
+                        no_display_bins = MAX_DISPLAY_BINS;
+                    }
+                    spectrum_scale_change = true;
+                }
+
+                if (DISPLAY_GRAPH == 1 && byte == KEY_PLUS){
+                    no_display_bins -= 20;
+                    if (no_display_bins < MIN_DISPLAY_BINS){
+                        no_display_bins = MIN_DISPLAY_BINS;
+                    }
+                    spectrum_scale_change = true;
+                }
+
                 if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 4) % 4;
                 if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 4;
 
@@ -222,7 +247,7 @@ int main(void){
 
         if (DISPLAY_GRAPH != PREV_DISPLAY_GRAPH){
 
-            if (PREV_DISPLAY_GRAPH == 2){
+            if (PREV_DISPLAY_GRAPH == 3){
                 point spectrogram_top_left = {25, 100};
             }
 
@@ -233,6 +258,13 @@ int main(void){
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
 
             PREV_DISPLAY_GRAPH = DISPLAY_GRAPH;
+        }
+
+        if (spectrum_scale_change){
+            fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
+            drawFullFrame(button1, button2, button3, button4,
+                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
+            spectrum_scale_change = false;
         }
 
         if (DISPLAY_CHUNK != PREV_DISPLAY_CHUNK){
@@ -423,17 +455,25 @@ void displayMagnitudeSpectrum(){
     point bode_plot_top_left = {25, 100};
 
     const char* x_axis_units = "Hz";
+    int scale = frequency_bins[NO_FREQ_BINS-1];
+    if (NO_DISPLAY_BINS < NO_FREQ_BINS){
+        scale = frequency_bins[NO_DISPLAY_BINS];
+    } else {
+        int diff = NO_DISPLAY_BINS - NO_FREQ_BINS;
+        scale += diff * 620;
+    }
 
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
-    drawXAxisLabels(5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) frequency_bins[NO_FREQ_BINS-1], x_axis_units);
+    drawXAxisLabels(5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) scale, x_axis_units);
     plotMagnitudeSpectrum(
         average_fft,
         bode_plot_top_left,
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
         0xFDE0,
-        0xFDE0
+        0xFDE0,
+        NO_DISPLAY_BINS
     );
 }
 

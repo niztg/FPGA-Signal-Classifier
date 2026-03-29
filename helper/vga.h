@@ -90,7 +90,8 @@ void plotMagnitudeSpectrum(
     int graph_height,
     short int color,
     short int fill_color,
-    int no_display_bins
+    int no_display_bins,
+    int viewport_start
 );
 short int magnitude_to_color(float v);
 void plotSpectrogram(

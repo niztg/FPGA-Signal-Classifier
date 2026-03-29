@@ -43,6 +43,8 @@ Code from this commit is MILESTONE #2 READY!
 
 #define KEY_R               0x2D
 #define KEY_P               0x4D
+#define KEY_UP   0x75
+#define KEY_DOWN 0x72
 #define KEY_LEFT            0x6B
 #define KEY_RIGHT           0x74
 
@@ -56,6 +58,7 @@ Code from this commit is MILESTONE #2 READY!
 #define KEY_8 0x3E
 #define KEY_9 0x46
 #define KEY_0 0x45
+
 #define KEY_MINUS           0x4E
 #define KEY_PLUS            0x55 
 
@@ -109,6 +112,7 @@ int DISPLAY_CHUNK = 0;
 int PREV_DISPLAY_CHUNK = 0;
 
 int NO_DISPLAY_BINS = NO_FREQ_BINS;
+int SPECTRUM_VIEWPORT_START = 0;
 
 int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
 
@@ -226,6 +230,19 @@ int main(void){
                     if (NO_DISPLAY_BINS < MIN_DISPLAY_BINS){
                         NO_DISPLAY_BINS = MIN_DISPLAY_BINS;
                     }
+                    spectrum_scale_change = true;
+                }
+
+                if (DISPLAY_GRAPH == 1 && is_extended && byte == KEY_UP){
+                    SPECTRUM_VIEWPORT_START -= 10;
+                    if (SPECTRUM_VIEWPORT_START < 0) SPECTRUM_VIEWPORT_START = 0;
+                    spectrum_scale_change = true;
+                }
+
+                if (DISPLAY_GRAPH == 1 && is_extended && byte == KEY_DOWN){
+                    SPECTRUM_VIEWPORT_START += 10;
+                    if (SPECTRUM_VIEWPORT_START > NO_FREQ_BINS - NO_DISPLAY_BINS)
+                        SPECTRUM_VIEWPORT_START = NO_FREQ_BINS - NO_DISPLAY_BINS;
                     spectrum_scale_change = true;
                 }
 
@@ -482,7 +499,8 @@ void displayMagnitudeSpectrum(){
         STANDARD_GRAPH_HEIGHT,
         0xFDE0,
         0xFDE0,
-        NO_DISPLAY_BINS
+        NO_DISPLAY_BINS,
+        SPECTRUM_VIEWPORT_START
     );
 }
 

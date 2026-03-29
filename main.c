@@ -214,17 +214,17 @@ int main(void){
                 if (byte == KEY_P) playback = true;
 
                 if (DISPLAY_GRAPH == 1 && byte == KEY_MINUS){
-                    no_display_bins += 20;
-                    if (no_display_bins > MAX_DISPLAY_BINS){
-                        no_display_bins = MAX_DISPLAY_BINS;
+                    NO_DISPLAY_BINS += 20;
+                    if (NO_DISPLAY_BINS > MAX_DISPLAY_BINS){
+                        NO_DISPLAY_BINS = MAX_DISPLAY_BINS;
                     }
                     spectrum_scale_change = true;
                 }
 
                 if (DISPLAY_GRAPH == 1 && byte == KEY_PLUS){
-                    no_display_bins -= 20;
-                    if (no_display_bins < MIN_DISPLAY_BINS){
-                        no_display_bins = MIN_DISPLAY_BINS;
+                    NO_DISPLAY_BINS -= 20;
+                    if (NO_DISPLAY_BINS < MIN_DISPLAY_BINS){
+                        NO_DISPLAY_BINS = MIN_DISPLAY_BINS;
                     }
                     spectrum_scale_change = true;
                 }

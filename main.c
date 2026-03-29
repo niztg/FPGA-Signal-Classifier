@@ -475,13 +475,8 @@ void displayMagnitudeSpectrum(){
     point bode_plot_top_left = {25, 100};
     const char* x_axis_units = "Hz";
 
-    float scale;
-
-    if (NO_DISPLAY_BINS <= 1){
-        scale = 0.0f;
-    } else {
-        scale = (NO_DISPLAY_BINS - 1) * BIN_SPACING;
-    }
+    float x_min_hz = SPECTRUM_VIEWPORT_START * BIN_SPACING;
+    float x_max_hz = (SPECTRUM_VIEWPORT_START + NO_DISPLAY_BINS - 1) * BIN_SPACING;
 
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
@@ -491,7 +486,8 @@ void displayMagnitudeSpectrum(){
         STANDARD_GRAPH_HEIGHT,
         STANDARD_GRAPH_WIDTH,
         0xFFFF,
-        (double)scale,
+        (double)x_min_hz,
+        (double)x_max_hz,
         x_axis_units
     );
 
@@ -520,7 +516,7 @@ void displayTime(){
 void displaySpectrogram(){
     point spectrogram_top_left = {25, 100};
     drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
-    drawXAxisLabels(10, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 5.0, "s");
+    drawXAxisLabels(10, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 0.0, 5.0, "s");
     drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
     drawSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
     plotSpectrogram(fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);

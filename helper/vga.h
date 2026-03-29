@@ -67,6 +67,7 @@ void drawXAxisLabels(
     int graph_height,
     int graph_width,
     short int axis_color,
+    double min_x,
     double max_x,
     const char *x_units
 );

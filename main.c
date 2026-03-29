@@ -62,8 +62,8 @@ Code from this commit is MILESTONE #2 READY!
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
-#define MAX_DISPLAY_BINS    NO_FREQ_BINS+(5*20)
-#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(5*20)
+#define MAX_DISPLAY_BINS    NO_FREQ_BINS+(8*20)
+#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(8*20)
 
 int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
 int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
@@ -453,19 +453,28 @@ void playbackRecording(){
 
 void displayMagnitudeSpectrum(){
     point bode_plot_top_left = {25, 100};
-
     const char* x_axis_units = "Hz";
-    int scale = frequency_bins[NO_FREQ_BINS-1];
-    if (NO_DISPLAY_BINS < NO_FREQ_BINS){
-        scale = frequency_bins[NO_DISPLAY_BINS];
+
+    float scale;
+
+    if (NO_DISPLAY_BINS <= 1){
+        scale = 0.0f;
     } else {
-        int diff = NO_DISPLAY_BINS - NO_FREQ_BINS;
-        scale += diff * 620;
+        scale = (NO_DISPLAY_BINS - 1) * BIN_SPACING;
     }
 
     drawGraphBoundingBox(bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH);
     drawGraphGrid(5, 7, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0x39E7, 3);
-    drawXAxisLabels(5, bode_plot_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH, 0xFFFF, (double) scale, x_axis_units);
+    drawXAxisLabels(
+        5,
+        bode_plot_top_left,
+        STANDARD_GRAPH_HEIGHT,
+        STANDARD_GRAPH_WIDTH,
+        0xFFFF,
+        (double)scale,
+        x_axis_units
+    );
+
     plotMagnitudeSpectrum(
         average_fft,
         bode_plot_top_left,

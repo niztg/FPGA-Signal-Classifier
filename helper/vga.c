@@ -356,7 +356,7 @@ void plotMagnitudeSpectrum(
 ){
     if (NO_FREQ_BINS < 1 || graph_width <= 1 || graph_height <= 1) return;
 
-    float max_value = get_max_value(average_fft + viewport_start, no_display_bins);
+    float max_value = get_max_value(average_fft, NO_FREQ_BINS);
     if (max_value <= 0.0f) return;
 
     float pixel_step = (float)(graph_width - 1) / (no_display_bins - 1);

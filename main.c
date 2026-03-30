@@ -28,18 +28,12 @@ Code from this commit is MILESTONE #2 READY!
 #define FRAME_LENGTH       256
 #define HOP_SIZE           128
 #define SAMPLING_RATE      8000
-#define FEATURES_0         6
-
 #define STANDARD_GRAPH_HEIGHT   120
 #define STANDARD_GRAPH_WIDTH    270
 
 #define FRAMES_PER_RECORDING (((RECORDING_LENGTH - FRAME_LENGTH) / HOP_SIZE) + 1)
 #define NO_FREQ_BINS       ((FRAME_LENGTH / 2) + 1)
 #define BIN_SPACING        ((float)SAMPLING_RATE / FRAME_LENGTH)
-
-#define RECORD_KEY          0b0001
-#define PLAYBACK_KEY        0b0010
-#define CLEAR_KEY           0b1111
 
 #define KEY_R               0x2D
 #define KEY_P               0x4D
@@ -85,7 +79,6 @@ typedef struct {
 } audio;
 
 audio* audio_ptr = (audio*) AUDIO_BASE;
-int recording[RECORDING_LENGTH] = {0};
 
 volatile int* key_ptr   = (int*) KEY_BASE;
 volatile int* led_ptr   = (int*) LED_BASE;
@@ -115,19 +108,9 @@ int PREV_DISPLAY_CHUNK = 0;
 int NO_DISPLAY_BINS = NO_FREQ_BINS;
 int SPECTRUM_VIEWPORT_START = 0;
 
-int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
-
-// Changed from double to float — soft-float emulation of 32-bit ops is
-// substantially cheaper than 64-bit on the NiosV rv32im target
-float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
-float average_fft[MAX_DISPLAY_BINS];
 float frequency_bins[NO_FREQ_BINS];
 float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS];
 
-FeatureVector1 feature_vector_array[CHUNKS_PER_RECORDING];
-int result_buffer[CHUNKS_PER_RECORDING];
-
-bool has_been_run = false;
 bool record = false;
 bool playback = false;
 
@@ -238,9 +221,9 @@ static void drawFullFrame(
     }
 
     if (is_channel_1){
-        vga_text(12, 76, "CH. 1");
+        vga_text(12, 19, "CH. 1");
     } else{
-        vga_text(12, 76, "CH. 2");
+        vga_text(12, 19, "CH. 2");
     }
 }
 
@@ -263,7 +246,7 @@ int main(void){
 
     displayCorrectGraph();
 
-    vga_text(6, 76, "CH. 1");
+    vga_text(6, 19, "CH. 1");
 
     static bool ps2_break_pending = false;
     static bool ps2_extend_pending = false;
@@ -356,11 +339,6 @@ int main(void){
         }
 
         if (DISPLAY_GRAPH != PREV_DISPLAY_GRAPH){
-
-            if (PREV_DISPLAY_GRAPH == 3){
-                point spectrogram_top_left = {25, 100};
-            }
-
             //compute button fill state BEFORE any drawing,
             //so buttons and graph are always in sync
             fillComparator(DISPLAY_GRAPH, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
@@ -395,7 +373,6 @@ int main(void){
 
             // Hard code the exact body of the drawChunkData function once inline
             int chunk_idx = 0;
-            char classification_text[32];
             float bar_values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
             const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
 

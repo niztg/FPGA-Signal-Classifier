@@ -20,6 +20,9 @@ data_processing.h
 #define NO_FREQ_BINS             ((FRAME_LENGTH / 2) + 1)
 #define BIN_SPACING              ((float)SAMPLING_RATE / FRAME_LENGTH)
 
+#define MAX_DISPLAY_BINS    NO_FREQ_BINS+(7*20)
+#define MIN_DISPLAY_BINS    NO_FREQ_BINS-(6*20)
+
 #include "../fft_helper/kiss_fftr.h"
 #include "signal_analysis.h"  // for NUM_MFCC
 

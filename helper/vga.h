@@ -16,7 +16,7 @@ typedef struct {
     int y;
 } point;
 
-extern int const samples_per_pixel;
+extern int samples_per_pixel;
 extern int const axes_offset;
 
 extern volatile char* character_buffer_start;

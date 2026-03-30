@@ -152,8 +152,8 @@ typedef struct {
 Channel CHANNEL_1 = {
     {},
     {},
-    0xFDE0,
-    0xFD00,
+    0xFDE0, // yellow
+    0xFD00, // orange
     false,
     {},
     {},
@@ -165,8 +165,8 @@ Channel CHANNEL_1 = {
 Channel CHANNEL_2 = {
     {},
     {},
-    0xF81F,
-    0x8010,
+    0xF81F, // pink
+    0x8010, // purple
     false,
     {},
     {},

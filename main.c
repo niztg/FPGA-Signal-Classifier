@@ -181,13 +181,13 @@ Channel CHANNEL_2 = {
     {},
     {},
     0x3FE2,
-    0x0D40.
+    0x0D40,
     false,
     {},
     {},
     {},
     {}
-}
+};
 
 Channel* ACTIVE_CHANNEL = &CHANNEL_1;
 bool is_channel_1 = true;
@@ -201,10 +201,10 @@ static void drawFullFrame(
     bool time_fill, bool spectrum_fill, bool spectrogram_fill, bool radar_fill
 ){
     clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
-    createGraphButton(button1, (point){25, 76},  time_fill,        ACTIVE_CHANNEL -> GRAPH_COLOR);
-    createGraphButton(button2, (point){56, 76},  spectrum_fill,    ACTIVE_CHANNEL -> GRAPH_COLOR);
-    createGraphButton(button3, (point){102, 76}, radar_fill,       ACTIVE_CHANNEL -> GRAPH_COLOR);
-    createGraphButton(button4, (point){155, 76}, spectrogram_fill, ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 76},  time_fill,        ACTIVE_CHANNEL -> fill_color);
+    createGraphButton(button2, (point){56, 76},  spectrum_fill,    ACTIVE_CHANNEL -> fill_color);
+    createGraphButton(button3, (point){102, 76}, radar_fill,       ACTIVE_CHANNEL -> fill_color);
+    createGraphButton(button4, (point){155, 76}, spectrogram_fill, ACTIVE_CHANNEL -> fill_color);
     displayCorrectGraph();
 
     if (ACTIVE_CHANNEL -> has_been_run){
@@ -222,10 +222,10 @@ int main(void){
 
     clearRegion((point){0, 0}, 320, 240);
 
-    createGraphButton(button1, (point){25, 76},  time_fill,        ACTIVE_CHANNEL -> GRAPH_COLOR);
-    createGraphButton(button2, (point){56, 76},  spectrum_fill,    ACTIVE_CHANNEL -> GRAPH_COLOR);
-    createGraphButton(button3, (point){102, 76}, radar_fill,       ACTIVE_CHANNEL -> GRAPH_COLOR);
-    createGraphButton(button4, (point){155, 76}, spectrogram_fill, ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 76},  time_fill,        ACTIVE_CHANNEL -> fill_color);
+    createGraphButton(button2, (point){56, 76},  spectrum_fill,    ACTIVE_CHANNEL -> fill_color);
+    createGraphButton(button3, (point){102, 76}, radar_fill,       ACTIVE_CHANNEL -> fill_color);
+    createGraphButton(button4, (point){155, 76}, spectrogram_fill, ACTIVE_CHANNEL -> fill_color);
 
     displayCorrectGraph();
 
@@ -257,8 +257,10 @@ int main(void){
                 if (byte == KEY_C){
                     if (is_channel_1){
                         ACTIVE_CHANNEL = &CHANNEL_2;
+                        is_channel_1 = false;
                     } else {
                         ACTIVE_CHANNEL = &CHANNEL_1;
+                        is_channel_1 = true;
                     }
                 }
 

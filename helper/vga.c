@@ -9,6 +9,7 @@
 #define TEXT_CELL_W 4
 
 extern int* time_plot_line_heights;
+extern int n_chunks;
 
 // Hard-coded sin/cos of all angles 2πk/8
 static const float RADAR_COS[8] = {
@@ -551,7 +552,7 @@ void drawResultBox(
 ){
     int start_x = (top_left.x + 1) + draw_index * box_width;
     int y_coord = (top_left.y + 1);
-    int end_x = (draw_index == CHUNKS_PER_RECORDING - 1)
+    int end_x = (draw_index == n_chunks - 1)
                 ? start_x + box_width - 1
                 : start_x + box_width;
     for (int x = start_x; x < end_x; x++){

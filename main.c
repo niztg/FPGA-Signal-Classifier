@@ -169,7 +169,7 @@ Channel CHANNEL_1 = {
     {},
     {},
     0xFDE0,
-    0x39E7,
+    0xFD00,
     false,
     {},
     {},
@@ -181,7 +181,7 @@ Channel CHANNEL_2 = {
     {},
     {},
     0x3FE2,
-    0x0D40,
+    0x0500,
     false,
     {},
     {},
@@ -262,6 +262,9 @@ int main(void){
                         ACTIVE_CHANNEL = &CHANNEL_1;
                         is_channel_1 = true;
                     }
+                
+                drawFullFrame(button1, button2, button3, button4,
+                    time_fill, spectrum_fill, spectrogram_fill, radar_fill);
                 }
 
                 if (byte == KEY_R) record = true;
@@ -580,7 +583,7 @@ void displayMFCCRadar(){
     clearRegion((point){0, 90}, 320, 12);
 
     char chunk_label[48];
-    if (has_been_run){
+    if (ACTIVE_CHANNEL -> has_been_run){
         const char* verdict = ACTIVE_CHANNEL -> result_buffer[DISPLAY_CHUNK] ? "AUTHORIZED" : "NOT AUTHORIZED";
         sprintf(chunk_label, "Chunk %d: %s", DISPLAY_CHUNK + 1, verdict);
     } else {

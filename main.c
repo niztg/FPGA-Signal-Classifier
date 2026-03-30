@@ -217,13 +217,13 @@ static void drawFullFrame(
         } else {
             sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%    ", (1 - percent) * 100);
         }
-        vga_text(12, 12, prediction_text);
+        vga_text(6, 12, prediction_text);
     }
 
     if (is_channel_1){
-        vga_text(12, 19, "CH. 1");
+        vga_text(6, 38, "CH. 1");
     } else{
-        vga_text(12, 19, "CH. 2");
+        vga_text(6, 38, "CH. 2");
     }
 }
 
@@ -246,7 +246,7 @@ int main(void){
 
     displayCorrectGraph();
 
-    vga_text(6, 19, "CH. 1");
+    vga_text(6, 38, "CH. 1");
 
     static bool ps2_break_pending = false;
     static bool ps2_extend_pending = false;

@@ -21,9 +21,9 @@ amenable to the neural network for further analysis.
 #include "signal_analysis.h"
 #include "data_processing.h"
 
-void unzip_recording_into_frames(int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH],
-                                 const int recording[RECORDING_LENGTH]) {
-    for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++) {
+void unzip_recording_into_frames(int frame_array[MAX_FRAMES_PER_RECORDING][FRAME_LENGTH],
+                                 const int recording[MAX_RECORDING_LENGTH], int n_frames) {
+    for (int frame_idx = 0; frame_idx < n_frames; frame_idx++) {
         int starting_index = HOP_SIZE * frame_idx;
         for (int sample_idx = 0; sample_idx < FRAME_LENGTH; sample_idx++) {
             frame_array[frame_idx][sample_idx] = recording[starting_index + sample_idx];
@@ -78,7 +78,7 @@ void flatten_feature_vector(FeatureVector0* fv, double out[FEATURES_0]){
 }
 
 void compute_average_fft(
-    float fft_magnitude[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+    float fft_magnitude[MAX_FRAMES_PER_RECORDING][NO_FREQ_BINS],
     float avg_fft[NO_FREQ_BINS]
 ){
     for (int k = 0; k < NO_FREQ_BINS; k++){
@@ -104,8 +104,8 @@ float get_max_value(float arr[], int length) {
 }
 
 void create_feature_vector1(FeatureVector1* fv,
-                             int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH],
-                             float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+                             int frame_array[MAX_FRAMES_PER_RECORDING][FRAME_LENGTH],
+                             float fft_array[MAX_FRAMES_PER_RECORDING][NO_FREQ_BINS],
                              float frequency_bins[NO_FREQ_BINS],
                              const float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS]) {
     // average the spectral features across all frames
@@ -151,8 +151,8 @@ void flatten_feature_vector1(FeatureVector1* fv, float out[FEATURES_1]) {
 }
 
 void create_feature_vector1_chunk(FeatureVector1* fv,
-                                   int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH],
-                                   float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS],
+                                   int frame_array[MAX_FRAMES_PER_RECORDING][FRAME_LENGTH],
+                                   float fft_array[MAX_FRAMES_PER_RECORDING][NO_FREQ_BINS],
                                    float frequency_bins[NO_FREQ_BINS],
                                    const float filterbank[NUM_MEL_FILTERS][NO_FREQ_BINS],
                                    int start, int end) {

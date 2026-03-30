@@ -183,7 +183,7 @@ Channel CHANNEL_2 = {
     {},
     {},
     0x3FE2,
-    0x0500,
+    0x0720,
     false,
     {},
     {},
@@ -203,7 +203,7 @@ static void drawFullFrame(
     const char* button1, const char* button2, const char* button3, const char* button4,
     bool time_fill, bool spectrum_fill, bool spectrogram_fill, bool radar_fill
 ){
-    clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
+    clearRegion((point){0, 0}, 320, 240);   // wipe entire display
     createGraphButton(button1, (point){25, 76},  time_fill,        ACTIVE_CHANNEL -> fill_color);
     createGraphButton(button2, (point){56, 76},  spectrum_fill,    ACTIVE_CHANNEL -> fill_color);
     createGraphButton(button3, (point){102, 76}, radar_fill,       ACTIVE_CHANNEL -> fill_color);
@@ -211,7 +211,30 @@ static void drawFullFrame(
     displayCorrectGraph();
 
     if (ACTIVE_CHANNEL -> has_been_run){
+        // Redraw result boxes from stored result_buffer
+        drawGraphBoundingBox((point){25, 58}, 12, 130);
+        int no_greens = 0, no_reds = 0;
+        for (int i = 0; i < CHUNKS_PER_RECORDING; i++){
+            short int box_color = ACTIVE_CHANNEL->result_buffer[i] ? 0x0680 : 0xC000;
+            if (ACTIVE_CHANNEL->result_buffer[i]){
+                drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
+                no_greens++;
+            } else {
+                drawResultBox((point){25, 58}, 9 - no_reds, box_color, 13, 12);
+                no_reds++;
+            }
+        }
+
         drawChunkData(DISPLAY_CHUNK);
+
+        float percent = (float)no_greens / CHUNKS_PER_RECORDING;
+        char prediction_text[40];
+        if (percent > 0.5f){
+            sprintf(prediction_text, "Prediction: AUTHORIZED. CONFIDENCE: %.2f%%", percent * 100);
+        } else {
+            sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%", (1 - percent) * 100);
+        }
+        vga_text(6, 12, prediction_text);
     }
 }
 

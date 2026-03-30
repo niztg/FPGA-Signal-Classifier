@@ -228,13 +228,19 @@ static void drawFullFrame(
         drawChunkData(DISPLAY_CHUNK);
 
         float percent = (float)no_greens / CHUNKS_PER_RECORDING;
-        char prediction_text[40];
+        char prediction_text[64];
         if (percent > 0.5f){
-            sprintf(prediction_text, "Prediction: AUTHORIZED. CONFIDENCE: %.2f%%", percent * 100);
+            sprintf(prediction_text, "Prediction: AUTHORIZED. CONFIDENCE: %.2f%%        ", percent * 100);
         } else {
-            sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%", (1 - percent) * 100);
+            sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%    ", (1 - percent) * 100);
         }
         vga_text(6, 12, prediction_text);
+    }
+
+    if (is_channel_1){
+        vga_text(6, 76, "CH. 1");
+    } else{
+        vga_text(6, 76, "CH. 2");
     }
 }
 
@@ -256,6 +262,8 @@ int main(void){
     createGraphButton(button4, (point){155, 76}, spectrogram_fill, ACTIVE_CHANNEL -> fill_color);
 
     displayCorrectGraph();
+
+    vga_text(6, 76, "CH. 1");
 
     static bool ps2_break_pending = false;
     static bool ps2_extend_pending = false;
@@ -286,6 +294,7 @@ int main(void){
                     if (is_channel_1){
                         ACTIVE_CHANNEL = &CHANNEL_2;
                         is_channel_1 = false;
+
                     } else {
                         ACTIVE_CHANNEL = &CHANNEL_1;
                         is_channel_1 = true;
@@ -431,7 +440,9 @@ int main(void){
                         no_reds++;
                     }
 
-                    const char* running_prediction = (no_greens > no_reds) ? "Prediction: AUTHORIZED        " : "Prediction: NOT AUTHORIZED        ";
+                    const char* running_prediction = (no_greens > no_reds)
+                        ? "Prediction: AUTHORIZED                          "
+                        : "Prediction: NOT AUTHORIZED                      ";
                     vga_text(6, 12, running_prediction);
 
                     *led_ptr |= result << chunk_idx;
@@ -440,12 +451,12 @@ int main(void){
             }
 
             float percent = (float) no_greens / 10;
-            char prediction_text[40];
+            char prediction_text[64];
 
             if (percent > 0.5f){
-                sprintf(prediction_text, "Prediction: AUTHORIZED. CONFIDENCE: %.2f%%", percent * 100);
+                sprintf(prediction_text, "Prediction: AUTHORIZED. CONFIDENCE: %.2f%%        ", percent * 100);
             } else {
-                sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%", (1 - percent) * 100);
+                sprintf(prediction_text, "Prediction: NOT AUTHORIZED. CONFIDENCE: %.2f%%    ", (1 - percent) * 100);
             }
 
             vga_text(6, 12, prediction_text);

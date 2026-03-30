@@ -43,8 +43,9 @@ Code from this commit is MILESTONE #2 READY!
 
 #define KEY_R               0x2D
 #define KEY_P               0x4D
-#define KEY_UP   0x75
-#define KEY_DOWN 0x72
+#define KEY_C               0x21
+#define KEY_UP              0x75
+#define KEY_DOWN            0x72
 #define KEY_LEFT            0x6B
 #define KEY_RIGHT           0x74
 
@@ -152,6 +153,45 @@ const char* button2 = "Spectrum";
 const char* button3 = "MFCC Radar";
 const char* button4 = "Spectrogram";
 
+struct {
+    int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
+    int fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
+    short int fill_color;
+    short int std_color;
+    bool has_been_run;
+    int result_buffer[CHUNKS_PER_RECORDING];
+    int recording[RECORDING_LENGTH]; 
+    int average_fft[NO_FREQ_BINS]; 
+    FeatureVector1 feature_vector_array[CHUNKS_PER_RECORDING];
+} Channel;
+
+Channel CHANNEL_1 = {
+    {},
+    {},
+    0xFDE0,
+    0x39E7,
+    false,
+    {},
+    {},
+    {},
+    {}
+};
+
+Channel CHANNEL_2 = {
+    {},
+    {},
+    0x3FE2,
+    0x0D40.
+    false,
+    {},
+    {},
+    {},
+    {}
+}
+
+Channel* ACTIVE_CHANNEL = &CHANNEL_1;
+bool is_channel_1 = true;
+
 static inline bool ps2_read(unsigned char *out);
 
 // Helper: draw buttons + graph into the CURRENT back buffer, then swap.
@@ -161,13 +201,13 @@ static void drawFullFrame(
     bool time_fill, bool spectrum_fill, bool spectrogram_fill, bool radar_fill
 ){
     clearRegion((point){0, 80}, 320, 160);   // wipe buttons + graph region
-    createGraphButton(button1, (point){25, 76},  time_fill,        GRAPH_COLOR);
-    createGraphButton(button2, (point){56, 76},  spectrum_fill,    GRAPH_COLOR);
-    createGraphButton(button3, (point){102, 76}, radar_fill,       GRAPH_COLOR);
-    createGraphButton(button4, (point){155, 76}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 76},  time_fill,        ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button2, (point){56, 76},  spectrum_fill,    ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button3, (point){102, 76}, radar_fill,       ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button4, (point){155, 76}, spectrogram_fill, ACTIVE_CHANNEL -> GRAPH_COLOR);
     displayCorrectGraph();
 
-    if (has_been_run){
+    if (ACTIVE_CHANNEL -> has_been_run){
         drawChunkData(DISPLAY_CHUNK);
     }
 }
@@ -182,10 +222,10 @@ int main(void){
 
     clearRegion((point){0, 0}, 320, 240);
 
-    createGraphButton(button1, (point){25, 76},  time_fill,        GRAPH_COLOR);
-    createGraphButton(button2, (point){56, 76},  spectrum_fill,    GRAPH_COLOR);
-    createGraphButton(button3, (point){102, 76}, radar_fill,       GRAPH_COLOR);
-    createGraphButton(button4, (point){155, 76}, spectrogram_fill, GRAPH_COLOR);
+    createGraphButton(button1, (point){25, 76},  time_fill,        ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button2, (point){56, 76},  spectrum_fill,    ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button3, (point){102, 76}, radar_fill,       ACTIVE_CHANNEL -> GRAPH_COLOR);
+    createGraphButton(button4, (point){155, 76}, spectrogram_fill, ACTIVE_CHANNEL -> GRAPH_COLOR);
 
     displayCorrectGraph();
 
@@ -214,6 +254,14 @@ int main(void){
             ps2_extend_pending = false;
 
             if (!is_break){
+                if (byte == KEY_C){
+                    if (is_channel_1){
+                        ACTIVE_CHANNEL = &CHANNEL_2;
+                    } else {
+                        ACTIVE_CHANNEL = &CHANNEL_1;
+                    }
+                }
+
                 if (byte == KEY_R) record = true;
                 if (byte == KEY_P) playback = true;
 
@@ -293,14 +341,14 @@ int main(void){
         }
 
         if (record){
-            has_been_run = true;
+            ACTIVE_CHANNEL -> has_been_run = true;
             clearRegion((point){0,0}, 320, 75);
 
             record = false;
             *led_ptr = 0;
             captureRecordingAndGraphTime();
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
-            unzip_recording_into_frames(frame_array, recording);
+            unzip_recording_into_frames(ACTIVE_CHANNEL -> frame_array, ACTIVE_CHANNEL -> recording);
 
             // Hard code the exact body of the drawChunkData function once inline
             int chunk_idx = 0;
@@ -317,11 +365,11 @@ int main(void){
             int no_greens = 0;
 
             // Zero-pad the full array so bins beyond NO_FREQ_BINS render as flat
-            for (int i = 0; i < MAX_DISPLAY_BINS; i++) average_fft[i] = 0.0f;
+            for (int i = 0; i < MAX_DISPLAY_BINS; i++) ACTIVE_CHANNEL -> average_fft[i] = 0.0f;
 
             for (int frame_idx = 0; frame_idx < FRAMES_PER_RECORDING; frame_idx++){
-                compute_fft_magnitude(frame_array[frame_idx], fft_array[frame_idx], cfg);
-                for (int j = 0; j < NO_FREQ_BINS; j++) average_fft[j] += fft_array[frame_idx][j];
+                compute_fft_magnitude(ACTIVE_CHANNEL -> frame_array[frame_idx], ACTIVE_CHANNEL -> fft_array[frame_idx], cfg);
+                for (int j = 0; j < NO_FREQ_BINS; j++) ACTIVE_CHANNEL -> average_fft[j] += ACTIVE_CHANNEL -> fft_array[frame_idx][j];
 
                 if ((frame_idx + 1) % FRAMES_PER_CHUNK == 0){
                     int start = chunk_idx * FRAMES_PER_CHUNK;
@@ -332,14 +380,14 @@ int main(void){
                     create_feature_vector1_chunk(&fv, frame_array, fft_array,
                                                 frequency_bins, filterbank, start, end);
                     flatten_feature_vector1(&fv, feature_vec);
-                    feature_vector_array[chunk_idx] = fv;
+                    ACTIVE_CHANNEL -> feature_vector_array[chunk_idx] = fv;
 
                     drawChunkData(chunk_idx);
 
                     int result = model1(feature_vec);
                     short int box_color = result ? 0x0680 : 0xC000;
                                         
-                    result_buffer[chunk_idx] = result;
+                    ACTIVE_CHANNEL -> result_buffer[chunk_idx] = result;
 
                     if (result){
                         drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
@@ -369,7 +417,7 @@ int main(void){
             vga_text(6, 12, prediction_text);
 
             free(cfg);
-            for (int i = 0; i < NO_FREQ_BINS; i++) average_fft[i] /= FRAMES_PER_RECORDING;
+            for (int i = 0; i < NO_FREQ_BINS; i++) ACTIVE_CHANNEL -> average_fft[i] /= FRAMES_PER_RECORDING;
             drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
         }
@@ -410,8 +458,8 @@ int captureRecordingAndGraphTime() {
 
     for (int i = 0; i < RECORDING_LENGTH; i++) {
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
-            recording[i] = audio_ptr->ldata;
-            int absval = abs(recording[i]);
+            ACTIVE_CHANNEL -> recording[i] = audio_ptr->ldata;
+            int absval = abs(ACTIVE_CHANNEL -> recording[i]);
             if (absval > col_peak) col_peak = absval;
 
             if (i % samples_per_pixel == samples_per_pixel - 1) {
@@ -420,7 +468,7 @@ int captureRecordingAndGraphTime() {
                 
                 drawLine((point){x, time_plot_mid_left.y + line_height / 2},
                          (point){x, time_plot_mid_left.y - line_height / 2},
-                         GRAPH_COLOR, false);
+                         ACTIVE_CHANNEL -> fill_color, false);
                 x += 2;
                 col_peak = 0;  // reset for next column
             }
@@ -458,12 +506,12 @@ void playbackRecording(){
 
     for (int i = 0; i < RECORDING_LENGTH; i++){
         if (audio_ptr->wsrc > 0 && audio_ptr->wslc > 0){
-            audio_ptr->ldata = recording[i];
-            audio_ptr->rdata = recording[i];
+            audio_ptr->ldata = ACTIVE_CHANNEL -> recording[i];
+            audio_ptr->rdata = ACTIVE_CHANNEL -> recording[i];
             if (i % samples_per_pixel == samples_per_pixel - 1){
                 drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
                     (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
-                    GRAPH_COLOR, false);
+                    ACTIVE_CHANNEL -> fill_color, false);
                 x += 2;
             }
         }
@@ -492,12 +540,12 @@ void displayMagnitudeSpectrum(){
     );
 
     plotMagnitudeSpectrum(
-        average_fft,
+        ACTIVE_CHANNEL -> average_fft,
         bode_plot_top_left,
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
-        0xFDE0,
-        0xFDE0,
+        ACTIVE_CHANNEL -> fill_color,
+        ACTIVE_CHANNEL -> std_color,
         NO_DISPLAY_BINS,
         SPECTRUM_VIEWPORT_START
     );
@@ -519,7 +567,7 @@ void displaySpectrogram(){
     drawXAxisLabels(10, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 0.0, 5.0, "s");
     drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
     drawSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
-    plotSpectrogram(fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);
+    plotSpectrogram(ACTIVE_CHANNEL -> fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);
 }
 
 void displayMFCCRadar(){
@@ -531,7 +579,7 @@ void displayMFCCRadar(){
 
     char chunk_label[48];
     if (has_been_run){
-        const char* verdict = result_buffer[DISPLAY_CHUNK] ? "AUTHORIZED" : "NOT AUTHORIZED";
+        const char* verdict = ACTIVE_CHANNEL -> result_buffer[DISPLAY_CHUNK] ? "AUTHORIZED" : "NOT AUTHORIZED";
         sprintf(chunk_label, "Chunk %d: %s", DISPLAY_CHUNK + 1, verdict);
     } else {
         sprintf(chunk_label, "No recording yet.");
@@ -539,12 +587,12 @@ void displayMFCCRadar(){
     vga_text(25 / TEXT_CELL_W, 96 / TEXT_CELL_H, chunk_label);
 
     plotMFCCRadar(
-        feature_vector_array[DISPLAY_CHUNK].mfcc_mean,
-        feature_vector_array[DISPLAY_CHUNK].mfcc_std,
+        ACTIVE_CHANNEL -> feature_vector_array[DISPLAY_CHUNK].mfcc_mean,
+        ACTIVE_CHANNEL -> feature_vector_array[DISPLAY_CHUNK].mfcc_std,
         centre,
         radius,
-        GRAPH_COLOR,
-        0xFD00,
+        ACTIVE_CHANNEL -> fill_color,
+        ACTIVE_CHANNEL -> std_color,
         0x39E7
     );
 }
@@ -561,10 +609,10 @@ void drawChunkData(
     sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, CHUNKS_PER_RECORDING);
     vga_text(6, 4, classification_text);
 
-    bar_values[0] = feature_vector_array[chunk_idx].zeroCrossingRate;
-    bar_values[1] = feature_vector_array[chunk_idx].spectralCentroid;
-    bar_values[2] = feature_vector_array[chunk_idx].lowBandPowerRatio;
-    bar_values[3] = feature_vector_array[chunk_idx].highBandPowerRatio;
+    bar_values[0] = ACTIVE_CHANNEL -> feature_vector_array[chunk_idx].zeroCrossingRate;
+    bar_values[1] = ACTIVE_CHANNEL -> feature_vector_array[chunk_idx].spectralCentroid;
+    bar_values[2] = ACTIVE_CHANNEL -> feature_vector_array[chunk_idx].lowBandPowerRatio;
+    bar_values[3] = ACTIVE_CHANNEL -> feature_vector_array[chunk_idx].highBandPowerRatio;
 
     drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels);
 }

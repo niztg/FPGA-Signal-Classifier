@@ -489,9 +489,6 @@ int captureRecordingAndGraphTime() {
     int const MAX_AMPLITUDE = 0x6FFFFFFF;
     int x = time_plot_mid_left.x;
     int col_peak = 0;  // tracks peak within current pixel column
-    
-    // Draw directly to the front (currently displayed) buffer — no vsync stalls
-    clearRegion(graph_region, 295, 155);
 
     drawLine((point){x, time_plot_mid_left.y + (STANDARD_GRAPH_HEIGHT/2) - axes_offset},
              (point){x, time_plot_mid_left.y - (STANDARD_GRAPH_HEIGHT/2) + axes_offset},

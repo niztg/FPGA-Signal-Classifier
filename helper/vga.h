@@ -17,7 +17,7 @@ typedef struct {
 } point;
 
 extern int samples_per_pixel;
-extern int n_chunks;
+extern Channel* ACTIVE_CHANNEL;
 extern int const axes_offset;
 
 extern volatile char* character_buffer_start;

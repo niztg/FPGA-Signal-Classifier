@@ -462,14 +462,17 @@ int main(void){
 }
 
 int captureRecordingAndGraphTime() {
+    point graph_region = {15, 93};
+    clearRegion(graph_region, 295, 155);
     if (DISPLAY_GRAPH != 0){
         DISPLAY_GRAPH = 0;
         fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
+        for (int i = 0; i < ACTIVE_CHANNEL -> n_chunks; i++){
+            result_buffer[i] = 0; // clear result buffer
+        }
         drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
     }
-    point graph_region = {15, 93};
-    clearRegion(graph_region, 295, 155);
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
     int const MAX_AMPLITUDE = 0x6FFFFFFF;
     int x = time_plot_mid_left.x;
@@ -518,9 +521,14 @@ static inline bool ps2_read(unsigned char *out) {
 }
 
 void playbackRecording(){
+    point graph_region = {15, 93};
+    clearRegion(graph_region, 295, 155);
     if (DISPLAY_GRAPH != 0){
         DISPLAY_GRAPH = 0;
         fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
+        for (int i = 0; i < ACTIVE_CHANNEL -> n_chunks; i++){
+            result_buffer[i] = 0; // clear result buffer
+        }
         drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
     }

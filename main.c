@@ -68,10 +68,6 @@ int* time_plot_line_heights = NULL;
 point const time_plot_mid_left = {25, 160};
 int const axes_offset = 2;
 
-int recording_length    = SAMPLING_RATE * 5;                         // default 5s, user-controlled
-int n_chunks            = (SAMPLING_RATE * 5) / CHUNK_DURATION_SAMPLES;
-int frames_per_recording = ((SAMPLING_RATE * 5) / CHUNK_DURATION_SAMPLES) * FRAMES_PER_CHUNK;
-int samples_per_pixel   = (SAMPLING_RATE * 5 * 2) / STANDARD_GRAPH_WIDTH;
 
 typedef struct {
     volatile unsigned int control;
@@ -152,6 +148,10 @@ typedef struct {
     float average_fft[MAX_DISPLAY_BINS];
     FeatureVector1 feature_vector_array[MAX_CHUNKS_PER_RECORDING];
     int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2];
+    int recording_length;
+    int n_chunks;
+    int frames_per_recording;
+    int samples_per_pixel;
 } Channel;
 
 Channel CHANNEL_1 = {
@@ -164,7 +164,11 @@ Channel CHANNEL_1 = {
     {},
     {},
     {},
-    {}
+    {},
+    SAMPLING_RATE * 5,
+    (SAMPLING_RATE * 5) / CHUNK_DURATION_SAMPLES,
+    ((SAMPLING_RATE * 5) / CHUNK_DURATION_SAMPLES) * FRAMES_PER_CHUNK,
+    (SAMPLING_RATE * 5 * 2) / STANDARD_GRAPH_WIDTH
 };
 
 Channel CHANNEL_2 = {
@@ -177,7 +181,11 @@ Channel CHANNEL_2 = {
     {},
     {},
     {},
-    {}
+    {},
+    SAMPLING_RATE * 5,
+    (SAMPLING_RATE * 5) / CHUNK_DURATION_SAMPLES,
+    ((SAMPLING_RATE * 5) / CHUNK_DURATION_SAMPLES) * FRAMES_PER_CHUNK,
+    (SAMPLING_RATE * 5 * 2) / STANDARD_GRAPH_WIDTH
 };
 
 Channel* ACTIVE_CHANNEL = &CHANNEL_1;
@@ -200,22 +208,22 @@ static void drawFullFrame(
 
     if (ACTIVE_CHANNEL -> has_been_run){
         // Redraw result boxes from stored result_buffer
-        drawGraphBoundingBox((point){25, 58}, 12, 13 * n_chunks);
+        drawGraphBoundingBox((point){25, 58}, 12, 13 * ACTIVE_CHANNEL->n_chunks);
         int no_greens = 0, no_reds = 0;
-        for (int i = 0; i < n_chunks; i++){
+        for (int i = 0; i < ACTIVE_CHANNEL->n_chunks; i++){
             short int box_color = ACTIVE_CHANNEL->result_buffer[i] ? 0x0680 : 0xC000;
             if (ACTIVE_CHANNEL->result_buffer[i]){
                 drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
                 no_greens++;
             } else {
-                drawResultBox((point){25, 58}, n_chunks - 1 - no_reds, box_color, 13, 12);
+                drawResultBox((point){25, 58}, ACTIVE_CHANNEL->n_chunks - 1 - no_reds, box_color, 13, 12);
                 no_reds++;
             }
         }
 
         drawChunkData(DISPLAY_CHUNK);
 
-        float percent = (float)no_greens / n_chunks;
+        float percent = (float)no_greens / ACTIVE_CHANNEL->n_chunks;
         char prediction_text[64];
         if (percent > 0.5f){
             sprintf(prediction_text, "Prediction: AUTHORIZED. CONFIDENCE: %.2f%%        ", percent * 100);
@@ -297,11 +305,12 @@ int main(void){
                 if (byte == KEY_P) playback = true;
 
                 if (byte == KEY_T){
-                    recording_length += SAMPLING_RATE;
-                    if (recording_length > MAX_RECORDING_LENGTH) recording_length = SAMPLING_RATE;
-                    n_chunks          = recording_length / CHUNK_DURATION_SAMPLES;
-                    frames_per_recording = n_chunks * FRAMES_PER_CHUNK;
-                    samples_per_pixel = (recording_length * 2) / STANDARD_GRAPH_WIDTH;
+                    ACTIVE_CHANNEL->recording_length += SAMPLING_RATE;
+                    if (ACTIVE_CHANNEL->recording_length > MAX_RECORDING_LENGTH)
+                        ACTIVE_CHANNEL->recording_length = SAMPLING_RATE;
+                    ACTIVE_CHANNEL->n_chunks          = ACTIVE_CHANNEL->recording_length / CHUNK_DURATION_SAMPLES;
+                    ACTIVE_CHANNEL->frames_per_recording = ACTIVE_CHANNEL->n_chunks * FRAMES_PER_CHUNK;
+                    ACTIVE_CHANNEL->samples_per_pixel = (ACTIVE_CHANNEL->recording_length * 2) / STANDARD_GRAPH_WIDTH;
                 }
 
                 if (DISPLAY_GRAPH == 1 && byte == KEY_MINUS){
@@ -382,16 +391,16 @@ int main(void){
             *led_ptr = 0;
             captureRecordingAndGraphTime();
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
-            unzip_recording_into_frames(ACTIVE_CHANNEL -> frame_array, ACTIVE_CHANNEL -> recording, frames_per_recording);
+            unzip_recording_into_frames(ACTIVE_CHANNEL -> frame_array, ACTIVE_CHANNEL -> recording, ACTIVE_CHANNEL->frames_per_recording);
 
             // Hard code the exact body of the drawChunkData function once inline
             int chunk_idx = 0;
             float bar_values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
             const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
 
-            drawGraphBoundingBox((point){25, 58}, 12, 13 * n_chunks);
+            drawGraphBoundingBox((point){25, 58}, 12, 13 * ACTIVE_CHANNEL->n_chunks);
             char init_chunk_text[32];
-            sprintf(init_chunk_text, "Chunk 0 / %d     ", n_chunks);
+            sprintf(init_chunk_text, "Chunk 0 / %d     ", ACTIVE_CHANNEL->n_chunks);
             vga_text(6, 4, init_chunk_text);
             drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels, ACTIVE_CHANNEL->std_color);
             vga_text(6, 12, "Prediction: --                  ");
@@ -402,7 +411,7 @@ int main(void){
             // Zero-pad the full array so bins beyond NO_FREQ_BINS render as flat
             for (int i = 0; i < MAX_DISPLAY_BINS; i++) ACTIVE_CHANNEL -> average_fft[i] = 0.0f;
 
-            for (int frame_idx = 0; frame_idx < frames_per_recording; frame_idx++){
+            for (int frame_idx = 0; frame_idx < ACTIVE_CHANNEL->frames_per_recording; frame_idx++){
                 compute_fft_magnitude(ACTIVE_CHANNEL -> frame_array[frame_idx], ACTIVE_CHANNEL -> fft_array[frame_idx], cfg);
                 for (int j = 0; j < NO_FREQ_BINS; j++) ACTIVE_CHANNEL -> average_fft[j] += ACTIVE_CHANNEL -> fft_array[frame_idx][j];
 
@@ -428,7 +437,7 @@ int main(void){
                         drawResultBox((point){25, 58}, no_greens, box_color, 13, 12);
                         no_greens++;
                     } else {
-                        drawResultBox((point){25, 58}, n_chunks - 1 - no_reds, box_color, 13, 12);
+                        drawResultBox((point){25, 58}, ACTIVE_CHANNEL->n_chunks - 1 - no_reds, box_color, 13, 12);
                         no_reds++;
                     }
 
@@ -442,7 +451,7 @@ int main(void){
                 }
             }
 
-            float percent = (float) no_greens / n_chunks;
+            float percent = (float) no_greens / ACTIVE_CHANNEL->n_chunks;
             char prediction_text[64];
 
             if (percent > 0.5f){
@@ -454,7 +463,7 @@ int main(void){
             vga_text(6, 12, prediction_text);
 
             free(cfg);
-            for (int i = 0; i < NO_FREQ_BINS; i++) ACTIVE_CHANNEL -> average_fft[i] /= frames_per_recording;
+            for (int i = 0; i < NO_FREQ_BINS; i++) ACTIVE_CHANNEL -> average_fft[i] /= ACTIVE_CHANNEL->frames_per_recording;
             drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
         }
@@ -493,13 +502,13 @@ int captureRecordingAndGraphTime() {
              (point){x + STANDARD_GRAPH_WIDTH, time_plot_mid_left.y},
              LINE_COLOR, false);
 
-    for (int i = 0; i < recording_length; i++) {
+    for (int i = 0; i < ACTIVE_CHANNEL->recording_length; i++) {
         if (audio_ptr->rarc > 0 && audio_ptr->ralc > 0) {
             ACTIVE_CHANNEL -> recording[i] = audio_ptr->ldata;
             int absval = abs(ACTIVE_CHANNEL -> recording[i]);
             if (absval > col_peak) col_peak = absval;
 
-            if (i % samples_per_pixel == samples_per_pixel - 1) {
+            if (i % ACTIVE_CHANNEL->samples_per_pixel == ACTIVE_CHANNEL->samples_per_pixel - 1) {
                 int line_height = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * usable_height);
                 time_plot_line_heights[(x - time_plot_mid_left.x) / 2] = line_height;
                 
@@ -541,11 +550,11 @@ void playbackRecording(){
 
     int x = time_plot_mid_left.x;
 
-    for (int i = 0; i < recording_length; i++){
+    for (int i = 0; i < ACTIVE_CHANNEL->recording_length; i++){
         if (audio_ptr->wsrc > 0 && audio_ptr->wslc > 0){
             audio_ptr->ldata = ACTIVE_CHANNEL -> recording[i];
             audio_ptr->rdata = ACTIVE_CHANNEL -> recording[i];
-            if (i % samples_per_pixel == samples_per_pixel - 1){
+            if (i % ACTIVE_CHANNEL->samples_per_pixel == ACTIVE_CHANNEL->samples_per_pixel - 1){
                 drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
                     (point){x, time_plot_mid_left.y - (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
                     ACTIVE_CHANNEL -> fill_color, false);
@@ -594,7 +603,7 @@ void displayTime(){
     plotTimeDomain(time_plot_mid_left,
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
-        recording_length,
+        ACTIVE_CHANNEL->recording_length,
         ACTIVE_CHANNEL -> fill_color
     );
 }
@@ -602,7 +611,7 @@ void displayTime(){
 void displaySpectrogram(){
     point spectrogram_top_left = {25, 100};
     drawGraphBoundingBox(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
-    drawXAxisLabels(10, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 0.0, (double)recording_length / SAMPLING_RATE, "s");
+    drawXAxisLabels(10, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, 0.0, (double)ACTIVE_CHANNEL->recording_length / SAMPLING_RATE, "s");
     drawYAxisLabels(5, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40, 0xFFFF, (double)frequency_bins[NO_FREQ_BINS-1], "Hz");
     drawSpectrogramLabel(spectrogram_top_left, STANDARD_GRAPH_HEIGHT, STANDARD_GRAPH_WIDTH - 40);
     plotSpectrogram(ACTIVE_CHANNEL -> fft_array, spectrogram_top_left, STANDARD_GRAPH_HEIGHT, 230);
@@ -644,7 +653,7 @@ void drawChunkData(
     const char* bar_labels[4] = { "ZCR ", "SC  ", "LBPR", "HBPR" };
     float bar_values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-    sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, n_chunks);
+    sprintf(classification_text, "Chunk %d / %d     ", chunk_idx + 1, ACTIVE_CHANNEL->n_chunks);
     vga_text(6, 4, classification_text);
 
     bar_values[0] = ACTIVE_CHANNEL -> feature_vector_array[chunk_idx].zeroCrossingRate;

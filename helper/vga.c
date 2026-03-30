@@ -8,7 +8,7 @@
 #define TEXT_CELL_H 4
 #define TEXT_CELL_W 4
 
-extern int time_plot_line_heights[];
+extern int* time_plot_line_heights;
 
 // Hard-coded sin/cos of all angles 2πk/8
 static const float RADAR_COS[8] = {

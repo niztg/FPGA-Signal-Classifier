@@ -69,7 +69,7 @@ Code from this commit is MILESTONE #2 READY!
 #define MAX_DISPLAY_BINS    NO_FREQ_BINS+(7*20)
 #define MIN_DISPLAY_BINS    NO_FREQ_BINS-(6*20)
 
-int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2] = {0};
+int* time_plot_line_heights = NULL;
 int const samples_per_pixel = (RECORDING_LENGTH * 2) / STANDARD_GRAPH_WIDTH;
 point const time_plot_mid_left = {25, 160};
 int const axes_offset = 2;
@@ -160,9 +160,10 @@ typedef struct {
     short int std_color;
     bool has_been_run;
     int result_buffer[CHUNKS_PER_RECORDING];
-    int recording[RECORDING_LENGTH]; 
-    float average_fft[NO_FREQ_BINS]; 
+    int recording[RECORDING_LENGTH];
+    float average_fft[MAX_DISPLAY_BINS];
     FeatureVector1 feature_vector_array[CHUNKS_PER_RECORDING];
+    int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2];
 } Channel;
 
 Channel CHANNEL_1 = {
@@ -171,6 +172,7 @@ Channel CHANNEL_1 = {
     0xFDE0,
     0xFD00,
     false,
+    {},
     {},
     {},
     {},
@@ -183,6 +185,7 @@ Channel CHANNEL_2 = {
     0x3FE2,
     0x0500,
     false,
+    {},
     {},
     {},
     {},
@@ -216,6 +219,8 @@ int main(void){
     character_buffer_start = (volatile char*) *character_ctrl_ptr;  // add this back
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1;
     pixel_buffer_start = *pixel_ctrl_ptr;
+
+    time_plot_line_heights = ACTIVE_CHANNEL->time_plot_line_heights;
 
     compute_frequency_bins(frequency_bins);
     compute_mel_filterbank(filterbank, 80.0f, 4000.0f);
@@ -262,6 +267,7 @@ int main(void){
                         ACTIVE_CHANNEL = &CHANNEL_1;
                         is_channel_1 = true;
                     }
+                    time_plot_line_heights = ACTIVE_CHANNEL->time_plot_line_heights;
                 
                 drawFullFrame(button1, button2, button3, button4,
                     time_fill, spectrum_fill, spectrogram_fill, radar_fill);
@@ -363,7 +369,7 @@ int main(void){
 
             drawGraphBoundingBox((point){25, 58}, 12, 130);
             vga_text(6, 4, "Chunk 0 / 10     ");
-            drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels);
+            drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels, ACTIVE_CHANNEL->std_color);
             vga_text(6, 12, "Prediction: --                  ");
 
             int no_reds = 0;
@@ -382,7 +388,7 @@ int main(void){
 
                     FeatureVector1 fv;
                     float feature_vec[FEATURES_1];
-                    create_feature_vector1_chunk(&fv, frame_array, fft_array,
+                    create_feature_vector1_chunk(&fv, ACTIVE_CHANNEL->frame_array, ACTIVE_CHANNEL->fft_array,
                                                 frequency_bins, filterbank, start, end);
                     flatten_feature_vector1(&fv, feature_vec);
                     ACTIVE_CHANNEL -> feature_vector_array[chunk_idx] = fv;
@@ -562,7 +568,7 @@ void displayTime(){
     plotTimeDomain(time_plot_mid_left,
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
-        RECORDING_LENGTH
+        RECORDING_LENGTH,
         ACTIVE_CHANNEL -> fill_color
     );
 }

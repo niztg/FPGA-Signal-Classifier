@@ -153,15 +153,15 @@ const char* button2 = "Spectrum";
 const char* button3 = "MFCC Radar";
 const char* button4 = "Spectrogram";
 
-struct {
+typedef struct {
     int frame_array[FRAMES_PER_RECORDING][FRAME_LENGTH];
-    int fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
+    float fft_array[FRAMES_PER_RECORDING][NO_FREQ_BINS];
     short int fill_color;
     short int std_color;
     bool has_been_run;
     int result_buffer[CHUNKS_PER_RECORDING];
     int recording[RECORDING_LENGTH]; 
-    int average_fft[NO_FREQ_BINS]; 
+    float average_fft[NO_FREQ_BINS]; 
     FeatureVector1 feature_vector_array[CHUNKS_PER_RECORDING];
 } Channel;
 

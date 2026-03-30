@@ -25,6 +25,7 @@ data_processing.h
 
 #include "../fft_helper/kiss_fftr.h"
 #include "signal_analysis.h"  // for NUM_MFCC
+#include <stdbool.h>
 
 typedef struct {
     float zeroCrossingRate;    // kept as double — computed from integer samples

@@ -367,12 +367,35 @@ int main(void){
         }
 
         if (record){
-            ACTIVE_CHANNEL -> has_been_run = true;
-            clearRegion((point){0,0}, 320, 75);
-
+            ACTIVE_CHANNEL->has_been_run = false;  // suppress drawFullFrame chunk/prediction redraw
             record = false;
             *led_ptr = 0;
+            DISPLAY_GRAPH = 0;
+            fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
+
+            // Wipe pixel buffer completely
+            clearRegion((point){0, 0}, 320, 240);
+
+            // Wipe character buffer rows that hold stale text
+            // Row 4 = chunk counter, row 12 = prediction text
+            vga_text(6, 4,  "                                        ");
+            vga_text(6, 12, "                                        ");
+
+            // Redraw buttons only, no chunk data
+            createGraphButton(button1, (point){25, 76}, true,  ACTIVE_CHANNEL->fill_color);
+            createGraphButton(button2, (point){56, 76}, false, ACTIVE_CHANNEL->fill_color);
+            createGraphButton(button3, (point){102, 76}, false, ACTIVE_CHANNEL->fill_color);
+            createGraphButton(button4, (point){155, 76}, false, ACTIVE_CHANNEL->fill_color);
+
+            if (is_channel_1) vga_text(55, 20, "CH. 1");
+            else              vga_text(55, 20, "CH. 2");
+
+            PREV_DISPLAY_GRAPH = 0;
+
             captureRecordingAndGraphTime();
+            
+            ACTIVE_CHANNEL -> has_been_run = true;
+
             kiss_fftr_cfg cfg = kiss_fftr_alloc(FRAME_LENGTH, 0, NULL, NULL);
             unzip_recording_into_frames(ACTIVE_CHANNEL -> frame_array, ACTIVE_CHANNEL -> recording, ACTIVE_CHANNEL->frames_per_recording);
 
@@ -462,17 +485,6 @@ int main(void){
 }
 
 int captureRecordingAndGraphTime() {
-    point graph_region = {15, 93};
-    clearRegion(graph_region, 295, 155);
-    if (DISPLAY_GRAPH != 0){
-        DISPLAY_GRAPH = 0;
-        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
-        for (int i = 0; i < ACTIVE_CHANNEL -> n_chunks; i++){
-            ACTIVE_CHANNEL -> result_buffer[i] = 0; // clear result buffer
-        }
-        drawFullFrame(button1, button2, button3, button4,
-                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
-    }
     int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
     int const MAX_AMPLITUDE = 0x6FFFFFFF;
     int x = time_plot_mid_left.x;
@@ -521,17 +533,6 @@ static inline bool ps2_read(unsigned char *out) {
 }
 
 void playbackRecording(){
-    point graph_region = {15, 93};
-    clearRegion(graph_region, 295, 155);
-    if (DISPLAY_GRAPH != 0){
-        DISPLAY_GRAPH = 0;
-        fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
-        for (int i = 0; i < ACTIVE_CHANNEL -> n_chunks; i++){
-            ACTIVE_CHANNEL -> result_buffer[i] = 0; // clear result buffer
-        }
-        drawFullFrame(button1, button2, button3, button4,
-                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
-    }
     //make current graph white
     for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
         drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},

@@ -468,7 +468,7 @@ int captureRecordingAndGraphTime() {
         DISPLAY_GRAPH = 0;
         fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
         for (int i = 0; i < ACTIVE_CHANNEL -> n_chunks; i++){
-            result_buffer[i] = 0; // clear result buffer
+            ACTIVE_CHANNEL -> result_buffer[i] = 0; // clear result buffer
         }
         drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);
@@ -527,7 +527,7 @@ void playbackRecording(){
         DISPLAY_GRAPH = 0;
         fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
         for (int i = 0; i < ACTIVE_CHANNEL -> n_chunks; i++){
-            result_buffer[i] = 0; // clear result buffer
+            ACTIVE_CHANNEL -> result_buffer[i] = 0; // clear result buffer
         }
         drawFullFrame(button1, button2, button3, button4,
                         time_fill, spectrum_fill, spectrogram_fill, radar_fill);

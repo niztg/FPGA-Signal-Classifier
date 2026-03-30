@@ -182,7 +182,7 @@ Channel CHANNEL_1 = {
 Channel CHANNEL_2 = {
     {},
     {},
-    0x3FE2,
+    0xF81F,
     0x0720,
     false,
     {},

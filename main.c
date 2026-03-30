@@ -563,6 +563,7 @@ void displayTime(){
         STANDARD_GRAPH_WIDTH,
         STANDARD_GRAPH_HEIGHT,
         RECORDING_LENGTH
+        ACTIVE_CHANNEL -> fill_color
     );
 }
 
@@ -619,7 +620,7 @@ void drawChunkData(
     bar_values[2] = ACTIVE_CHANNEL -> feature_vector_array[chunk_idx].lowBandPowerRatio;
     bar_values[3] = ACTIVE_CHANNEL -> feature_vector_array[chunk_idx].highBandPowerRatio;
 
-    drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels);
+    drawFeatureBars((point){24, 24}, 200, 20, bar_values, bar_labels, ACTIVE_CHANNEL -> std_color);
 }
 
 void displayCorrectGraph(){

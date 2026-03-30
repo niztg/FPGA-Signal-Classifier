@@ -23,9 +23,6 @@ extern volatile char* character_buffer_start;
 extern volatile int * character_ctrl_ptr;
 extern volatile int pixel_buffer_start;
 extern volatile int* pixel_ctrl_ptr;
-extern int recording[];
-
-
 
 #define RECORDING_LENGTH   40000
 #define FRAME_LENGTH       256
@@ -82,8 +79,7 @@ void drawYAxisLabels(
 );
 
 void plotTimeDomain(point reference, int width, int height,
-    int number_of_samples
-);
+    int number_of_samples, short int color);
 void plotMagnitudeSpectrum(
     float average_fft[MAX_DISPLAY_BINS],
     point top_left,
@@ -123,7 +119,7 @@ void drawResultBox(
     int box_height
 );
 void drawFeatureBars(point top_left, int width, int height,
-                     float values[4], const char* labels[4]);
+                     float values[4], const char* labels[4], short int color);
 void plotMFCCRadar(
     float mfcc_mean[NUM_MFCC],
     float mfcc_std[NUM_MFCC],

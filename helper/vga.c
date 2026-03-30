@@ -316,7 +316,7 @@ void drawYAxisLabels(
 }
 
 void plotTimeDomain(point reference, int width, int height,
-    int number_of_samples){
+    int number_of_samples, short int color){
 
     // draw axes
     drawLine((point){reference.x, reference.y + (height/2) - axes_offset},
@@ -334,7 +334,7 @@ void plotTimeDomain(point reference, int width, int height,
 
         drawLine((point){x, reference.y + (line_height / 2)},
                  (point){x, reference.y - (line_height / 2)},
-                 GRAPH_COLOR, false);
+                 color, false);
     }
     drawLine((point){reference.x, reference.y + (height/2) - axes_offset},
              (point){reference.x, reference.y - (height/2) + axes_offset},
@@ -565,7 +565,7 @@ void drawResultBox(
 }
 
 void drawFeatureBars(point top_left, int width, int height,
-                     float values[4], const char* labels[4]) {
+                     float values[4], const char* labels[4], short int color) {
 
     static const float max_vals[4] = { 0.5f, 2500.0f, 1.0f, 0.65f };
 
@@ -595,7 +595,7 @@ void drawFeatureBars(point top_left, int width, int height,
         int filled = (int)(normalized * bar_area_px);
 
         for (int x = bar_x; x < bar_x + filled; x++)
-            drawLine((point){x, bar_y}, (point){x, bar_y + bar_h}, GRAPH_COLOR, false);
+            drawLine((point){x, bar_y}, (point){x, bar_y + bar_h}, color, false);
 
         if (values[i] != 0.0f) {
             char val_buf[12];

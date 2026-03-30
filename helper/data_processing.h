@@ -41,6 +41,22 @@ typedef struct {
     float mfcc_std[NUM_MFCC];
 } FeatureVector1;
 
+typedef struct {
+    int frame_array[MAX_FRAMES_PER_RECORDING][FRAME_LENGTH];
+    float fft_array[MAX_FRAMES_PER_RECORDING][NO_FREQ_BINS];
+    short int fill_color;
+    short int std_color;
+    bool has_been_run;
+    int result_buffer[MAX_CHUNKS_PER_RECORDING];
+    int recording[MAX_RECORDING_LENGTH];
+    float average_fft[MAX_DISPLAY_BINS];
+    FeatureVector1 feature_vector_array[MAX_CHUNKS_PER_RECORDING];
+    int time_plot_line_heights[STANDARD_GRAPH_WIDTH/2];
+    int recording_length;
+    int n_chunks;
+    int frames_per_recording;
+    int samples_per_pixel;
+} Channel;
 
 void unzip_recording_into_frames(int frame_array[MAX_FRAMES_PER_RECORDING][FRAME_LENGTH], const int recording[MAX_RECORDING_LENGTH], int n_frames);
 void compute_fft_magnitude(const int frame[FRAME_LENGTH], float fft_frame[NO_FREQ_BINS], kiss_fftr_cfg cfg);

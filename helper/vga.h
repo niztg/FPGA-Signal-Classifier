@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include "data_processing.h"
+
 #define BACKGROUND_COLOR 0x0000
 #define LINE_COLOR       0xFFFF
 #define GRAPH_COLOR      0xFDE0

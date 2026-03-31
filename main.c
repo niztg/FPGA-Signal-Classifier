@@ -132,6 +132,9 @@ void displayMFCCRadar();
 void drawChunkData();
 void displayCorrectGraph();
 
+int poll_encoder(int base_bit, int idx);
+int poll_encoder_button(int base_bit, int idx);
+
 const char* button1 = "Time";
 const char* button2 = "Spectrum";
 const char* button3 = "MFCC Radar";
@@ -518,6 +521,35 @@ int captureRecordingAndGraphTime() {
         }
 
     }
+}
+
+int poll_encoder(int base_bit, int idx) {
+    static int prev_clk[5] = {1, 1, 1, 1, 1};
+    
+    int clk = (*jp1_ptr >> (base_bit + 0)) & 1;
+    int dt  = (*jp1_ptr >> (base_bit + 2)) & 1;
+    
+    int dir = 0;
+    if (clk && !prev_clk[idx]) {
+        dir = dt ? -1 : 1;
+    }
+    
+    prev_clk[idx] = clk;
+    return dir;
+}
+
+int poll_encoder_button(int base_bit, int idx) {
+    static int prev_btn[5] = {1, 1, 1, 1, 1};
+    
+    int btn = (*jp1_ptr >> (base_bit + 4)) & 1;
+    
+    int pressed = 0;
+    if (!btn && prev_btn[idx]) {
+        pressed = 1;
+    }
+    
+    prev_btn[idx] = btn;
+    return pressed;
 }
 
 static inline bool ps2_read(unsigned char *out) {

@@ -40,7 +40,8 @@ Code from this commit is MILESTONE #2 READY!
 #define KEY_R               0x2D
 #define KEY_P               0x4D
 #define KEY_C               0x21
-#define KEY_T               0x2C
+#define KEY_PLUS            0x55
+#define KEY_MINUS           0x4E
 #define KEY_UP              0x75
 #define KEY_DOWN            0x72
 #define KEY_LEFT            0x6B
@@ -227,6 +228,10 @@ static void drawFullFrame(
     } else{
         vga_text(55, 20, "CH. 2");
     }
+
+    char* length;
+    sprintf(length, "Recording length: %ds ", ACTIVE_CHANNEL->recording_length / 8000);
+    vga_text(6, 23, length);
 }
 
 int main(void){
@@ -249,6 +254,9 @@ int main(void){
     displayCorrectGraph();
 
     vga_text(55, 20, "CH. 1");
+    char* length;
+    sprintf(length, "Recording length: %ds ", ACTIVE_CHANNEL->recording_length / 8000);
+    vga_text(6, 23, length);
 
     static bool ps2_break_pending = false;
     static bool ps2_extend_pending = false;
@@ -338,13 +346,27 @@ int main(void){
                 if (byte == KEY_R) record = true;
                 if (byte == KEY_P) playback = true;
 
-                if (byte == KEY_T){
+                if (byte == KEY_PLUS){
                     ACTIVE_CHANNEL->recording_length += SAMPLING_RATE;
                     if (ACTIVE_CHANNEL->recording_length > MAX_RECORDING_LENGTH)
-                        ACTIVE_CHANNEL->recording_length = SAMPLING_RATE;
+                        ACTIVE_CHANNEL->recording_length -= SAMPLING_RATE;
                     ACTIVE_CHANNEL->n_chunks          = ACTIVE_CHANNEL->recording_length / CHUNK_DURATION_SAMPLES;
                     ACTIVE_CHANNEL->frames_per_recording = ACTIVE_CHANNEL->n_chunks * FRAMES_PER_CHUNK;
                     ACTIVE_CHANNEL->samples_per_pixel = (ACTIVE_CHANNEL->recording_length * 2) / STANDARD_GRAPH_WIDTH;
+                    char* length;
+                    sprintf(length, "Recording length: %ds ", ACTIVE_CHANNEL->recording_length / 8000);
+                    vga_text(6, 23, length);
+                }
+                if (byte == KEY_MINUS){
+                    ACTIVE_CHANNEL->recording_length -= SAMPLING_RATE;
+                    if (ACTIVE_CHANNEL->recording_length < MIN_RECORDING_LENGTH)
+                        ACTIVE_CHANNEL->recording_length += SAMPLING_RATE;
+                    ACTIVE_CHANNEL->n_chunks          = ACTIVE_CHANNEL->recording_length / CHUNK_DURATION_SAMPLES;
+                    ACTIVE_CHANNEL->frames_per_recording = ACTIVE_CHANNEL->n_chunks * FRAMES_PER_CHUNK;
+                    ACTIVE_CHANNEL->samples_per_pixel = (ACTIVE_CHANNEL->recording_length * 2) / STANDARD_GRAPH_WIDTH;
+                    char* length;
+                    sprintf(length, "Recording length: %ds ", ACTIVE_CHANNEL->recording_length / 8000);
+                    vga_text(6, 23, length);
                 }
 
                 if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 4) % 4;
@@ -398,6 +420,9 @@ int main(void){
 
             if (is_channel_1) vga_text(55, 20, "CH. 1");
             else              vga_text(55, 20, "CH. 2");
+            char* length;
+            sprintf(length, "Recording length: %ds ", ACTIVE_CHANNEL->recording_length / 8000);
+            vga_text(6, 23, length);
 
             PREV_DISPLAY_GRAPH = 0;
 

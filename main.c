@@ -259,10 +259,22 @@ int main(void){
     while (1){
         unsigned char byte;
 
-        int dial_1 = poll_encoder(0,0); // dial 0
+        int dial_1 = poll_encoder(1,0); // dial 0
+        if (DISPLAY_GRAPH == 1 && dial_1 == -1){
+            NO_DISPLAY_BINS += 20;
+            if (NO_DISPLAY_BINS > MAX_DISPLAY_BINS){
+                NO_DISPLAY_BINS = MAX_DISPLAY_BINS;
+            }
+            spectrum_scale_change = true;
+        }
 
-        if (dial_1 == -1) DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 4) % 4;
-        if (dial_1 == 1) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 4;
+        if (DISPLAY_GRAPH == 1 && dial_1 == 1){
+            NO_DISPLAY_BINS -= 20;
+            if (NO_DISPLAY_BINS < MIN_DISPLAY_BINS){
+                NO_DISPLAY_BINS = MIN_DISPLAY_BINS;
+                }
+                spectrum_scale_change = true;
+        }
 
         while (ps2_read(&byte)){
             if (byte == 0xF0){
@@ -533,10 +545,10 @@ int captureRecordingAndGraphTime() {
 
 int poll_encoder(int base_bit, int idx) {
     static int prev_clk[5] = {1, 1, 1, 1, 1};
-    static clock_t last_time[5] = {0};
+    // static clock_t last_time[5] = {0};
     
-    clock_t now = clock();
-    if ((now - last_time[idx]) < (CLOCKS_PER_SEC / 100)) return 0;  // 10ms debounce
+    // clock_t now = clock();
+    // if ((now - last_time[idx]) < (CLOCKS_PER_SEC / 100)) return 0;  // 10ms debounce
     
     int clk = (*jp1_ptr >> (base_bit + 0)) & 1;
     int dt  = (*jp1_ptr >> (base_bit + 2)) & 1;
@@ -544,9 +556,9 @@ int poll_encoder(int base_bit, int idx) {
     int dir = 0;
     if (clk && !prev_clk[idx]) {
         dir = dt ? -1 : 1;
-        last_time[idx] = now;
+        // last_time[idx] = now;
     }
-    
+
     prev_clk[idx] = clk;
     return dir;
 }

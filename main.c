@@ -15,6 +15,7 @@ Code from this commit is MILESTONE #2 READY!
 #include <stdbool.h>
 #include <math.h>
 #include <string.h>
+#include <time.h>
 
 #define AUDIO_BASE          0xFF203040
 #define KEY_BASE            0xFF200050
@@ -23,6 +24,7 @@ Code from this commit is MILESTONE #2 READY!
 #define CHARACTER_BASE      0xFF203030
 #define SWITCH_BASE         0xFF200040
 #define KEYBOARD_BASE       0xFF200100
+#define JP1_BASE            0xFF200060
 
 #define RECORDING_LENGTH   40000
 #define FRAME_LENGTH       256
@@ -85,6 +87,7 @@ volatile int* key_ptr   = (int*) KEY_BASE;
 volatile int* led_ptr   = (int*) LED_BASE;
 volatile int* sw_ptr    = (int*) SWITCH_BASE;
 volatile int* keyboard_ptr = (int*) KEYBOARD_BASE;
+volatile int* jp1_ptr = (int*) JP1_BASE;
 
 volatile int pixel_buffer_start;
 short int Buffer1[240][512];
@@ -255,6 +258,11 @@ int main(void){
     // PS/2 Keyboard Polling Loop
     while (1){
         unsigned char byte;
+
+        int dial_1 = poll_encoder(0,0); // dial 0
+
+        if (dial_1 == -1) DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 4) % 4;
+        if (dial_1 == 1) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 4;
 
         while (ps2_read(&byte)){
             if (byte == 0xF0){
@@ -525,6 +533,10 @@ int captureRecordingAndGraphTime() {
 
 int poll_encoder(int base_bit, int idx) {
     static int prev_clk[5] = {1, 1, 1, 1, 1};
+    static clock_t last_time[5] = {0};
+    
+    clock_t now = clock();
+    if ((now - last_time[idx]) < (CLOCKS_PER_SEC / 100)) return 0;  // 10ms debounce
     
     int clk = (*jp1_ptr >> (base_bit + 0)) & 1;
     int dt  = (*jp1_ptr >> (base_bit + 2)) & 1;
@@ -532,6 +544,7 @@ int poll_encoder(int base_bit, int idx) {
     int dir = 0;
     if (clk && !prev_clk[idx]) {
         dir = dt ? -1 : 1;
+        last_time[idx] = now;
     }
     
     prev_clk[idx] = clk;

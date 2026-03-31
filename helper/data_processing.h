@@ -12,6 +12,7 @@ data_processing.h
 #define FEATURES_1               20          // 4 spectral + 8 mfcc means + 8 mfcc stds
 
 #define MAX_RECORDING_LENGTH     80000       // 10s at 8000 Hz
+#define MIN_RECORDING_LENGTH     16000       // 2s at 8000 Hz
 #define CHUNK_DURATION_SAMPLES   (SAMPLING_RATE / 2)                                    // 0.5s = 4000 samples
 #define FRAMES_PER_CHUNK         ((CHUNK_DURATION_SAMPLES - FRAME_LENGTH) / HOP_SIZE + 1) // 30
 #define MAX_CHUNKS_PER_RECORDING 20

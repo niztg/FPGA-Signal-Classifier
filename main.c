@@ -255,12 +255,15 @@ int main(void){
 
     *led_ptr = 0; // clear from previous execute
 
-    // PS/2 Keyboard Polling Loop
+    // All-Purpose Polling Loop
     while (1){
         unsigned char byte;
 
-        int dial_1 = poll_encoder(1,0); // dial 0
-        if (DISPLAY_GRAPH == 1 && dial_1 == -1){
+        int dial_0 = poll_encoder(27,0); // dial 0
+        int dial_1 = poll_encoder(17, 1); // dial 1
+
+        // Scale graph
+        if (DISPLAY_GRAPH == 1 && dial_0 == -1){ // zoom out
             NO_DISPLAY_BINS += 20;
             if (NO_DISPLAY_BINS > MAX_DISPLAY_BINS){
                 NO_DISPLAY_BINS = MAX_DISPLAY_BINS;
@@ -268,7 +271,7 @@ int main(void){
             spectrum_scale_change = true;
         }
 
-        if (DISPLAY_GRAPH == 1 && dial_1 == 1){
+        if (DISPLAY_GRAPH == 1 && dial_0 == 1){ // zoom in
             NO_DISPLAY_BINS -= 20;
             if (NO_DISPLAY_BINS < MIN_DISPLAY_BINS){
                 NO_DISPLAY_BINS = MIN_DISPLAY_BINS;
@@ -276,6 +279,23 @@ int main(void){
                 spectrum_scale_change = true;
         }
 
+        // Pan graph
+        if (DISPLAY_GRAPH == 1 && dial_1 == -1){ // pan left
+            SPECTRUM_VIEWPORT_START -= 10;
+            if (SPECTRUM_VIEWPORT_START < 0) SPECTRUM_VIEWPORT_START = 0;
+            spectrum_scale_change = true;
+        }
+
+        if (DISPLAY_GRAPH == 1 && dial_1 == 1){ // pan right
+            SPECTRUM_VIEWPORT_START += 10;
+            int max_start = NO_FREQ_BINS - NO_DISPLAY_BINS;
+            if (max_start < 0) max_start = 0;
+            if (SPECTRUM_VIEWPORT_START > max_start) SPECTRUM_VIEWPORT_START = max_start;
+            spectrum_scale_change = true;
+        }
+
+
+        // Poll PS2 FIFO
         while (ps2_read(&byte)){
             if (byte == 0xF0){
                 ps2_break_pending = true;
@@ -317,37 +337,6 @@ int main(void){
                     ACTIVE_CHANNEL->n_chunks          = ACTIVE_CHANNEL->recording_length / CHUNK_DURATION_SAMPLES;
                     ACTIVE_CHANNEL->frames_per_recording = ACTIVE_CHANNEL->n_chunks * FRAMES_PER_CHUNK;
                     ACTIVE_CHANNEL->samples_per_pixel = (ACTIVE_CHANNEL->recording_length * 2) / STANDARD_GRAPH_WIDTH;
-                }
-
-                if (DISPLAY_GRAPH == 1 && byte == KEY_MINUS){
-                    NO_DISPLAY_BINS += 20;
-                    if (NO_DISPLAY_BINS > MAX_DISPLAY_BINS){
-                        NO_DISPLAY_BINS = MAX_DISPLAY_BINS;
-                    }
-                    spectrum_scale_change = true;
-                }
-
-                if (DISPLAY_GRAPH == 1 && byte == KEY_PLUS){
-                    NO_DISPLAY_BINS -= 20;
-                    if (NO_DISPLAY_BINS < MIN_DISPLAY_BINS){
-                        NO_DISPLAY_BINS = MIN_DISPLAY_BINS;
-                    }
-                    spectrum_scale_change = true;
-                }
-
-                if (DISPLAY_GRAPH == 1 && is_extended && byte == KEY_UP){
-                    SPECTRUM_VIEWPORT_START -= 10;
-                    if (SPECTRUM_VIEWPORT_START < 0) SPECTRUM_VIEWPORT_START = 0;
-                    spectrum_scale_change = true;
-                }
-
-                if (DISPLAY_GRAPH == 1 && is_extended && byte == KEY_DOWN){
-                    SPECTRUM_VIEWPORT_START += 10;
-                    int max_start = NO_FREQ_BINS - NO_DISPLAY_BINS;
-                    if (max_start < 0) max_start = 0;
-                    if (SPECTRUM_VIEWPORT_START > max_start)
-                        SPECTRUM_VIEWPORT_START = max_start;
-                    spectrum_scale_change = true;
                 }
 
                 if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 4) % 4;

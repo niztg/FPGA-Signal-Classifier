@@ -259,8 +259,9 @@ int main(void){
     while (1){
         unsigned char byte;
 
-        int dial_0 = poll_encoder(27,0); // dial 0
+        int dial_0 = poll_encoder(27, 0); // dial 0
         int dial_1 = poll_encoder(17, 1); // dial 1
+        int dial_2 = poll_encoder(16, 2); // dial 2
 
         // Scale graph
         if (DISPLAY_GRAPH == 1 && dial_0 == -1){ // zoom out
@@ -292,6 +293,13 @@ int main(void){
             if (max_start < 0) max_start = 0;
             if (SPECTRUM_VIEWPORT_START > max_start) SPECTRUM_VIEWPORT_START = max_start;
             spectrum_scale_change = true;
+        }
+
+        // Rotate through chunks and MFCC Radars
+        if (dial_2 == 1) DISPLAY_CHUNK = (DISPLAY_CHUNK + 1) % ACTIVE_CHANNEL -> n_chunks;
+        if (dial_2 == -1){
+            DISPLAY_CHUNK -= 1;
+            if (DISPLAY_CHUNK < 0) DISPLAY_CHUNK = ACTIVE_CHANNEL -> n_chunks - 1;
         }
 
 
@@ -341,17 +349,6 @@ int main(void){
 
                 if (is_extended && byte == KEY_LEFT)  DISPLAY_GRAPH = ((DISPLAY_GRAPH - 1) + 4) % 4;
                 if (is_extended && byte == KEY_RIGHT) DISPLAY_GRAPH = (DISPLAY_GRAPH + 1) % 4;
-
-                if (byte == KEY_1) DISPLAY_CHUNK = 0;
-                if (byte == KEY_2) DISPLAY_CHUNK = 1;
-                if (byte == KEY_3) DISPLAY_CHUNK = 2;
-                if (byte == KEY_4) DISPLAY_CHUNK = 3;
-                if (byte == KEY_5) DISPLAY_CHUNK = 4;
-                if (byte == KEY_6) DISPLAY_CHUNK = 5;
-                if (byte == KEY_7) DISPLAY_CHUNK = 6;
-                if (byte == KEY_8) DISPLAY_CHUNK = 7;
-                if (byte == KEY_9) DISPLAY_CHUNK = 8;
-                if (byte == KEY_0) DISPLAY_CHUNK = 9;
             }
         }
 

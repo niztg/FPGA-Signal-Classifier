@@ -509,10 +509,42 @@ int main(void){
         }
 
         if (playback){
+            ACTIVE_CHANNEL->has_been_run = false;  // suppress drawFullFrame chunk/prediction redraw
+            record = false;
+            *led_ptr = 0;
+            DISPLAY_GRAPH = 0;
+            fillComparator(0, &time_fill, &spectrum_fill, &spectrogram_fill, &radar_fill);
+
+            // Wipe pixel buffer completely
+            clearRegion((point){0, 0}, 320, 240);
+
+            // Wipe character buffer rows that hold stale text
+            // Row 4 = chunk counter, row 12 = prediction text
+            vga_text(6, 4,  "                                        ");
+            vga_text(6, 12, "                                        ");
+
+            // Redraw buttons only, no chunk data
+            createGraphButton(button1, (point){25, 76}, true,  ACTIVE_CHANNEL->fill_color);
+            createGraphButton(button2, (point){56, 76}, false, ACTIVE_CHANNEL->fill_color);
+            createGraphButton(button3, (point){102, 76}, false, ACTIVE_CHANNEL->fill_color);
+            createGraphButton(button4, (point){155, 76}, false, ACTIVE_CHANNEL->fill_color);
+
+            if (is_channel_1) vga_text(55, 20, "CH. 1");
+            else              vga_text(55, 20, "CH. 2");
+            char* length;
+            sprintf(length, "Recording length: %ds ", ACTIVE_CHANNEL->recording_length / 8000);
+            vga_text(6, 23, length);
+
+            PREV_DISPLAY_GRAPH = 0;
             playback = false;
+
+            ACTIVE_CHANNEL -> has_been_run = true;
+
             *led_ptr = 0x2;
             playbackRecording();
             *led_ptr = 0;
+            drawFullFrame(button1, button2, button3, button4,
+                        time_fill, spectrum_fill, spectrogram_fill, radar_fill);
         }
 
     }
@@ -541,8 +573,8 @@ int captureRecordingAndGraphTime() {
                 int line_height = (int)(((float)col_peak / (float)MAX_AMPLITUDE) * usable_height);
                 time_plot_line_heights[(x - time_plot_mid_left.x) / 2] = line_height;
                 
-                drawLine((point){x, time_plot_mid_left.y + line_height / 2},
-                         (point){x, time_plot_mid_left.y - line_height / 2},
+                drawLine((point){x, time_plot_mid_left.y + line_height*0.8 / 2},
+                         (point){x, time_plot_mid_left.y - line_height*0.8 / 2},
                          ACTIVE_CHANNEL -> fill_color, false);
                 x += 2;
                 col_peak = 0;  // reset for next column
@@ -598,6 +630,16 @@ static inline bool ps2_read(unsigned char *out) {
 }
 
 void playbackRecording(){
+    int const usable_height = STANDARD_GRAPH_HEIGHT - 2 * axes_offset;
+    int const MAX_AMPLITUDE = 0x6FFFFFFF;
+    int col_peak = 0;  // tracks peak within current pixel column
+
+    drawLine((point){time_plot_mid_left.x, time_plot_mid_left.y + (STANDARD_GRAPH_HEIGHT/2) - axes_offset},
+             (point){time_plot_mid_left.x, time_plot_mid_left.y - (STANDARD_GRAPH_HEIGHT/2) + axes_offset},
+             LINE_COLOR, false);
+    drawLine((point){time_plot_mid_left.x, time_plot_mid_left.y},
+             (point){time_plot_mid_left.x + STANDARD_GRAPH_WIDTH, time_plot_mid_left.y},
+             LINE_COLOR, false);
     //make current graph white
     for (int x = time_plot_mid_left.x; x < time_plot_mid_left.x + STANDARD_GRAPH_WIDTH; x += 2){
         drawLine((point){x, time_plot_mid_left.y + (time_plot_line_heights[(x - time_plot_mid_left.x)/2]/2)},
@@ -688,7 +730,7 @@ void displayMFCCRadar(){
     } else {
         sprintf(chunk_label, "No recording yet.");
     }
-    vga_text(25 / TEXT_CELL_W, 96 / TEXT_CELL_H, chunk_label);
+    vga_text(25 / TEXT_CELL_W, (96 / TEXT_CELL_H) + 1, chunk_label);
 
     plotMFCCRadar(
         ACTIVE_CHANNEL -> feature_vector_array[DISPLAY_CHUNK].mfcc_mean,

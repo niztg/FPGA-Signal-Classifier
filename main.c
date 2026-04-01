@@ -589,10 +589,6 @@ int captureRecordingAndGraphTime() {
 int poll_encoder(int base_bit, int idx) {
     static int prev_clk[5] = {1, 1, 1, 1, 1};
     static int prev_dt[5]  = {1, 1, 1, 1, 1};
-    static clock_t last_time[5] = {0};
-
-    clock_t now = clock();
-    if ((now - last_time[idx]) < (CLOCKS_PER_SEC / 200)) return 0;  // 5ms gate
 
     // majority vote on both signals
     int clk_sum = 0, dt_sum = 0;

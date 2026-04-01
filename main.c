@@ -588,26 +588,16 @@ int captureRecordingAndGraphTime() {
 
 int poll_encoder(int base_bit, int idx) {
     static int prev_clk[5] = {1, 1, 1, 1, 1};
-    static int prev_dt[5]  = {1, 1, 1, 1, 1};
-
-    // majority vote on both signals
-    int clk_sum = 0, dt_sum = 0;
-    for (int i = 0; i < 5; i++) {
-        clk_sum += (*jp1_ptr >> (base_bit + 0)) & 1;
-        dt_sum  += (*jp1_ptr >> (base_bit + 2)) & 1;
-    }
-    int clk = clk_sum >= 3 ? 1 : 0;
-    int dt  = dt_sum  >= 3 ? 1 : 0;
-
+    
+    int clk = (*jp1_ptr >> (base_bit + 0)) & 1;
+    int dt  = (*jp1_ptr >> (base_bit + 2)) & 1;
+    
     int dir = 0;
-    if (clk && !prev_clk[idx] && dt == prev_dt[idx]) {
-        // only accept if DT was stable across the CLK edge
+    if (clk && !prev_clk[idx]) {
         dir = dt ? -1 : 1;
-        last_time[idx] = now;
     }
 
     prev_clk[idx] = clk;
-    prev_dt[idx]  = dt;
     return dir;
 }
 

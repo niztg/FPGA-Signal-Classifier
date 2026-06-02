@@ -26,15 +26,16 @@ Input (20 features) → Hidden Layer 1 (36 neurons) → Hidden Layer 2 (16 neuro
 The network was trained externally in Python using ~100 recordings per class (authorized / unauthorized). After training, weights were extracted into a C header file and integrated into the embedded firmware running on the DE1-SoC's soft-core processor.
 
 ### Hardware/Software Co-Design
-The system is partitioned across two execution domains:
+The system runs on the DE1-SoC's embedded soft-core processor, handling FFT and MFCC feature extraction, MLP inference, and GUI rendering entirely in C firmware.
+
+The architecture was designed with hardware acceleration in mind — the Verilog infrastructure for offloading DSP computation to dedicated acceleration blocks is in place, but the accelerator is not yet fully implemented. Completing this would allow the compute-intensive FFT and feature extraction stages to run in hardware, significantly improving throughput over the current software-only approach.
 
 | Layer | Implementation |
 |---|---|
-| FFT and feature extraction | Custom Verilog hardware acceleration blocks |
-| MLP inference and control flow | C firmware on embedded soft-core processor |
-| GUI rendering and user interaction | Soft-core processor via VGA output |
-
-Offloading the compute-intensive DSP to dedicated hardware allows real-time throughput that would not be achievable in pure software on the soft-core alone.
+| FFT and feature extraction | C firmware (soft-core processor) |
+| MLP inference and control flow | C firmware (soft-core processor) |
+| GUI rendering and user interaction | C firmware via VGA output |
+| Hardware DSP acceleration | Infrastructure present, not yet implemented |
 
 ---
 
@@ -62,5 +63,28 @@ Two independent channels allow simultaneous storage and comparison of two record
 | FPGA Platform | Intel DE1-SoC |
 | Hardware Description | Verilog |
 | Firmware | C |
+| HDL Simulation | ModelSim |
+| Synthesis | Quartus Prime |
 | Model Training | Python (NumPy, scikit-learn) |
 | Signal Processing | FFT, MFCC extraction |
+
+---
+
+## Repository Structure
+
+```
+/
+├── hardware/          # Verilog modules (FFT acceleration, VGA controller, peripherals)
+├── firmware/          # C source for soft-core processor (inference engine, GUI, control)
+├── model/             # Python training scripts and exported weight files
+└── docs/              # Block diagrams and system documentation
+```
+
+---
+
+## System Requirements
+
+- Intel DE1-SoC development board
+- Quartus Prime (for synthesis and programming)
+- ModelSim (for HDL simulation)
+- Python 3.x with NumPy and scikit-learn (for retraining the model)

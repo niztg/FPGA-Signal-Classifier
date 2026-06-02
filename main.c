@@ -1,8 +1,6 @@
 /* 
 FPGA SIGNAL CLASSIFIER
 March 2026
-
-Code from this commit is MILESTONE #2 READY! 
 */
 
 #include "helper/data_processing.h"
